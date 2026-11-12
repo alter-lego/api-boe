@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+.dev.vars
+.wrangler/
+supabase/.temp/
+*.log
+.DS_Store
+!.env.example
