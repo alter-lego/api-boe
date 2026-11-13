@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento fecha_actualizacion="20261112095601">
+  <metadatos>
+    <identificador>BOE-A-2026-23724</identificador>
+    <origen_legislativo codigo="1">Estatal</origen_legislativo>
+    <departamento codigo="1220">Cortes Generales</departamento>
+    <rango codigo="1370">Resolución</rango>
+    <fecha_disposicion>20261027</fecha_disposicion>
+    <numero_oficial/>
+    <titulo>Resolución de 27 de octubre de 2026, de la Presidencia del Congreso de los Diputados, por la que se corrigen errores en el Acuerdo de 13 de octubre de 2026, de la Mesa de la Diputación Permanente, por la que se convocan becas de formación práctica sobre comunicación institucional.</titulo>
+    <diario codigo="BOE">Boletín Oficial del Estado</diario>
+    <fecha_publicacion>20261112</fecha_publicacion>
+    <diario_numero>282</diario_numero>
+    <seccion>3</seccion>
+    <subseccion/>
+    <pagina_inicial>152702</pagina_inicial>
+    <pagina_final>152702</pagina_final>
+    <suplemento_pagina_inicial/>
+    <suplemento_pagina_final/>
+    <url_pdf>https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23724.pdf</url_pdf>
+    <url_epub/>
+    <url_pdf_catalan/>
+    <url_pdf_euskera/>
+    <url_pdf_gallego/>
+    <url_pdf_valenciano/>
+    <estatus_legislativo/>
+    <fecha_vigencia/>
+    <estatus_derogacion>N</estatus_derogacion>
+    <fecha_derogacion/>
+    <judicialmente_anulada>N</judicialmente_anulada>
+    <fecha_anulacion/>
+    <vigencia_agotada>N</vigencia_agotada>
+    <estado_consolidacion codigo="0"/>
+    <letra_imagen>A</letra_imagen>
+    <suplemento_letra_imagen/>
+  </metadatos>
+  <analisis>
+    <materias/>
+    <notas/>
+    <referencias>
+      <anteriores>
+        <anterior referencia="BOE-A-2026-22392" orden="2140">
+          <palabra codigo="203">CORRIGE errores</palabra>
+          <texto>en el Acuerdo de 13 de octubre de 2026</texto>
+        </anterior>
+      </anteriores>
+      <posteriores/>
+    </referencias>
+    <alertas/>
+  </analisis>
+  <texto>
+    <p class="parrafo">Advertido error en el Acuerdo de la Mesa de la Diputación Permanente de 13 de octubre de 2026, de convocatoria de seis becas de formación práctica sobre comunicación institucional, publicada en el «Boletín Oficial del Estado» número 265 de 26 de octubre de 2026, se procede a la sustitución del texto de la base Octava, insertándose el correcto a continuación:</p>
+    <p class="articulo">«Octava. Jurado.</p>
+    <p class="parrafo">1. Las becas se concederán por la Mesa del Congreso, o en su caso, de la Diputación Permanente, a propuesta de un Jurado integrado por la Presidenta del Congreso de los Diputados o Vicepresidente/a en quien delegue, que lo presidirá; dos miembros de la Diputación Permanente, el Secretario General del Congreso o, por delegación, una Secretaria General Adjunta y la Directora de Comunicación, que actuará como Secretaria.</p>
+    <p class="parrafo">2. La pérdida de la condición de parlamentario/a, como consecuencia de la disolución de la Cámara, no será obstáculo para que los diputados/as que formen parte del jurado mantengan la condición de integrantes del mismo. Tampoco lo será para el resto de los miembros del jurado la pérdida del cargo en razón del cual fueron designados.</p>
+    <p class="parrafo">3. Corresponde al Jurado examinar y aprobar el resultado de la valoración, realizar las entrevistas, formular la propuesta de las personas adjudicatarias y determinar el orden de las suplentes.</p>
+    <p class="parrafo">4. La concesión de las becas se propondrá por el Jurado por mayoría de votos y se otorgarán por la Mesa, igualmente, por mayoría de votos; también podrán declararse desiertas.</p>
+    <p class="parrafo">5. De las deliberaciones se levantará acta con los acuerdos del Jurado, firmada por la Secretaria con el visto bueno de la Presidenta.»</p>
+    <p class="parrafo_2">Madrid, 27 de octubre de 2026.–La Presidenta del Congreso de los Diputados, Francina Armengol Socias.</p>
+  </texto>
+</documento>

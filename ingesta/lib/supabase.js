@@ -33,6 +33,9 @@ export function crearCliente({ url, claveSecreta, fetchFn = fetch }) {
         body: filas,
         prefer: 'resolution=merge-duplicates,return=representation',
       }),
+    /** Actualiza las filas que cumplen el filtro (p. ej. 'id=eq.BOE-A-2026-1'). */
+    parchear: (tabla, filtro, cuerpo) =>
+      peticion(`${tabla}?${filtro}`, { method: 'PATCH', body: cuerpo, prefer: 'return=minimal' }),
     insertar: (tabla, fila) =>
       peticion(tabla, { method: 'POST', body: fila, prefer: 'return=minimal' }),
     seleccionar: (ruta) => peticion(ruta),

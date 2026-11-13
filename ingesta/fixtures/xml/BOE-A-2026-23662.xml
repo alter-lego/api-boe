@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento fecha_actualizacion="20261112095601">
+  <metadatos>
+    <identificador>BOE-A-2026-23662</identificador>
+    <origen_legislativo codigo="1">Estatal</origen_legislativo>
+    <departamento codigo="1410">Tribunal Constitucional</departamento>
+    <rango codigo="63">Providencia</rango>
+    <fecha_disposicion>20261103</fecha_disposicion>
+    <numero_oficial>6108/2026</numero_oficial>
+    <titulo>Conflicto positivo de competencia n.º 6108-2026, contra determinados preceptos del Real Decreto 326/2026, de 22 de abril, por el que se regula el Plan Estatal de Vivienda 2026-2030.</titulo>
+    <diario codigo="BOE">Boletín Oficial del Estado</diario>
+    <fecha_publicacion>20261112</fecha_publicacion>
+    <diario_numero>282</diario_numero>
+    <seccion>1</seccion>
+    <subseccion/>
+    <pagina_inicial>152477</pagina_inicial>
+    <pagina_final>152477</pagina_final>
+    <suplemento_pagina_inicial/>
+    <suplemento_pagina_final/>
+    <url_pdf>https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23662.pdf</url_pdf>
+    <url_epub>
+      <url_epub>https://www.boe.es/diario_boe/epub.php?id=BOE-A-2026-23662</url_epub>
+    </url_epub>
+    <url_pdf_catalan/>
+    <url_pdf_euskera/>
+    <url_pdf_gallego/>
+    <url_pdf_valenciano/>
+    <estatus_legislativo>L</estatus_legislativo>
+    <fecha_vigencia/>
+    <estatus_derogacion>N</estatus_derogacion>
+    <fecha_derogacion/>
+    <judicialmente_anulada>N</judicialmente_anulada>
+    <fecha_anulacion/>
+    <vigencia_agotada>N</vigencia_agotada>
+    <estado_consolidacion codigo="0"/>
+    <letra_imagen>A</letra_imagen>
+    <suplemento_letra_imagen/>
+  </metadatos>
+  <analisis>
+    <materias>
+      <materia codigo="1366" orden="1">Conflictos de Competencia</materia>
+      <materia codigo="7094" orden="1">Urbanismo</materia>
+      <materia codigo="7162" orden="1">Viviendas</materia>
+    </materias>
+    <notas/>
+    <referencias>
+      <anteriores>
+        <anterior referencia="BOE-A-2026-8872" orden="4030">
+          <palabra codigo="520">Conflicto promovido en relación con</palabra>
+          <texto>determinados preceptos del Real Decreto 326/2026, de 22 de abril</texto>
+        </anterior>
+      </anteriores>
+      <posteriores/>
+    </referencias>
+    <alertas>
+      <alerta codigo="111" orden="1">Derecho Constitucional</alerta>
+      <alerta codigo="137" orden="1">Vivienda y urbanismo</alerta>
+    </alertas>
+  </analisis>
+  <texto>
+    <p class="parrafo">El Pleno del Tribunal Constitucional, por providencia de 3 de noviembre de 2026, ha acordado admitir a trámite el conflicto positivo de competencia número 6108-2026, promovido por la Junta de Extremadura, en relación con determinados preceptos del Real Decreto 326/2026, de 22 de abril, por el que se regula el Plan Estatal de Vivienda 2026-2030.</p>
+    <p class="parrafo_2">Madrid, 3 de noviembre de 2026.–El Secretario de Justicia del Pleno del Tribunal Constitucional, Alfonso Pérez Camino.</p>
+  </texto>
+</documento>
