@@ -1,0 +1,466 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261112"
+   },
+   "diario": [
+    {
+     "numero": "282",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-282",
+      "url_pdf": {
+       "szBytes": "418936",
+       "szKBytes": "409",
+       "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-S-2026-282.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "1",
+       "nombre": "I. Disposiciones generales",
+       "departamento": [
+        {
+         "codigo": "1410",
+         "nombre": "TRIBUNAL CONSTITUCIONAL",
+         "epigrafe": [
+          {
+           "nombre": "Conflictos constitucionales",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23662",
+             "control": "2026/17514",
+             "titulo": "Conflicto positivo de competencia n.º 6108-2026, contra determinados preceptos del Real Decreto 326/2026, de 22 de abril, por el que se regula el Plan Estatal de Vivienda 2026-2030.",
+             "url_pdf": {
+              "szBytes": "189750",
+              "szKBytes": "185",
+              "pagina_inicial": "152477",
+              "pagina_final": "152477",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23662.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23662",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23662"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9562",
+         "nombre": "MINISTERIO DE ASUNTOS EXTERIORES, UNIÓN EUROPEA Y COOPERACIÓN",
+         "epigrafe": [
+          {
+           "nombre": "Subvenciones",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23663",
+             "control": "2026/17660",
+             "titulo": "Real Decreto 976/2026, de 11 de noviembre, por el que se regula la concesión directa de subvenciones para la cooperación internacional al desarrollo sostenible por la Secretaría de Estado de Cooperación Internacional del Ministerio de Asuntos Exteriores, Unión Europea y Cooperación.",
+             "url_pdf": {
+              "szBytes": "342691",
+              "szKBytes": "335",
+              "pagina_inicial": "152478",
+              "pagina_final": "152499",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23663.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23663",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23663"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "2A",
+       "nombre": "II. Autoridades y personal. - A. Nombramientos, situaciones e incidencias",
+       "departamento": [
+        {
+         "codigo": "1820",
+         "nombre": "CONSEJO GENERAL DEL PODER JUDICIAL",
+         "epigrafe": [
+          {
+           "nombre": "Destinos",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23670",
+             "control": "2026/17517",
+             "titulo": "Orden de 3 de noviembre de 2026, por la que se destina a los Jueces y Juezas que se relacionan, como consecuencia del concurso resuelto por Acuerdo de la Comisión Permanente del Consejo General del Poder Judicial.",
+             "url_pdf": {
+              "szBytes": "196985",
+              "szKBytes": "192",
+              "pagina_inicial": "152569",
+              "pagina_final": "152570",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23670.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23670",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23670"
+            }
+           ]
+          },
+          {
+           "nombre": "Situaciones",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23671",
+             "control": "2026/14246",
+             "titulo": "Acuerdo de 28 de julio de 2026, de la Comisión Permanente del Consejo General del Poder Judicial, por el que se declara la jubilación forzosa de la Magistrada doña María Carmen Zubimendi Alcorta.",
+             "url_pdf": {
+              "szBytes": "191489",
+              "szKBytes": "187",
+              "pagina_inicial": "152571",
+              "pagina_final": "152571",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23671.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23671",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23671"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "epigrafe": [
+          {
+           "nombre": "Destinos",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23672",
+             "control": "2026/17519",
+             "titulo": "Resolución de 5 de noviembre de 2026, de la Subsecretaría, por la que se resuelve el concurso específico, convocado por Resolución de 24 de agosto de 2026.",
+             "url_pdf": {
+              "szBytes": "271381",
+              "szKBytes": "265",
+              "pagina_inicial": "152572",
+              "pagina_final": "152574",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23672.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23672",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23672"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "2B",
+       "nombre": "II. Autoridades y personal. - B. Oposiciones y concursos",
+       "departamento": [
+        {
+         "codigo": "1820",
+         "nombre": "CONSEJO GENERAL DEL PODER JUDICIAL",
+         "epigrafe": [
+          {
+           "nombre": "Carrera Judicial",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23689",
+             "control": "2026/17540",
+             "titulo": "Acuerdo de 3 de noviembre de 2026, de la Comisión Permanente del Consejo General del Poder Judicial, por el que se convoca concurso para la provisión de cargos judiciales entre miembros de la Carrera Judicial, con categoría de Juez/a.",
+             "url_pdf": {
+              "szBytes": "221703",
+              "szKBytes": "217",
+              "pagina_inicial": "152595",
+              "pagina_final": "152600",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23689.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23689",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23689"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "epigrafe": [
+          {
+           "nombre": "Procedimientos de libre designación",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23690",
+             "control": "2026/17542",
+             "titulo": "Resolución de 5 de noviembre de 2026, de la Subsecretaría, por la que se convoca la provisión de puesto de trabajo por el sistema de libre designación.",
+             "url_pdf": {
+              "szBytes": "275154",
+              "szKBytes": "269",
+              "pagina_inicial": "152601",
+              "pagina_final": "152603",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23690.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23690",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23690"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "3",
+       "nombre": "III. Otras disposiciones",
+       "departamento": [
+        {
+         "codigo": "1220",
+         "nombre": "CORTES GENERALES",
+         "epigrafe": [
+          {
+           "nombre": "Becas",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23724",
+             "control": "2026/17472",
+             "titulo": "Resolución de 27 de octubre de 2026, de la Presidencia del Congreso de los Diputados, por la que se corrigen errores en el Acuerdo de 13 de octubre de 2026, de la Mesa de la Diputación Permanente, por la que se convocan becas de formación práctica sobre comunicación institucional.",
+             "url_pdf": {
+              "szBytes": "192264",
+              "szKBytes": "188",
+              "pagina_inicial": "152702",
+              "pagina_final": "152702",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23724.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23724",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23724"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "epigrafe": [
+          {
+           "nombre": "Comisiones de trabajo",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23725",
+             "control": "2026/17291",
+             "titulo": "Orden PJC/1200/2026, de 3 de noviembre, por la que se publica el Acuerdo del Consejo de Ministros de 20 de octubre de 2026, por el que se modifica el Acuerdo de 1 de marzo de 2019, por el que se crea el Observatorio de Salud de las Mujeres.",
+             "url_pdf": {
+              "szBytes": "224524",
+              "szKBytes": "219",
+              "pagina_inicial": "152703",
+              "pagina_final": "152708",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23725.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23725",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23725"
+            }
+           ]
+          },
+          {
+           "nombre": "Comunidad Autónoma de Aragón. Convenio",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23726",
+             "control": "2026/17473",
+             "titulo": "Resolución de 29 de octubre de 2026, de la Secretaría de Estado de Justicia, por la que se publica el Convenio con la Comunidad Autónoma de Aragón, sobre transferencia de soluciones tecnológicas en materia de Justicia.",
+             "url_pdf": {
+              "szBytes": "413928",
+              "szKBytes": "404",
+              "pagina_inicial": "152709",
+              "pagina_final": "152743",
+              "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23726.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23726",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23726"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5A",
+       "nombre": "V. Anuncios. - A. Contratación del Sector Público",
+       "departamento": [
+        {
+         "codigo": "1220",
+         "nombre": "CORTES GENERALES",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-36923",
+           "titulo": "Anuncio de licitación de: Mesa del Senado. Objeto: Suministro de ordenadores portátiles y accesorios para el Senado. Expediente: 31/2026.",
+           "url_pdf": {
+            "szBytes": "224489",
+            "szKBytes": "219",
+            "pagina_inicial": "59841",
+            "pagina_final": "59843",
+            "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-B-2026-36923.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36923",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36923"
+          }
+         ]
+        },
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-36924",
+           "titulo": "Anuncio de formalización de contratos de: Junta de Contratación de la Secretaría de Estado de Justicia. Objeto: Servicio de mantenimiento integral de los equipos de inspección de seguridad por rayos X ubicados en los edificios administrativos y sedes judiciales adscritos a las Gerencias Territoriales del Ministerio de la Presidencia, Justicia y Relaciones con las Cortes . Expediente: ASE/2026/064.",
+           "url_pdf": {
+            "szBytes": "220180",
+            "szKBytes": "215",
+            "pagina_inicial": "59844",
+            "pagina_final": "59845",
+            "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-B-2026-36924.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36924",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36924"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "9586",
+         "nombre": "MINISTERIO DE TRANSPORTES Y MOVILIDAD SOSTENIBLE",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-36975",
+           "titulo": "Resolución de la Autoridad Portuaria de Motril por la que se publica el otorgamiento de concesiones administrativas.",
+           "url_pdf": {
+            "szBytes": "203155",
+            "szKBytes": "198",
+            "pagina_inicial": "59958",
+            "pagina_final": "59958",
+            "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-B-2026-36975.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36975",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36975"
+          },
+          {
+           "identificador": "BOE-B-2026-36976",
+           "titulo": "Resolución de la Autoridad Portuaria de Valencia, por la que se otorga una concesión administrativa para la ocupación de dominio público portuario a Valencia Digital Port Connect S.L., en el puerto de Sagunto.",
+           "url_pdf": {
+            "szBytes": "204554",
+            "szKBytes": "200",
+            "pagina_inicial": "59959",
+            "pagina_final": "59959",
+            "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-B-2026-36976.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36976",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36976"
+          },
+          {
+           "identificador": "BOE-B-2026-36977",
+           "titulo": "Anuncio de la Autoridad Portuaria de Barcelona por el que se somete a información pública el proyecto de pliego de condiciones particulares del servicio comercial de suministro de gas natural licuado (GNL) a buques como combustible en el puerto de Barcelona. Exp. 2026/003028.",
+           "url_pdf": {
+            "szBytes": "204230",
+            "szKBytes": "199",
+            "pagina_inicial": "59960",
+            "pagina_final": "59960",
+            "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-B-2026-36977.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36977",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36977"
+          }
+         ]
+        },
+        {
+         "codigo": "9573",
+         "nombre": "MINISTERIO DE TRABAJO Y ECONOMÍA SOCIAL",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-36982",
+           "titulo": "Resolución de la Dirección General de Trabajo por la que se anuncia el depósito de la modificación de los estatutos de la asociación empresarial denominada Asociación Ibérica de Fabricantes de Impermeabilización, en siglas AIFIM, con número de depósito 99105853.",
+           "url_pdf": {
+            "szBytes": "204663",
+            "szKBytes": "200",
+            "pagina_inicial": "59969",
+            "pagina_final": "59969",
+            "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-B-2026-36982.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36982",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36982"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "T",
+       "nombre": "T.C. Sección del Tribunal Constitucional",
+       "departamento": [
+        {
+         "codigo": "1410",
+         "nombre": "TRIBUNAL CONSTITUCIONAL",
+         "texto": {
+          "epigrafe": [
+           {
+            "nombre": "Sentencias",
+            "item": [
+             {
+              "identificador": "BOE-A-2026-23751",
+              "control": "2026/17323",
+              "titulo": "Sala Segunda. Sentencia 65/2026, de 5 de octubre de 2026. Recurso de amparo 4213-2025. Promovido por el Ayuntamiento de Piélagos (Cantabria) en relación con las resoluciones de la Sala de lo Contencioso-Administrativo del Tribunal Superior de Justicia de Cantabria que denegaron la preparación de un recurso de casación por infracción de la normativa autonómica. Vulneración del derecho a la tutela judicial efectiva (acceso al recurso): inadmisión, sin causa legal para ello, de un recurso de casación basado en infracción de normas autonómicas (SSTC 128/2018 y 98/2020).",
+              "url_pdf": {
+               "szBytes": "263291",
+               "szKBytes": "257",
+               "pagina_inicial": "152913",
+               "pagina_final": "152924",
+               "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23751.pdf"
+              },
+              "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23751",
+              "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23751"
+             },
+             {
+              "identificador": "BOE-A-2026-23752",
+              "control": "2026/17324",
+              "titulo": "Sala Segunda. Sentencia 66/2026, de 5 de octubre de 2026. Recurso de amparo 4827-2025. Promovido por doña Ana Abril Egea en relación con las resoluciones dictadas por un juzgado de lo social de Murcia en proceso de despido. Vulneración del derecho a la tutela judicial sin indefensión: emplazamiento por edictos sin haber intentado la notificación en el domicilio que figuraba en el escrito de demanda, la carta de despido y el contrato de trabajo.",
+              "url_pdf": {
+               "szBytes": "234189",
+               "szKBytes": "229",
+               "pagina_inicial": "152925",
+               "pagina_final": "152932",
+               "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23752.pdf"
+              },
+              "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23752",
+              "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23752"
+             },
+             {
+              "identificador": "BOE-A-2026-23753",
+              "control": "2026/17325",
+              "titulo": "Pleno. Sentencia 67/2026, de 6 de octubre de 2026. Recurso de amparo 8547-2024. Promovido por doña Dolors Bassa i Coll en relación con los autos dictados por la Sala de lo Penal del Tribunal Supremo denegando el archivo definitivo de la ejecutoria de la sentencia dictada en causa especial. Vulneración del derecho a la tutela judicial efectiva, en conexión con los derechos de acceso a los cargos públicos y a la legalidad penal: resoluciones judiciales que rechazan la aplicación de la Ley de amnistía al delito de malversación de caudales públicos. Voto particular.",
+              "url_pdf": {
+               "szBytes": "523183",
+               "szKBytes": "511",
+               "pagina_inicial": "152933",
+               "pagina_final": "152983",
+               "texto": "https://www.boe.es/boe/dias/2026/11/12/pdfs/BOE-A-2026-23753.pdf"
+              },
+              "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23753",
+              "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23753"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

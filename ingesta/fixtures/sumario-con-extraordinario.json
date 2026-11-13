@@ -1,0 +1,532 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261104"
+   },
+   "diario": [
+    {
+     "numero": "275",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-275",
+      "url_pdf": {
+       "szBytes": "143699",
+       "szKBytes": "140",
+       "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-S-2026-275.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "2A",
+       "nombre": "II. Autoridades y personal. - A. Nombramientos, situaciones e incidencias",
+       "texto": {
+        "departamento": {
+         "codigo": "7786",
+         "nombre": "PRESIDENCIA DEL GOBIERNO",
+         "texto": {
+          "epigrafe": [
+           {
+            "nombre": "Ceses",
+            "item": {
+             "identificador": "BOE-A-2026-23171",
+             "control": "2026/17347",
+             "titulo": "Real Decreto 974/2026, de 4 de noviembre, por el que se dispone el cese de don Óscar Puente Santiago como Ministro de Transportes y Movilidad Sostenible.",
+             "url_pdf": {
+              "szBytes": "191297",
+              "szKBytes": "187",
+              "pagina_inicial": "148170",
+              "pagina_final": "148170",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23171.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23171",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23171"
+            }
+           },
+           {
+            "nombre": "Despacho",
+            "item": {
+             "identificador": "BOE-A-2026-23172",
+             "control": "2026/17348",
+             "titulo": "Real Decreto 975/2026, de 4 de noviembre, por el que se dispone que el Vicepresidente Primero del Gobierno y Ministro de Economía, Comercio y Empresa asuma el despacho ordinario de los asuntos del Ministerio de Transportes y Movilidad Sostenible.",
+             "url_pdf": {
+              "szBytes": "192077",
+              "szKBytes": "188",
+              "pagina_inicial": "148171",
+              "pagina_final": "148171",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23172.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23172",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23172"
+            }
+           }
+          ]
+         }
+        }
+       }
+      }
+     ]
+    },
+    {
+     "numero": "274",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-274",
+      "url_pdf": {
+       "szBytes": "454030",
+       "szKBytes": "443",
+       "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-S-2026-274.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "1",
+       "nombre": "I. Disposiciones generales",
+       "departamento": [
+        {
+         "codigo": "7723",
+         "nombre": "JEFATURA DEL ESTADO",
+         "epigrafe": [
+          {
+           "nombre": "Medidas urgentes",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23104",
+             "control": "2026/17242",
+             "titulo": "Real Decreto-ley 32/2026, de 3 de noviembre, de ayudas a las víctimas del accidente ferroviario de Urda (Toledo) y por el que se garantiza la accesibilidad equitativa a bienes y servicios en situaciones de emergencia.",
+             "url_pdf": {
+              "szBytes": "323577",
+              "szKBytes": "316",
+              "pagina_inicial": "147689",
+              "pagina_final": "147709",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23104.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23104",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23104"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9590",
+         "nombre": "MINISTERIO DE EDUCACIÓN, FORMACIÓN PROFESIONAL Y DEPORTES",
+         "epigrafe": [
+          {
+           "nombre": "Organización",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23105",
+             "control": "2026/17074",
+             "titulo": "Orden EFD/1158/2026, de 28 de octubre, por la que se regula la organización y funcionamiento de la inspección educativa en el ámbito de gestión del Ministerio de Educación, Formación Profesional y Deportes.",
+             "url_pdf": {
+              "szBytes": "290744",
+              "szKBytes": "284",
+              "pagina_inicial": "147710",
+              "pagina_final": "147725",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23105.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23105",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23105"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "2A",
+       "nombre": "II. Autoridades y personal. - A. Nombramientos, situaciones e incidencias",
+       "departamento": [
+        {
+         "codigo": "9562",
+         "nombre": "MINISTERIO DE ASUNTOS EXTERIORES, UNIÓN EUROPEA Y COOPERACIÓN",
+         "epigrafe": [
+          {
+           "nombre": "Ceses",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23106",
+             "control": "2026/17235",
+             "titulo": "Real Decreto 959/2026, de 3 de noviembre, por el que se dispone el cese de doña Ana Paredes Prieto como Embajadora de España en la República de Cabo Verde.",
+             "url_pdf": {
+              "szBytes": "190869",
+              "szKBytes": "186",
+              "pagina_inicial": "147726",
+              "pagina_final": "147726",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23106.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23106",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23106"
+            }
+           ]
+          },
+          {
+           "nombre": "Designaciones",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23107",
+             "control": "2026/17236",
+             "titulo": "Real Decreto 960/2026, de 3 de noviembre, por el que se designa Embajador de España en la República de Cabo Verde a don Juan Manglano Aboín.",
+             "url_pdf": {
+              "szBytes": "191174",
+              "szKBytes": "187",
+              "pagina_inicial": "147727",
+              "pagina_final": "147727",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23107.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23107",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23107"
+            },
+            {
+             "identificador": "BOE-A-2026-23108",
+             "control": "2026/17237",
+             "titulo": "Real Decreto 961/2026, de 3 de noviembre, por el que se designa Embajador de España en el Estado de Brunéi Darusalam a don Sergio Farré Salvá.",
+             "url_pdf": {
+              "szBytes": "191057",
+              "szKBytes": "187",
+              "pagina_inicial": "147728",
+              "pagina_final": "147728",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23108.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23108",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23108"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "6110",
+         "nombre": "MINISTERIO DE DEFENSA",
+         "epigrafe": [
+          {
+           "nombre": "Nombramientos",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23109",
+             "control": "2026/17099",
+             "titulo": "Resolución 430/38446/2026, de 28 de octubre, de la Subsecretaría, por la que se nombra personal estatutario fijo en la categoría de Celador/a en la Red Hospitalaria de la Defensa.",
+             "url_pdf": {
+              "szBytes": "202560",
+              "szKBytes": "198",
+              "pagina_inicial": "147729",
+              "pagina_final": "147730",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23109.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23109",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23109"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "2B",
+       "nombre": "II. Autoridades y personal. - B. Oposiciones y concursos",
+       "departamento": [
+        {
+         "codigo": "6110",
+         "nombre": "MINISTERIO DE DEFENSA",
+         "epigrafe": [
+          {
+           "nombre": "Personal estatutario de los servicios de salud",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23128",
+             "control": "2026/17107",
+             "titulo": "Resolución 430/38445/2026, de 28 de octubre, de la Subsecretaría, por la que se publica la relación de personas aprobadas en el proceso selectivo, por el sistema general de acceso libre, para el acceso a la condición de personal estatutario fijo en plazas de la categoría de Titulado/a Especialista en Ciencias de la Salud, y de Titulado/a Sanitario, en la Red Sanitaria Militar, convocado por Resolución 430/38528/2025, de 9 de diciembre.",
+             "url_pdf": {
+              "szBytes": "333854",
+              "szKBytes": "326",
+              "pagina_inicial": "147770",
+              "pagina_final": "147777",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23128.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23128",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23128"
+            }
+           ]
+          },
+          {
+           "nombre": "Personal funcionario. Concursos",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23129",
+             "control": "2026/17108",
+             "titulo": "Resolución 430/38444/2026, de 28 de octubre, de la Subsecretaría, por la que se convoca concurso específico para la provisión de puestos de trabajo.",
+             "url_pdf": {
+              "szBytes": "2260260",
+              "szKBytes": "2207",
+              "pagina_inicial": "147778",
+              "pagina_final": "147934",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23129.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23129",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23129"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9590",
+         "nombre": "MINISTERIO DE EDUCACIÓN, FORMACIÓN PROFESIONAL Y DEPORTES",
+         "epigrafe": [
+          {
+           "nombre": "Cuerpos de funcionarios docentes",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23130",
+             "control": "2026/17183",
+             "titulo": "Resolución de 30 de octubre de 2026, de la Subsecretaría, por la que se convoca concurso de traslados de personal funcionario docente de los Cuerpos de Catedráticos y Profesores de Enseñanza Secundaria, Cuerpo, a extinguir, de Profesores Técnicos de Formación Profesional, Cuerpos de Catedráticos y Profesores de Escuelas Oficiales de Idiomas, Cuerpos de Profesores de Música y Artes Escénicas, Cuerpos de Catedráticos, de Profesores y de Maestros de Taller de Artes Plásticas y Diseño, Cuerpo de Profesores Especialistas en Sectores Singulares de la Formación Profesional y Cuerpo de Maestros, para la provisión de plazas en el ámbito de gestión territorial del Ministerio de Educación, Formación Profesional y Deportes.",
+             "url_pdf": {
+              "szBytes": "897788",
+              "szKBytes": "877",
+              "pagina_inicial": "147935",
+              "pagina_final": "147984",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23130.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23130",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23130"
+            },
+            {
+             "identificador": "BOE-A-2026-23131",
+             "control": "2026/17184",
+             "titulo": "Resolución de 30 de octubre de 2026, de la Subsecretaría, por la que se convoca concurso de traslados entre personal funcionario de los Cuerpos de Inspectores al Servicio de la Administración Educativa e Inspectores de Educación, para la provisión de plazas en el ámbito de gestión territorial del Ministerio de Educación, Formación Profesional y Deportes.",
+             "url_pdf": {
+              "szBytes": "408459",
+              "szKBytes": "399",
+              "pagina_inicial": "147985",
+              "pagina_final": "148007",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23131.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23131",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23131"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "3",
+       "nombre": "III. Otras disposiciones",
+       "departamento": [
+        {
+         "codigo": "1410",
+         "nombre": "TRIBUNAL CONSTITUCIONAL",
+         "epigrafe": [
+          {
+           "nombre": "Contratación administrativa",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23155",
+             "control": "2026/16810",
+             "titulo": "Resolución de 23 de octubre de 2026, de la Presidencia del Tribunal Constitucional, por la que se determina la composición de la Mesa de Contratación.",
+             "url_pdf": {
+              "szBytes": "191392",
+              "szKBytes": "187",
+              "pagina_inicial": "148046",
+              "pagina_final": "148046",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23155.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23155",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23155"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "epigrafe": [
+          {
+           "nombre": "Números de identificación fiscal",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-23156",
+             "control": "2026/17008",
+             "titulo": "Resolución de 27 de octubre de 2026, del Departamento de Gestión Tributaria de la Agencia Estatal de Administración Tributaria, por la que se publica la rehabilitación de números de identificación fiscal.",
+             "url_pdf": {
+              "szBytes": "207060",
+              "szKBytes": "202",
+              "pagina_inicial": "148047",
+              "pagina_final": "148048",
+              "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-A-2026-23156.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-23156",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-23156"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5A",
+       "nombre": "V. Anuncios. - A. Contratación del Sector Público",
+       "departamento": [
+        {
+         "codigo": "1220",
+         "nombre": "CORTES GENERALES",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-35949",
+           "titulo": "Anuncio de licitación de: Mesa del Senado. Objeto: Suministro de material de imprenta para el Senado. Expediente: 29/2026.",
+           "url_pdf": {
+            "szBytes": "217638",
+            "szKBytes": "213",
+            "pagina_inicial": "58294",
+            "pagina_final": "58295",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-35949.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35949",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35949"
+          },
+          {
+           "identificador": "BOE-B-2026-35950",
+           "titulo": "Anuncio de licitación de: Mesa del Senado. Objeto: Procedimiento abierto para la adjudicación del contrato de suministro de tabletas, teléfonos móviles y servicios conexos para el Senado. Expediente: 30/2026.",
+           "url_pdf": {
+            "szBytes": "230931",
+            "szKBytes": "226",
+            "pagina_inicial": "58296",
+            "pagina_final": "58299",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-35950.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35950",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35950"
+          }
+         ]
+        },
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-35951",
+           "titulo": "Anuncio de formalización de contratos de: Consejo de Administración del Patrimonio Nacional. Objeto: Suministro de dos escáneres para digitalización de fondos bibliográficos y documentales A2 plus para la Dirección de Colecciones Reales. Expediente: 202650PAS286.",
+           "url_pdf": {
+            "szBytes": "217727",
+            "szKBytes": "213",
+            "pagina_inicial": "58300",
+            "pagina_final": "58301",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-35951.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35951",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35951"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-36006",
+           "titulo": "Anuncio de la Delegación de Economía y Hacienda de Salamanca del Acuerdo de Incoación del procedimiento para la Declaración Administrativa de Heredero Abintestato en favor de la Administración General del Estado y de adjudicación de los bienes y derechos de la herencia de D. Luis Cuenya Manzanera.",
+           "url_pdf": {
+            "szBytes": "216057",
+            "szKBytes": "211",
+            "pagina_inicial": "58429",
+            "pagina_final": "58431",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-36006.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36006",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36006"
+          }
+         ]
+        },
+        {
+         "codigo": "9586",
+         "nombre": "MINISTERIO DE TRANSPORTES Y MOVILIDAD SOSTENIBLE",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-36007",
+           "titulo": "Resolución de la Autoridad Portuaria de Ceuta acordando la publicación del concurso público de prestación del Servicio Portuario de Practicaje en el Puerto de Ceuta.",
+           "url_pdf": {
+            "szBytes": "208703",
+            "szKBytes": "204",
+            "pagina_inicial": "58432",
+            "pagina_final": "58433",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-36007.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36007",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36007"
+          },
+          {
+           "identificador": "BOE-B-2026-36008",
+           "titulo": "Resolución de la Autoridad Portuaria de Alicante por la que se hace público el otorgamiento de concesión a favor de Bergé Marítima, S.L.",
+           "url_pdf": {
+            "szBytes": "202577",
+            "szKBytes": "198",
+            "pagina_inicial": "58434",
+            "pagina_final": "58434",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-36008.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36008",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36008"
+          },
+          {
+           "identificador": "BOE-B-2026-36009",
+           "titulo": "Resolución de la Autoridad Portuaria de Alicante por la que se autoriza la publicación de anuncio de modificación sustancial de una concesión.",
+           "url_pdf": {
+            "szBytes": "221592",
+            "szKBytes": "216",
+            "pagina_inicial": "58435",
+            "pagina_final": "58438",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-36009.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36009",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36009"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5C",
+       "nombre": "V. Anuncios. - C. Anuncios particulares",
+       "departamento": [
+        {
+         "codigo": "9202",
+         "nombre": "ANUNCIOS PARTICULARES",
+         "texto": {
+          "item": {
+           "identificador": "BOE-B-2026-36113",
+           "titulo": "ILUSTRE COLEGIO NOTARIAL DE VALENCIA.",
+           "url_pdf": {
+            "szBytes": "199569",
+            "szKBytes": "195",
+            "pagina_inicial": "58559",
+            "pagina_final": "58559",
+            "texto": "https://www.boe.es/boe/dias/2026/11/04/pdfs/BOE-B-2026-36113.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-36113",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-36113"
+          }
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

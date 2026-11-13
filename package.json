@@ -1,0 +1,13 @@
+{
+  "name": "api-boe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Buscador del BOE para periodistas (proyecto de curso)",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "ingesta": "node ingesta/boe.js --fecha hoy",
+    "ingesta:seco": "node ingesta/boe.js --fecha hoy --seco"
+  }
+}
