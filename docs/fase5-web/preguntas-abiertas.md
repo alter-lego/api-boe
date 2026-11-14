@@ -55,6 +55,8 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - Pendiente de la revisión de seguridad: check de la base que impida `publico` fuera de las secciones permitidas.
 
 ## 5. Dependencias de la Fase 4 (preguntas con Claude)
+- **Web (15/11/2026): pantalla `/preguntar` construida y probada en modo prueba** (respuesta con citas, límite diario simulado, cancelar). Para mostrarla en el build real hace falta `VITE_PREGUNTAR=si` en `web/.env`, solo cuando la API real esté desplegada y probada (falta: migración 12 aplicada por el usuario, clave de Anthropic del buscador y despliegue de la API por la sesión principal). Sin probar contra la API real: los 502/503/504 y el tiempo de espera de ~65 s.
+- Texto histórico de esta sección (diseño previo al contrato final):
 - Worker (Cloudflare, Hono) con endpoint tipo `POST /v1/preguntar`, autenticado con el JWT de Supabase; devuelve `{respuesta, citas:[{id,titulo,fecha,url_html}], usadas, limite}` y errores `429`, `401`, `422`. La web no llama a Anthropic.
 - Cada cita es un `id` real devuelto por las funciones; sin cita, no hay afirmación.
 - Límite diario: `consultas_de_hoy()`; lo hace cumplir el Worker, la web solo lo muestra.

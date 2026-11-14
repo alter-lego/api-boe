@@ -2,6 +2,7 @@ import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { MODO, api } from './api';
 import { useEsAdmin } from './admin';
 import { salir, useSesion } from './auth';
+import { PREGUNTAR_ACTIVO } from './config';
 import { FreshnessBar } from './ds';
 import { fechaCorta, hoyMadrid, horaMadrid } from './labels';
 import { useAsync } from './useAsync';
@@ -45,6 +46,7 @@ export function Layout() {
         <nav className="nav" aria-label="Principal">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Buscar</NavLink>
           <NavLink to="/dia" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Resumen de hoy</NavLink>
+          {PREGUNTAR_ACTIVO ? <NavLink to="/preguntar" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Preguntar</NavLink> : null}
           {esAdmin ? <NavLink to="/admin" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Administración</NavLink> : null}
         </nav>
         {MODO === 'prueba' ? <span className="cabecera__modo" title="Datos de ejemplo; no hay sesión ni conexión con la API">Modo de prueba</span> : null}

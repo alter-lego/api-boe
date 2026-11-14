@@ -39,3 +39,23 @@ export type Filtros = {
 export type Salud = { ok: boolean; ultima_ingesta: { fecha: string; fin: string } | null };
 export type Sumario = { fecha: string; total: number; secciones: { seccion: string; seccion_nombre: string; publicaciones: Ficha[] }[] };
 export type Conteo = { agrupar: string; grupos: { grupo: string; n: number }[] };
+
+export type Cita = {
+  id: string;
+  titulo: string;
+  fecha: string;
+  organismo: string | null;
+  seccion: string | null;
+  nivel_privacidad: 'publico' | 'restringido';
+  url_html: string | null;
+  url_pdf: string | null;
+  avisos?: string[];
+};
+export type Respuesta = {
+  respuesta: string;
+  citas: Cita[];
+  sin_resultados: boolean;
+  datos_desde: string;
+  datos_hasta: string;
+  preguntas_hoy: { usadas: number; limite: number };
+};

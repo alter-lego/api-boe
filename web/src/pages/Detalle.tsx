@@ -2,20 +2,16 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { Badge, IA, estadoResumen } from '../ds';
+import { textoCita } from '../cita';
 import { enlaceBoe } from '../enlaces';
 import { ErrorCarga, Esqueletos } from '../Estados';
-import { etiquetaTema, etiquetaTipo, fechaCorta, fechaLarga } from '../labels';
+import { etiquetaTema, etiquetaTipo, fechaCorta } from '../labels';
 import type { Ficha } from '../types';
 import { useAsync } from '../useAsync';
 
 function referencias(r: unknown): string[] {
   if (!Array.isArray(r)) return [];
   return r.map((x) => (typeof x === 'string' ? x : x && typeof x === 'object' ? String((x as Record<string, unknown>).titulo ?? (x as Record<string, unknown>).texto ?? (x as Record<string, unknown>).id ?? '') : '')).filter(Boolean);
-}
-
-function cita(f: Ficha) {
-  const url = enlaceBoe(f.url_html);
-  return `${f.titulo} ${f.id}, de ${fechaLarga(f.fecha)}.${url ? ` ${url}` : ''}`;
 }
 
 export function Detalle() {
@@ -30,7 +26,7 @@ export function Detalle() {
   const status = estadoResumen(f);
   const refs = status === 'noSummary' ? [] : referencias(f.referencias);
   const copiar = async () => {
-    try { await navigator.clipboard.writeText(cita(f)); setCopiado(true); setTimeout(() => setCopiado(false), 2500); } catch { window.prompt('Copia la cita:', cita(f)); }
+    try { await navigator.clipboard.writeText(textoCita(f)); setCopiado(true); setTimeout(() => setCopiado(false), 2500); } catch { window.prompt('Copia la cita:', textoCita(f)); }
   };
   const vig: { tone: 'warn' | 'danger'; text: string }[] = [];
   if (f.estatus_derogacion && f.estatus_derogacion !== 'N') vig.push({ tone: 'warn', text: 'Derogada' });

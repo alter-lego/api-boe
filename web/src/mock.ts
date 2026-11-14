@@ -1,5 +1,5 @@
 // Datos de ejemplo para probar la web sin sesión ni API. NO son publicaciones reales.
-import type { Conteo, Ficha, Filtros, Salud, Sumario } from './types';
+import type { Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
 import { SECCIONES } from './labels';
 
 const MIN_IMG = 'https://www.boe.es';
@@ -61,6 +61,7 @@ export const DATOS: Ficha[] = [
   ...dia('2026-11-10', '220'),
 ];
 export const ULTIMO_DIA = '2026-11-13';
+let preguntasHoy = 2;
 
 const sinTildes = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const espera = <T,>(v: T, ms = 350) => new Promise<T>((r) => setTimeout(() => r(v), ms));
@@ -98,5 +99,25 @@ export const mock = {
     const del = DATOS.filter((x) => x.fecha === fecha);
     const secciones = SECCIONES.map(([s, nombre]) => ({ seccion: s, seccion_nombre: nombre, publicaciones: del.filter((x) => x.seccion === s) })).filter((s) => s.publicaciones.length);
     return espera({ fecha, total: del.length, secciones });
+  },
+  // Simula «Preguntar»: palabras clave para probar los casos (límite → 429, fallo → 502, nada/zzz → sin resultados).
+  preguntar: async (pregunta: string): Promise<Respuesta> => {
+    await espera(null, 2200);
+    const t = sinTildes(pregunta);
+    if (t.includes('limite')) throw Object.assign(new Error('Has alcanzado el límite de preguntas de hoy (30). Se restablece a las 00:00.'), { status: 429 });
+    if (t.includes('fallo')) throw Object.assign(new Error(''), { status: 502 });
+    if (t.includes('caducada')) throw Object.assign(new Error(''), { status: 401 });
+    preguntasHoy += 1;
+    const base = { datos_desde: '2026-08-13', datos_hasta: ULTIMO_DIA, preguntas_hoy: { usadas: preguntasHoy, limite: 30 } };
+    if (t.includes('nada') || t.includes('zzz')) {
+      return { ...base, respuesta: 'No he encontrado publicaciones que respondan a esto en el archivo. Prueba a reformular la pregunta o usa el buscador.', citas: [], sin_resultados: true };
+    }
+    const cita = (id: string) => { const x = DATOS.find((d) => d.id === id)!; return { id: x.id, titulo: x.titulo, fecha: x.fecha, organismo: x.departamento, seccion: x.seccion, nivel_privacidad: x.nivel_privacidad, url_html: x.url_html, url_pdf: x.url_pdf, avisos: x.id.endsWith('12') ? ['puede estar derogada o modificada'] : [] }; };
+    return {
+      ...base,
+      respuesta: 'Esta semana se han publicado dos disposiciones sobre ayudas al alquiler: una orden que modifica las bases reguladoras [BOE-A-2026-22302] y la corrección de errores de la orden anterior [BOE-A-2026-22303]. Además, un convenio con la Comunidad de Madrid fija 18 millones para alquiler asequible [BOE-A-2026-22306]. Una referencia que el sistema no pudo comprobar: [referencia no verificada].',
+      citas: [cita('BOE-A-2026-22302'), cita('BOE-A-2026-22303'), cita('BOE-A-2026-22306')],
+      sin_resultados: false,
+    };
   },
 };

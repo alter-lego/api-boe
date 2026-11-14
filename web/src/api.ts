@@ -1,6 +1,6 @@
 import { cerrarPorCaducidad, getToken } from './auth';
 import { mock } from './mock';
-import type { Conteo, Ficha, Filtros, Salud, Sumario } from './types';
+import type { Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
 
 export const MODO: 'prueba' | 'api' = import.meta.env.VITE_MODO === 'api' ? 'api' : 'prueba';
 const API = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api-boe.alter-lego.workers.dev';
@@ -22,15 +22,18 @@ function parametros(f: Filtros, extra: Record<string, string> = {}) {
   return p;
 }
 
-async function llamar<T>(ruta: string, conSesion = true): Promise<T> {
-  const headers: Record<string, string> = {};
+async function llamar<T>(ruta: string, conSesion = true, init: RequestInit = {}): Promise<T> {
+  const headers: Record<string, string> = { ...(init.headers as Record<string, string> | undefined) };
   if (conSesion) {
     const token = await getToken();
     if (!token) throw new ApiError(401, 'Sin sesión');
     headers.Authorization = `Bearer ${token}`;
   }
   let r: Response;
-  try { r = await fetch(`${API}${ruta}`, { headers }); } catch { throw new ApiError(502, 'Sin conexión'); }
+  try { r = await fetch(`${API}${ruta}`, { ...init, headers }); } catch (e) {
+    if ((e as { name?: string }).name === 'AbortError') throw new ApiError(0, 'cancelada');
+    throw new ApiError(502, 'Sin conexión');
+  }
   if (!r.ok) {
     if (r.status === 401 && conSesion) await cerrarPorCaducidad();
     let msg = '';
@@ -50,7 +53,20 @@ const normaliza = (e: unknown): never => {
 const ordenar = (lista: Ficha[], f: Filtros) =>
   f.orden === 'recientes' ? [...lista].sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0)) : lista;
 
+const ESPERA_MAX_MS = 65000; // la respuesta puede tardar hasta ~60 s (varias rondas, sin streaming)
+
 export const api = {
+  async preguntar(pregunta: string, señal?: AbortSignal): Promise<Respuesta> {
+    try {
+      if (MODO === 'prueba') return await mock.preguntar(pregunta);
+      const tope = AbortSignal.timeout(ESPERA_MAX_MS);
+      const signal = señal ? AbortSignal.any([señal, tope]) : tope;
+      return await llamar<Respuesta>('/v1/preguntar', true, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta }), signal });
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'TimeoutError') throw new ApiError(504, '');
+      return normaliza(e);
+    }
+  },
   async salud(): Promise<Salud> {
     if (MODO === 'prueba') return mock.health();
     return llamar<Salud>('/v1/health', false);

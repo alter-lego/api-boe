@@ -14,7 +14,7 @@ Todas son GET salvo la última; todas exigen sesión salvo `/v1/health`.
 | `GET /v1/conteos` | mismos filtros + `agrupar` = `total` \| `mes` \| `organismo` \| `tipo` | `{agrupar, grupos:[{grupo, n}]}` |
 | `GET /v1/publicaciones/{id}` | — | una ficha; 404 si no existe |
 | `GET /v1/sumarios/{AAAA-MM-DD}` | — | `{fecha, total, secciones:[{seccion, seccion_nombre, publicaciones:[ficha]}]}` (ya agrupado por sección) |
-| `POST /v1/preguntar` | — | 501 hasta la Fase 4 |
+| `POST /v1/preguntar` | JSON `{pregunta}` (3-1000 caracteres) | `{respuesta, citas:[{id,titulo,fecha,organismo,seccion,nivel_privacidad,url_html,url_pdf,avisos}], sin_resultados, datos_desde, datos_hasta, preguntas_hoy:{usadas,limite}}`; contrato completo en `docs/fase4-preguntar.md` |
 
 ### Filtros de `/v1/publicaciones` y `/v1/conteos`
 | Parámetro | Notas |
@@ -69,7 +69,7 @@ Sin conexión o error de red: igual que 502.
 En un anuncio con datos personales (restringido) solo salen los campos de vigencia; `aviso_fuente` y `ficha_revisar` llegan como null. `ficha_motivo_revision` no se expone. Si un dato falta, no se muestra nada. Pendiente al construir: confirmar los tipos exactos leyendo la migración 9 y la respuesta real de la API.
 
 ## Qué hay detrás (referencia; la web no lo llama)
-Funciones de Supabase que usa la API: `buscar_publicaciones`, `contar_publicaciones`, `sumario_del_dia`, `publicacion`, `ultima_ingesta`, `consultas_de_hoy`, `registrar_consulta`. Las tablas tienen RLS cerrada. Detalles en `supabase/migrations/`.
+Funciones de Supabase que usa la API: `buscar_publicaciones`, `contar_publicaciones`, `sumario_del_dia`, `publicacion`, `ultima_ingesta`, `consultas_de_hoy`. Para «Preguntar», la API usa además `reservar_consulta` y `completar_consulta` (la web no las llama; `registrar_consulta` ya no existe). Las tablas tienen RLS cerrada. Detalles en `supabase/migrations/`.
 
 ## Listas cerradas
 - **Secciones**: `1` I Disposiciones generales · `2A` II.A Nombramientos y ceses · `2B` II.B Oposiciones y concursos (datos personales) · `3` III Otras disposiciones · `4` IV Administración de Justicia (datos personales) · `5A` V.A Contratación del Sector Público · `5B` V.B Otros anuncios oficiales (con datos personales en ciertos casos) · `5C` V.C Anuncios particulares (datos personales) · `T` Tribunal Constitucional.

@@ -98,8 +98,8 @@ Nunca DNI/NIF: se muestra solo el título oficial y el resumen de la base.
 ### 5.5 Sumario del día
 Título «Sumario del día», selector de fecha con ◀ ▶ y buscador «Buscar en este día». Secciones plegables en orden BOE con recuento; dentro, publicaciones por organismo en formato compacto: título oficial, el resumen a continuación (con «Generado con IA»; o «Sin resumen» / «Resumen pendiente de revisión» según el caso) y «HTML ↗» «PDF ↗». Hasta 2.000 al día: la primera sección desplegada, el resto plegadas y «Mostrar más». Día sin BOE: «Ese día no se publicó BOE»; día aún no cargado: «Este día aún no está cargado» (mensajes distintos).
 
-### 5.6 Preguntar al BOE (reservado)
-No aparece en la cabecera en el MVP. La pantalla del lienzo (§7) queda como referencia para la Fase 4.
+### 5.6 Preguntar al BOE (Fase 4)
+Pantalla `/preguntar`, construida el 15/11/2026 según el contrato de `docs/fase4-preguntar.md` (ver §7). La pestaña «Preguntar» solo se muestra si el build lleva `VITE_PREGUNTAR=si` (o en modo prueba); mientras la API real no esté desplegada, queda oculta.
 
 ### 5.7 Administración de periodistas (solo administradores; añadida el 14/11/2026)
 Ruta `/admin`, con la pestaña «Administración» visible solo si `es_admin()` devuelve true (la seguridad real está en la base de datos). Contenido:
@@ -139,7 +139,9 @@ Línea fija bajo la cabecera, con punto de color y texto: «Datos hasta el BOE d
 - El cálculo de ámbar y rojo es de la web (`/v1/health` solo da `fecha` y `fin` de la última carga).
 - Pendiente: «Cobertura desde {fecha}» mientras se carga el histórico (no hay función que lo dé).
 
-## 7. Reservado: «Preguntar al BOE» (Fase 4)
+## 7. «Preguntar al BOE» (Fase 4; construida, pendiente de la API real)
+**Cómo es la pantalla construida (15/11/2026):** caja de pregunta (3-1000 caracteres, contador), botón «Preguntar»; mientras espera, «Buscando en el BOE… esto puede tardar hasta un minuto» con los segundos y «Cancelar» (respuesta única, sin streaming, hasta ~65 s); la respuesta es **texto plano escapado** (sin HTML ni enlaces automáticos), con los `[BOE-…]` convertidos en `[1]`, `[2]`… que llevan a su fuente solo si el id está en `citas`; lista de **Fuentes** con fecha, organismo, título (enlace al detalle), avisos, «BOE (HTML)» y «PDF» solo si existen y son del BOE, y «Copiar cita»; leyenda fija «Respuesta generada con IA a partir del archivo del BOE; comprueba siempre la fuente.» y «Datos del {desde} al {hasta}»; contador «{usadas} de {límite} preguntas hoy» tras cada respuesta; si `sin_resultados`, se muestra el texto con la etiqueta «No he encontrado nada». Errores: 401 cierra sesión y lleva a `/entrar`; 429 muestra el mensaje del servidor (límite diario) sin reintentar; 502 «No se ha podido responder; inténtalo de nuevo con otra formulación. Esta pregunta cuenta en tu límite de hoy.»; 503/504 «No se ha podido responder; inténtalo de nuevo.»; 400/413/415, mensaje de validación.
+**Diseño original (referencia):**
 Maqueta 5 del lienzo, no visible en el MVP:
 - Caja de pregunta y botón «Preguntar». Contador «Has usado 3 de 30 consultas hoy · se restablece a las 00:00» (`consultas_de_hoy`: `usadas`, `limite`). Al agotarse: «Has alcanzado el límite de hoy (30). Se restablece a las 00:00.» y la caja se desactiva.
 - Cargando: «Buscando en el BOE… esto puede tardar unos segundos» y «Cancelar».
