@@ -60,8 +60,9 @@ Cada publicación lleva siempre su enlace oficial (HTML, PDF y XML del BOE), que
 
 ## Datos personales
 
-- **Se nombran** los cargos públicos y las personas nombradas, cesadas o que actúan en un cargo público en un acto oficial (ministros, directores generales, magistrados, catedráticos nombrados por una universidad…).
-- **No se nombran** los particulares: personas físicas que no actúan en cargo público (interesados, afectados, aspirantes, recurrentes y partes de las sentencias, titulares de expedientes, adjudicatarios que sean personas físicas). Describe su papel («los recurrentes», «un particular»).
+- **Se nombran** las personas que figuran con su nombre en el **título oficial** (partes de una sentencia, sancionados, condecorados, solicitantes de un título nobiliario, nombrados o cesados…): el título es público y el periodista busca por esos nombres, así que el resumen debe poder encontrarlos. Se nombran también los cargos públicos y las personas nombradas, cesadas o que actúan en un cargo público en un acto oficial.
+- **No se nombran** las personas físicas que solo aparecen en el cuerpo del texto y no figuran en el título ni actúan en un cargo público (interesados, afectados, aspirantes, testigos, familiares, terceros, titulares de expedientes). Describe su papel («los recurrentes», «un particular», «su madre»).
+- Cuando nombres a una persona, hazlo tal como figura en el título, sin añadir datos que no estén en el texto oficial.
 - Los NIF/CIF de empresas, fundaciones y otras personas jurídicas **no** son datos personales y pueden mantenerse. Los DNI y NIF de personas físicas, nunca.
 
 ## `tipo_acto` (uno)
@@ -98,7 +99,7 @@ Elige primero el tema principal y añade otro solo si el texto trata de verdad d
 ## `revisar`, `motivo_revision` y `aviso_fuente`
 
 - `revisar: true` cuando no puedas resumir con seguridad: texto vacío o ilegible, un recorte que oculta lo esencial del acto (no basta con que falte parte del articulado: si el arranque y la parte dispositiva permiten resumir, resume), o un acto que no encaja en ningún tipo. `motivo_revision` lo explica en una frase; si no, `null`. Nunca comentarios sobre la extracción en el `resumen`.
-- `aviso_fuente`: solo cuando el texto oficial tenga un error o una incoherencia verificable (cuerpo que no coincide con el título, fechas o cifras que no cuadran). Una marca `[…]` o un texto recortado nunca son un aviso. Si no hay nada que avisar, `null`.
+- `aviso_fuente`: solo cuando el texto oficial contenga un error **que pueda llevar a engaño**: una fecha, cifra o nombre que contradice otro del mismo texto o del título. Se escribe en una frase que dice qué se contradice. No avises de erratas menores (tildes, variantes ortográficas, formato de cifras), ni de que no hayas encontrado nada, ni de cosas que solo «conviene verificar». Una marca `[…]` o un texto recortado nunca son un aviso. Si no hay nada que avisar, `null`.
 
 ## Errores que hay que evitar
 

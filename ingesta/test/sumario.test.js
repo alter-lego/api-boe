@@ -30,6 +30,8 @@ test('V.B es pública salvo subastas, expropiaciones y títulos universitarios',
   assert.equal(clasificarNivel('5B', 'Anuncio sobre expropiación forzosa'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Anuncio del Centro Universitario sobre destrucción de título Universitario.'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Anuncio sobre extravío de título de Graduado'), 'restringido');
+  // Los títulos nobiliarios son públicos (decisión del 13/11/2026): sin restricción.
+  assert.equal(clasificarNivel('5B', 'Anuncio por el que se anuncia la solicitud de sucesión en el título de Condesa de Benalúa.'), 'publico');
 });
 
 test('las reglas de V.B solo se aplican a V.B', () => {

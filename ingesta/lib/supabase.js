@@ -36,6 +36,8 @@ export function crearCliente({ url, claveSecreta, fetchFn = fetch }) {
     /** Actualiza las filas que cumplen el filtro (p. ej. 'id=eq.BOE-A-2026-1'). */
     parchear: (tabla, filtro, cuerpo) =>
       peticion(`${tabla}?${filtro}`, { method: 'PATCH', body: cuerpo, prefer: 'return=minimal' }),
+    /** Llama a una función SQL (solo las concedidas a service_role). */
+    rpc: (nombre, args) => peticion(`rpc/${nombre}`, { method: 'POST', body: args }),
     insertar: (tabla, fila) =>
       peticion(tabla, { method: 'POST', body: fila, prefer: 'return=minimal' }),
     seleccionar: (ruta) => peticion(ruta),

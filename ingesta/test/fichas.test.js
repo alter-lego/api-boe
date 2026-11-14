@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { leerDocumento, recortarTexto, decodificarEntidades, textoPlano } from '../lib/xml-boe.js';
 import { TEMAS, TIPOS_ACTO, ESQUEMA_FICHA, validarFicha, limpiarAviso, FICHA_VERSION } from '../lib/listas.js';
 import { construirPeticion, costeUSD, generarFicha, MODELO } from '../lib/ficha-ia.js';
-import { generarFichas, construirEntrada, filaDeFicha } from '../fichas.js';
+import { generarFichas, indexarRestringidas, construirEntrada, filaDeFicha } from '../fichas.js';
 
 const xml = (f) => readFileSync(new URL(`../fixtures/xml/${f}.xml`, import.meta.url), 'utf8');
 const INSTRUCCIONES = readFileSync(new URL('../../skill/FICHA.md', import.meta.url), 'utf8');
@@ -146,6 +146,9 @@ test('un resumen que comenta la extracción se rechaza', () => {
 test('un aviso que solo habla del recorte se descarta; uno real se conserva', () => {
   assert.equal(limpiarAviso({ ...buena, aviso_fuente: 'El texto aparece recortado y la numeración no cuadra' }).aviso_fuente, null);
   assert.equal(limpiarAviso({ ...buena, aviso_fuente: 'Hay una marca […] en el articulado' }).aviso_fuente, null);
+  for (const falso of ['Se detecta algo, pero no se detecta incoherencia verificable.', 'Variante ortográfica: Híjar y Hïjar.', 'No es una incoherencia verificable; se deja constancia solo como dato.']) {
+    assert.equal(limpiarAviso({ ...buena, aviso_fuente: falso }).aviso_fuente, null, falso);
+  }
   const real = 'La disposición final indica «a partir del el 1 de julio», con una duplicación de artículo.';
   assert.equal(limpiarAviso({ ...buena, aviso_fuente: real }).aviso_fuente, real);
 });
@@ -233,7 +236,8 @@ const fetchXml = async (url) => {
 };
 function bdFalsa() {
   const log = [];
-  return { log, parchear: async (tabla, filtro, cuerpo) => log.push({ tabla, filtro, cuerpo }) };
+  const rpcs = [];
+  return { log, rpcs, parchear: async (tabla, filtro, cuerpo) => log.push({ tabla, filtro, cuerpo }), rpc: async (nombre, args) => rpcs.push({ nombre, args }) };
 }
 const iaFalsa = (ficha = buena, coste = 0.001) => async () => ({ ficha, uso: { input_tokens: 500, output_tokens: 50, cache_read_input_tokens: 0 }, coste });
 const baseDeps = (extra) => ({ instrucciones: 'I', claveApi: 'k', pausa: 0, esperasXml: [0], fetchFn: fetchXml, ...extra });
@@ -251,6 +255,24 @@ test('guarda la ficha con rango, referencias y vigencia', async () => {
   assert.equal(cuerpo.estatus_derogacion, 'N');
   assert.ok(cuerpo.referencias.anteriores.length === 1);
   assert.ok(!('texto' in cuerpo), 'el texto completo no se guarda');
+  // ...pero sí se indexa: el texto COMPLETO va a la función que solo guarda los lexemas
+  assert.equal(db.rpcs.length, 1);
+  assert.equal(db.rpcs[0].nombre, 'indexar_texto');
+  assert.equal(db.rpcs[0].args.p_id, 'BOE-A-2026-23670');
+  assert.equal(db.rpcs[0].args.p_texto, leerDocumento(xml('BOE-A-2026-23670')).texto);
+});
+
+test('el índice recibe el texto completo aunque el modelo reciba uno recortado', async () => {
+  const db = bdFalsa();
+  const largo = '<documento><metadatos><rango>Orden</rango></metadatos><analisis/><texto>' +
+    Array.from({ length: 3000 }, (_, i) => `<p>Párrafo ${i} ` + 'palabra '.repeat(40) + '</p>').join('') + '</texto></documento>';
+  const fetchLargo = async () => ({ ok: true, status: 200, text: async () => largo });
+  let entradaModelo;
+  const ia = async (entrada) => { entradaModelo = entrada; return { ficha: buena, uso: { input_tokens: 1 }, coste: 0 }; };
+  await generarFichas([pub('X', 'https://x/?id=X')], baseDeps({ db, ia, fetchFn: fetchLargo }));
+  assert.equal(entradaModelo.texto_recortado, true);
+  assert.ok(entradaModelo.texto.length < 75_000);
+  assert.ok(db.rpcs[0].args.p_texto.length > 900_000, 'al índice debe llegar el texto entero');
 });
 
 test('una ficha a revisar no guarda resumen pero sí queda marcada como hecha', async () => {
@@ -280,6 +302,25 @@ test('un XML que falla (404) se anota y no impide seguir con el resto', async ()
   assert.equal(r.errores.length, 1);
   assert.equal(r.errores[0].id, 'MAL');
   assert.equal(r.guardadas, 1);
+});
+
+test('concurrencia: procesa varias a la vez, cada publicación una sola vez', async () => {
+  const db = bdFalsa();
+  const ids = Array.from({ length: 8 }, (_, i) => `BOE-A-2026-${23670 + i}`);
+  const lista = ids.map((id) => pub(id, 'https://x/?id=BOE-A-2026-23670'));
+  let activas = 0, maxActivas = 0;
+  const vistas = [];
+  const ia = async (entrada, o) => {
+    activas += 1; maxActivas = Math.max(maxActivas, activas);
+    vistas.push(entrada.id);
+    await new Promise((res) => setTimeout(res, 5));
+    activas -= 1;
+    return iaFalsa()(entrada, o);
+  };
+  const r = await generarFichas(lista, baseDeps({ db, ia, concurrencia: 3 }));
+  assert.equal(r.guardadas, 8);
+  assert.equal(new Set(vistas).size, 8);
+  assert.ok(maxActivas > 1 && maxActivas <= 3, `activas simultáneas: ${maxActivas}`);
 });
 
 test('tope de coste: se detiene sin pasarse', async () => {
@@ -318,4 +359,27 @@ test('filaDeFicha: restringir lo que no debe salir', () => {
   const f = filaDeFicha(doc, { ...buena, revisar: true, motivo_revision: null });
   assert.equal(f.ficha_motivo_revision, 'sin motivo');
   assert.equal(f.resumen, null);
+});
+
+// ───────────── Restringidas: solo índice ─────────────
+
+test('restringidas: se indexa el texto y los metadatos de vigencia, sin IA ni ficha', async () => {
+  const db = bdFalsa();
+  const r = await indexarRestringidas([pub('BOE-A-2026-23670', 'https://x/?id=BOE-A-2026-23670')], { db, pausa: 0, esperasXml: [0], fetchFn: fetchXml });
+  assert.equal(r.indexadas, 1);
+  assert.equal(db.rpcs[0].nombre, 'indexar_texto');
+  const cuerpo = db.log[0].cuerpo;
+  assert.deepEqual(Object.keys(cuerpo).sort(), ['estatus_derogacion', 'judicialmente_anulada', 'rango', 'vigencia_actualizada', 'vigencia_agotada']);
+  for (const prohibida of ['resumen', 'temas', 'tipo_acto', 'referencias', 'ficha_version']) assert.ok(!(prohibida in cuerpo), prohibida);
+});
+
+test('restringidas: un fallo no impide seguir y --sin-ia no escribe', async () => {
+  const db = bdFalsa();
+  const r = await indexarRestringidas([pub('MAL', 'https://x/?id=MAL'), pub('BOE-A-2026-23724', 'https://x/?id=BOE-A-2026-23724')], { db, pausa: 0, esperasXml: [0], fetchFn: fetchXml });
+  assert.equal(r.errores.length, 1);
+  assert.equal(r.indexadas, 1);
+  const db2 = bdFalsa();
+  const silencio = console.log; console.log = () => {};
+  try { await indexarRestringidas([pub('BOE-A-2026-23670', 'https://x/?id=BOE-A-2026-23670')], { db: db2, sinIA: true, pausa: 0, esperasXml: [0], fetchFn: fetchXml }); } finally { console.log = silencio; }
+  assert.equal(db2.rpcs.length + db2.log.length, 0);
 });

@@ -31,7 +31,7 @@ export function costeUSD(uso = {}) {
 export function construirPeticion(instrucciones, entrada) {
   return {
     model: MODELO,
-    max_tokens: 1500,
+    max_tokens: 4000, // el razonamiento (esfuerzo bajo) también cuenta como salida
     system: [{ type: 'text', text: instrucciones, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: JSON.stringify(entrada) }],
     output_config: { effort: 'low', format: { type: 'json_schema', schema: ESQUEMA_FICHA } },

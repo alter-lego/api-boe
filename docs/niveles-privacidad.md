@@ -17,6 +17,8 @@ Decidido el 13/11/2026 tras analizar 18 sumarios reales. **Sustituye a la tabla 
 
 ## Excepciones de V.B (restringido por título)
 
+> Los títulos nobiliarios (sucesión, rehabilitación) son públicos: no son excepción.
+
 Una publicación de `5B` pasa a restringida si su título (sin tildes ni mayúsculas) contiene:
 `subasta`; `expropiacion` o `levantamiento de actas`; o un trámite de título universitario
 (`titulo universitario`, `extravio de titulo`, `duplicado de titulo`, `destruccion de titulo`).
@@ -30,11 +32,12 @@ Implementada en `ingesta/lib/sumario.js` (`clasificarNivel`) y cubierta por prue
 
 Públicas el 62 %. Por sección: 1→93, 2A→299, 2B→581, 3→538, 4→528, 5A→682, 5B→908, 5C→21, T→15.
 Nota sobre T: los títulos de sus sentencias nombran a los recurrentes («Promovido por don…»);
-el título es oficial y siempre se muestra, pero el resumen de la ficha no debe repetir esos nombres.
+el título es oficial y siempre se muestra, y el resumen puede nombrarlos (decisión del 13/11/2026).
 
 ## Notas de implementación
 
 - El nivel se decide en la ingesta por sección y título; la base lo refuerza con un trigger que vacía la ficha de cualquier restringida y con un índice de búsqueda que ignora su resumen.
-- Las restringidas no se leen: de ellas solo se guardan los metadatos del sumario (sin descargar el XML).
-- La regla para la IA sigue vigente en las fichas públicas: nombrar cargos públicos en actos oficiales y no nombrar a particulares.
+- **Búsqueda de nombres (decisión del 13/11/2026):** se guarda un índice de búsqueda (solo lexemas, no el texto) del cuerpo de TODAS las publicaciones, públicas y restringidas. Así un nombre que solo está en el cuerpo se encuentra, y de una restringida solo se muestra título, metadatos y enlace al BOE. No se genera ficha de las restringidas. Endurecido en la migración 8 tras la revisión de seguridad: el índice de las restringidas se guarda sin posiciones (las frases entre comillas se tratan como «y»: no se puede reconstruir el texto palabra a palabra) y sin números de 3 o más cifras (DNI enmascarados, números de edicto); la relevancia solo usa título y resumen; se rechazan búsquedas solo con exclusiones. Riesgo asumido que queda: probando palabras sueltas se puede deducir si una restringida contiene una palabra; aceptable con 20 periodistas identificados, y el texto íntegro es público en boe.es. Pendiente de valorar por el responsable (RGPD): finalidad, plazo de conservación y supresión del índice de nombres, sobre todo del histórico.
+- Los resúmenes pueden nombrar a quien figure con nombre en el **título oficial**; los títulos nobiliarios son públicos.
+- Regla para la IA en las fichas públicas: se nombra a quien figure en el título oficial y a los cargos públicos; no a personas físicas que solo aparecen en el cuerpo del texto. Nunca DNI/NIF de personas físicas.
 - Pendiente: check en la base que impida `publico` fuera de las secciones permitidas (ver revisión de seguridad, punto 11).

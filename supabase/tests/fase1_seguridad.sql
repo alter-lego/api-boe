@@ -1,5 +1,5 @@
 -- Fase 1 · Pruebas de seguridad y privacidad.
--- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 4 migraciones.
+-- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 8 migraciones.
 -- Mete filas de prueba, comprueba y deshace todo (rollback): no deja nada en la base de datos.
 -- Si algo falla, sale un error que empieza por "FALLO". Si todo va bien, la última consulta
 -- devuelve «TODAS LAS PRUEBAS OK».
@@ -23,6 +23,11 @@ values
   ('TEST-RES-1', 'BOE', current_date, '2B', 'Ministerio de Prueba',
    'Lista de admitidos a las pruebas selectivas', 'restringido',
    'CONTENIDO-SECRETO-NO-DEBE-SALIR', array['empleo'], 'convocatoria');
+update public.publicaciones set referencias = '{"anteriores":["x"]}'::jsonb where id = 'TEST-RES-1';
+
+-- Índice del texto completo (lo hace la ingesta): el nombre solo está en el CUERPO, no en el título
+select public.indexar_texto('TEST-PUB-1', 'La directora general sustituta será doña Menganita Sánchez Ruiz-Pérez durante el periodo.');
+select public.indexar_texto('TEST-RES-1', 'Relación de admitidos: Fulanito Gómez Peñalver, con DNI ***1234** en el anexo, y otros aspirantes.');
 
 -- 1) anon no puede leer ninguna tabla ni ejecutar funciones de lectura
 do $$ begin
@@ -79,7 +84,7 @@ begin
   set local role authenticated;
   set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
 
-  select count(*) into n from public.buscar_publicaciones(p_desde => current_date)
+  select count(*) into n from public.buscar_publicaciones(p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
   if n <> 2 then raise exception 'FALLO: debería ver 2 publicaciones de prueba y ve %', n; end if;
 
@@ -94,32 +99,32 @@ begin
     raise exception 'FALLO: la restringida debe seguir mostrando título y nivel'; end if;
 
   -- filtrar por tema solo alcanza fichas públicas
-  select count(*) into n from public.buscar_publicaciones(p_temas => array['empleo'])
+  select count(*) into n from public.buscar_publicaciones(p_temas => array['empleo'], p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
   if n <> 1 then raise exception 'FALLO: el filtro por tema debe devolver solo la pública y devuelve %', n; end if;
 
   -- la búsqueda por palabras no encuentra el texto del resumen restringido...
-  select count(*) into n from public.buscar_publicaciones(p_q => 'CONTENIDO-SECRETO')
+  select count(*) into n from public.buscar_publicaciones(p_q => 'CONTENIDO-SECRETO', p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
   if n <> 0 then raise exception 'FALLO: la búsqueda llega al resumen de una restringida'; end if;
-  select count(*) into n from public.buscar_publicaciones(p_q => 'secreto')
+  select count(*) into n from public.buscar_publicaciones(p_q => 'secreto', p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
   if n <> 0 then raise exception 'FALLO: la búsqueda llega al resumen de una restringida (palabra suelta)'; end if;
-  select coalesce(sum(c.n), 0) into n from public.contar_publicaciones(p_q => 'secreto') c;
+  select coalesce(sum(c.n), 0) into n from public.contar_publicaciones(p_q => 'secreto', p_departamento => 'Ministerio de Prueba') c;
   if n <> 0 then raise exception 'FALLO: contar llega al resumen de una restringida'; end if;
   -- ...pero sí encuentra su título, sin tildes
-  select count(*) into n from public.buscar_publicaciones(p_q => 'admitidos selectivas')
+  select count(*) into n from public.buscar_publicaciones(p_q => 'admitidos selectivas', p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
   if n <> 1 then raise exception 'FALLO: no encuentra la restringida por su título (%)', n; end if;
-  select count(*) into n from public.buscar_publicaciones(p_q => 'nombramiento directora')
+  select count(*) into n from public.buscar_publicaciones(p_q => 'nombramiento directora', p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
   if n <> 1 then raise exception 'FALLO: no encuentra la pública por palabras (%)', n; end if;
 
   -- contar
-  select sum(c.n) into n from public.contar_publicaciones(p_desde => current_date, p_agrupar => 'tipo_acto') c;
+  select sum(c.n) into n from public.contar_publicaciones(p_departamento => 'Ministerio de Prueba', p_agrupar => 'tipo_acto') c;
   if n < 2 then raise exception 'FALLO: contar_publicaciones devuelve menos de 2'; end if;
   -- la restringida (título «...admitidos...») se cuenta como «sin clasificar», no como «convocatoria»
-  select c.n into n from public.contar_publicaciones(p_q => 'admitidos selectivas', p_agrupar => 'tipo_acto') c
+  select c.n into n from public.contar_publicaciones(p_q => 'admitidos selectivas', p_departamento => 'Ministerio de Prueba', p_agrupar => 'tipo_acto') c
    where c.grupo = 'sin clasificar';
   if n is distinct from 1 then
     raise exception 'FALLO: contar no oculta el tipo de acto de la restringida (%)', n; end if;
@@ -129,6 +134,48 @@ begin
   select usadas into n from public.consultas_de_hoy();
   if n <> 1 then raise exception 'FALLO: consultas_de_hoy debería dar 1 y da %', n; end if;
 
+  reset role;
+end $$;
+
+-- 4b) buscar un nombre que solo está en el cuerpo: se encuentra, y de una restringida solo sale el enlace
+do $$
+declare
+  r public.ficha_publicacion;
+  n int;
+begin
+  set local role authenticated;
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+
+  -- pública: se encuentra por un nombre del cuerpo, con o sin tildes
+  select count(*) into n from public.buscar_publicaciones(p_q => 'Menganita Sanchez', p_departamento => 'Ministerio de Prueba') where id = 'TEST-PUB-1';
+  if n <> 1 then raise exception 'FALLO: no encuentra a un nombre del cuerpo de una pública (%)', n; end if;
+  select count(*) into n from public.buscar_publicaciones(p_q => 'Sánchez Ruiz-Pérez', p_departamento => 'Ministerio de Prueba') where id = 'TEST-PUB-1';
+  if n <> 1 then raise exception 'FALLO: no encuentra el apellido compuesto con tilde (%)', n; end if;
+
+  -- restringida: se encuentra por el nombre del cuerpo...
+  select * into r from public.buscar_publicaciones(p_q => 'Fulanito Gomez Penalver', p_departamento => 'Ministerio de Prueba') where id = 'TEST-RES-1';
+  if r.id is null then raise exception 'FALLO: no encuentra el nombre del cuerpo de una restringida'; end if;
+  -- ...pero lo único que sale es título, metadatos y enlaces
+  if r.resumen is not null or r.temas is not null or r.tipo_acto is not null or r.referencias is not null then
+    raise exception 'FALLO: una restringida encontrada por el cuerpo filtra contenido'; end if;
+  if r.titulo is null or r.nivel_privacidad <> 'restringido' then
+    raise exception 'FALLO: la restringida encontrada debe mostrar título y nivel'; end if;
+
+  -- contar también las cuenta
+  select coalesce(sum(c.n), 0) into n from public.contar_publicaciones(p_q => 'Fulanito', p_departamento => 'Ministerio de Prueba') c;
+  if n <> 1 then raise exception 'FALLO: contar no cuenta la restringida encontrada por el cuerpo (%)', n; end if;
+
+  -- un nombre que no está en ningún texto no devuelve nada
+  select count(*) into n from public.buscar_publicaciones(p_q => 'Zzyzxqwerty', p_departamento => 'Ministerio de Prueba') where id like 'TEST-%';
+  if n <> 0 then raise exception 'FALLO: devuelve resultados para un nombre inexistente'; end if;
+
+  -- los periodistas no pueden indexar ni medir
+  begin perform public.indexar_texto('TEST-PUB-1', 'x');
+    raise exception 'FALLO: authenticated ejecuta indexar_texto';
+  exception when insufficient_privilege then null; end;
+  begin perform 1 from public.medir_indice();
+    raise exception 'FALLO: authenticated ejecuta medir_indice';
+  exception when insufficient_privilege then null; end;
   reset role;
 end $$;
 
@@ -182,6 +229,49 @@ do $$ begin
     raise exception 'FALLO: una búsqueda solo con palabras vacías no da error';
   exception when invalid_parameter_value then null; end;
   reset role;
+end $$;
+
+-- 9) endurecimiento del índice (migración 8)
+do $$
+declare n int; t text; ok boolean;
+begin
+  -- la restringida guarda el índice SIN posiciones; la pública, con ellas
+  select tsv_texto::text into t from public.publicaciones where id = 'TEST-RES-1';
+  if t like '%:%' then raise exception 'FALLO: el índice de una restringida conserva posiciones'; end if;
+  select tsv_texto::text into t from public.publicaciones where id = 'TEST-PUB-1';
+  if t not like '%:%' then raise exception 'FALLO: el índice de una pública debería conservar posiciones'; end if;
+  -- no se indexan los números enmascarados
+  if (select tsv_texto::text from public.publicaciones where id = 'TEST-RES-1') like '%1234%' then
+    raise exception 'FALLO: se indexó un número de la restringida'; end if;
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  -- una frase entre comillas sigue encontrando la restringida (se trata como «y»), sin reconstruir texto
+  select count(*) into n from public.buscar_publicaciones(p_q => '"Fulanito Gomez"', p_departamento => 'Ministerio de Prueba') where id = 'TEST-RES-1';
+  if n <> 1 then raise exception 'FALLO: la frase entre comillas no encuentra la restringida (%)', n; end if;
+  -- el número enmascarado no sirve para confirmar a la persona
+  select count(*) into n from public.buscar_publicaciones(p_q => 'Fulanito 1234', p_departamento => 'Ministerio de Prueba') where id = 'TEST-RES-1';
+  if n <> 0 then raise exception 'FALLO: un número enmascarado encuentra la restringida'; end if;
+  -- solo exclusiones: error
+  begin perform 1 from public.buscar_publicaciones(p_q => '-Fulanito');
+    raise exception 'FALLO: una búsqueda solo con exclusiones no da error';
+  exception when invalid_parameter_value then null; end;
+  begin perform 1 from public.contar_publicaciones(p_q => '-Fulanito');
+    raise exception 'FALLO: contar solo con exclusiones no da error';
+  exception when invalid_parameter_value then null; end;
+  reset role;
+
+  -- service_role sí puede indexar y medir; un id inexistente devuelve false
+  set local role service_role;
+  select public.indexar_texto('TEST-PUB-1', 'Texto nuevo con Zorrilla Quintanilla.') into ok;
+  if ok is not true then raise exception 'FALLO: service_role no puede indexar'; end if;
+  select public.indexar_texto('NO-EXISTE', 'x') into ok;
+  if ok is not false then raise exception 'FALLO: indexar un id inexistente debe devolver false'; end if;
+  perform 1 from public.medir_indice();
+  reset role;
+  -- un texto muy largo (más de 300.000 caracteres) se indexa sin fallar
+  select public.indexar_texto('TEST-PUB-1', repeat('palabra distinta número uno ', 30000)) into ok;
+  if ok is not true then raise exception 'FALLO: no se indexa un texto muy largo'; end if;
 end $$;
 
 rollback;

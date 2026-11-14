@@ -1,7 +1,7 @@
 // Listas cerradas de las fichas (aprobadas el 13/11/2026). Fuente de verdad para el esquema y la
 // validación; una prueba comprueba que skill/FICHA.md recoge exactamente estos valores.
 
-export const FICHA_VERSION = 2;
+export const FICHA_VERSION = 3;
 
 export const TIPOS_ACTO = [
   'norma', 'modificacion_norma', 'correccion_errores', 'nombramiento', 'cese', 'destino_situacion',
@@ -40,7 +40,8 @@ export const COMENTA_EXTRACCION = /\btexto (recibido|recortado)\b|\brecortad[oa]
 
 /** Un «aviso de la fuente» que solo habla del recorte no es un aviso: se descarta. */
 export function limpiarAviso(ficha) {
-  if (typeof ficha?.aviso_fuente === 'string' && /\brecortad[oa]\b|\[…\]/i.test(ficha.aviso_fuente)) {
+  const NO_ES_AVISO = /\brecortad[oa]\b|\[…\]|no se detecta|no es una incoherencia|no contiene error|se deja constancia|sin error|variante ortogr/i;
+  if (typeof ficha?.aviso_fuente === 'string' && NO_ES_AVISO.test(ficha.aviso_fuente)) {
     return { ...ficha, aviso_fuente: null };
   }
   return ficha;
