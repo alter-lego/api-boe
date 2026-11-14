@@ -7,4 +7,6 @@ compatibility_date = "2026-11-01"
 SUPABASE_URL = "https://dgybontyrywfdzxvapqr.supabase.co"
 # Orígenes permitidos por CORS, separados por comas. Se añade el dominio de Lovable cuando exista.
 ALLOWED_ORIGINS = "https://buscador-boe.alter-lego.workers.dev,http://localhost:5173,http://localhost:8080"
+# Duración máxima de la sesión, en horas, contada desde el login por enlace (no desde la última renovación).
+SESION_MAX_HORAS = "24"
 # SUPABASE_ANON_KEY: se configura con `npx wrangler secret put SUPABASE_ANON_KEY` (publicable, pero sin versionarla).

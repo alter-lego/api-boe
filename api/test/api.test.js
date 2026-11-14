@@ -11,8 +11,9 @@ async function generarClaves() { return generateKeyPair('ES256'); }
 const jwk = { ...(await exportJWK(publicKey)), kid: 'k1', alg: 'ES256', use: 'sig' };
 const jwks = createLocalJWKSet({ keys: [jwk] });
 
-async function token({ email = 'prueba@test.local', role = 'authenticated', aud = 'authenticated', iss = `${URL_SB}/auth/v1`, exp = '1h', anonimo = false, clave = privateKey } = {}) {
-  const claims = { role, ...(email ? { email } : {}), ...(anonimo ? { is_anonymous: true } : {}) };
+async function token({ email = 'prueba@test.local', role = 'authenticated', aud = 'authenticated', iss = `${URL_SB}/auth/v1`, exp = '1h', anonimo = false, clave = privateKey, loginHace = 60, amr = undefined } = {}) {
+  const ahora = Math.floor(Date.now() / 1000);
+  const claims = { role, amr: amr === undefined ? [{ method: 'otp', timestamp: ahora - loginHace }] : amr, ...(email ? { email } : {}), ...(anonimo ? { is_anonymous: true } : {}) };
   return new SignJWT(claims).setProtectedHeader({ alg: 'ES256', kid: 'k1' }).setAudience(aud).setIssuer(iss).setSubject('u1').setIssuedAt().setExpirationTime(exp).sign(clave);
 }
 
@@ -63,6 +64,28 @@ test('sesiones inválidas: caducada, otro emisor, otra audiencia, anon, anónima
   const r = await pedir(app, '/v1/publicaciones?q=hola', { headers: { Authorization: 'Bearer basura' } });
   assert.equal(r.status, 401);
   assert.equal(sb.llamadas.length, 0);
+});
+
+test('duración de la sesión: máximo 24 h desde el login original, aunque el token se haya renovado', async () => {
+  const sb = sbFalso();
+  const app = crearApp({ fetchFn: sb.fetchFn, jwks });
+  const hora = 3600;
+  // login hace 23 h (token renovado hace poco): vale
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ loginHace: 23 * hora }))).status, 200);
+  // login hace 25 h con token recién renovado: caducada
+  const r = await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ loginHace: 25 * hora }));
+  assert.equal(r.status, 401);
+  assert.match((await r.json()).error, /caducada/);
+  // sin marca de login, o con marcas ilegibles: se rechaza
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ amr: [] }))).status, 401);
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ amr: null }))).status, 401);
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ amr: [{ method: 'otp', timestamp: 'x' }] }))).status, 401);
+  // con varias marcas manda la más antigua (el login original)
+  const ahora = Math.floor(Date.now() / 1000);
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ amr: [{ method: 'totp', timestamp: ahora - 60 }, { method: 'otp', timestamp: ahora - 30 * hora }] }))).status, 401);
+  // el límite se puede cambiar por configuración
+  const largo = await app.request('/v1/publicaciones?q=hola', await conSesion({ loginHace: 25 * hora }), { ...env, SESION_MAX_HORAS: '48' });
+  assert.equal(largo.status, 200);
 });
 
 test('publicaciones: traduce filtros a la RPC y reenvía el JWT del usuario', async () => {

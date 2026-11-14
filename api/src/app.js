@@ -114,6 +114,12 @@ export function crearApp({ fetchFn = fetch, jwks } = {}) {
         algorithms: ['ES256'],
       });
       if (payload.role !== 'authenticated' || payload.is_anonymous === true) throw new Error('rol');
+      // Duración máxima de la sesión: Supabase renueva el token cada hora sin límite, pero el token
+      // conserva la fecha del login original (amr[].timestamp). Pasadas SESION_MAX_HORAS horas, se pide un enlace nuevo.
+      const maxHoras = Number(c.env.SESION_MAX_HORAS ?? 24);
+      const marcas = (Array.isArray(payload.amr) ? payload.amr : []).map((a) => Number(a?.timestamp)).filter(Number.isFinite);
+      const inicio = marcas.length ? Math.min(...marcas) : null;
+      if (maxHoras > 0 && (inicio === null || Date.now() / 1000 - inicio > maxHoras * 3600)) throw new Error('sesión demasiado antigua');
       correo = payload.email;
     } catch {
       throw new ErrorApi(401, 'sesión no válida o caducada');
