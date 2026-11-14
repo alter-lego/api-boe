@@ -6,5 +6,5 @@ compatibility_date = "2026-11-01"
 [vars]
 SUPABASE_URL = "https://dgybontyrywfdzxvapqr.supabase.co"
 # Orígenes permitidos por CORS, separados por comas. Se añade el dominio de Lovable cuando exista.
-ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8080"
+ALLOWED_ORIGINS = "https://buscador-boe.alter-lego.workers.dev,http://localhost:5173,http://localhost:8080"
 # SUPABASE_ANON_KEY: se configura con `npx wrangler secret put SUPABASE_ANON_KEY` (publicable, pero sin versionarla).
