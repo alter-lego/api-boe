@@ -1,0 +1,55 @@
+# Ingesta diaria del BOE: sumario, fichas de las públicas y texto de las restringidas.
+# Secretos necesarios (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY
+name: Ingesta BOE
+
+on:
+  schedule:
+    # El cron va en UTC: 07:30 y 13:30 UTC = 08:30 y 14:30 en Madrid en invierno (09:30 y 15:30 en verano).
+    - cron: '30 7 * * *'
+    - cron: '30 13 * * *'
+  workflow_dispatch:
+    inputs:
+      fecha:
+        description: 'Fecha a ingerir (AAAA-MM-DD). Vacío = hoy.'
+        required: false
+        default: ''
+
+# Nunca dos ingestas a la vez.
+concurrency:
+  group: ingesta-boe
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingesta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FECHA: ${{ github.event.inputs.fecha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pruebas
+        run: node --test
+
+      - name: Sumario del día
+        run: node ingesta/boe.js --fecha "${FECHA:-hoy}"
+
+      # Los pasos siguientes se ejecutan aunque falle el anterior (p. ej. un corte puntual del BOE):
+      # procesan lo pendiente, y la ejecución sigue marcada como fallida para avisar.
+      - name: Fichas de las públicas
+        if: ${{ !cancelled() }}
+        run: node ingesta/fichas.js --pendientes --limite 1000 --max-coste 1 --concurrencia 4
+
+      - name: Texto de las restringidas
+        if: ${{ !cancelled() }}
+        run: node ingesta/fichas.js --restringidas --limite 1000 --concurrencia 4
