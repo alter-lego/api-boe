@@ -89,7 +89,7 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - **Administrador como periodista:** el administrador es además una fila de `periodistas`, así que ya puede buscar; la pestaña «Administración» se suma en su cabecera.
 
 ## Abierto a 14/11/2026
-- **Despliegue de la web:** el commit `93c38fa` (CSP, enlaces validados, `react-router` 7 y `vite` 8) no está desplegado en `buscador-boe`. Probado en modo prueba con un build real y la CSP; falta probarlo entero con login real antes de publicar. Lo hace la sesión web cuando el usuario lo confirme.
+- **Despliegue de la web: hecho el 14/11/2026** (versión `3b37afba` de `buscador-boe`, con el commit `93c38fa`: CSP, enlaces validados, `react-router` 7 y `vite` 8). Comprobado en vivo: cabeceras de seguridad activas y pantalla de entrada sin errores de CSP. Falta que el usuario pruebe el login real y las pantallas con sesión en esta versión.
 - **Registro de errores** (cómo avisar a quien mantiene la herramienta cuando la web falla): sin decidir.
 - **Servicio de correo propio:** el de Supabase solo envía 2 correos por hora en todo el proyecto, insuficiente si entran varios periodistas a la vez (hace falta un SMTP propio).
 - **Usuario de Auth del primer administrador:** debe existir en Supabase Auth con el correo confirmado para que pueda entrar.
