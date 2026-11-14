@@ -1,0 +1,7 @@
+# Despliegue de la web como activos estáticos de Cloudflare (Workers Static Assets).
+name = "buscador-boe"
+compatibility_date = "2026-11-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
