@@ -1,5 +1,5 @@
 -- Fase 1 · Pruebas de seguridad y privacidad.
--- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 8 migraciones.
+-- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 9 migraciones.
 -- Mete filas de prueba, comprueba y deshace todo (rollback): no deja nada en la base de datos.
 -- Si algo falla, sale un error que empieza por "FALLO". Si todo va bien, la última consulta
 -- devuelve «TODAS LAS PRUEBAS OK».
@@ -24,6 +24,13 @@ values
    'Lista de admitidos a las pruebas selectivas', 'restringido',
    'CONTENIDO-SECRETO-NO-DEBE-SALIR', array['empleo'], 'convocatoria');
 update public.publicaciones set referencias = '{"anteriores":["x"]}'::jsonb where id = 'TEST-RES-1';
+update public.publicaciones set rango = 'Real Decreto', aviso_fuente = 'AVISO-PUBLICO', ficha_revisar = false,
+  estatus_derogacion = 'N', judicialmente_anulada = false, vigencia_agotada = false, vigencia_actualizada = now()
+  where id = 'TEST-PUB-1';
+update public.publicaciones set rango = 'Resolución', aviso_fuente = 'AVISO-SECRETO', ficha_revisar = true,
+  ficha_motivo_revision = 'MOTIVO-INTERNO', estatus_derogacion = 'N', judicialmente_anulada = false, vigencia_agotada = true,
+  vigencia_actualizada = now()
+  where id = 'TEST-RES-1';
 
 -- Índice del texto completo (lo hace la ingesta): el nombre solo está en el CUERPO, no en el título
 select public.indexar_texto('TEST-PUB-1', 'La directora general sustituta será doña Menganita Sánchez Ruiz-Pérez durante el periodo.');
@@ -272,6 +279,45 @@ begin
   -- un texto muy largo (más de 300.000 caracteres) se indexa sin fallar
   select public.indexar_texto('TEST-PUB-1', repeat('palabra distinta número uno ', 30000)) into ok;
   if ok is not true then raise exception 'FALLO: no se indexa un texto muy largo'; end if;
+end $$;
+
+-- 10) migración 9: vigencia, avisos y filtro por rango
+do $$
+declare r public.ficha_publicacion; n int;
+begin
+  set local role authenticated;
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+
+  -- pública: sale todo, incluido el aviso y la vigencia
+  select * into r from public.publicacion('TEST-PUB-1');
+  if r.aviso_fuente is distinct from 'AVISO-PUBLICO' or r.estatus_derogacion is distinct from 'N'
+     or r.ficha_revisar is distinct from false or r.vigencia_actualizada is null then
+    raise exception 'FALLO: una pública no devuelve aviso/vigencia'; end if;
+
+  -- restringida: la vigencia (metadato oficial) sale; el aviso y «a revisar» NO
+  select * into r from public.publicacion('TEST-RES-1');
+  if r.vigencia_agotada is distinct from true or r.estatus_derogacion is distinct from 'N' then
+    raise exception 'FALLO: una restringida no devuelve la vigencia'; end if;
+  if r.aviso_fuente is not null or r.ficha_revisar is not null then
+    raise exception 'FALLO: una restringida filtra aviso_fuente o ficha_revisar'; end if;
+  if row_to_json(r)::text like '%AVISO-SECRETO%' or row_to_json(r)::text like '%MOTIVO-INTERNO%' then
+    raise exception 'FALLO: la ficha de una restringida contiene texto interno'; end if;
+  -- el motivo interno no existe en el tipo
+  if to_jsonb(r) ? 'ficha_motivo_revision' then raise exception 'FALLO: se expone ficha_motivo_revision'; end if;
+
+  -- filtro por rango (sin tildes ni mayúsculas)
+  select count(*) into n from public.buscar_publicaciones(p_rango => 'real decreto', p_departamento => 'Ministerio de Prueba');
+  if n <> 1 then raise exception 'FALLO: el filtro por rango «real decreto» devuelve % y debería ser 1', n; end if;
+  select count(*) into n from public.buscar_publicaciones(p_rango => 'RESOLUCION', p_departamento => 'Ministerio de Prueba');
+  if n <> 1 then raise exception 'FALLO: el filtro por rango sin tildes devuelve % y debería ser 1', n; end if;
+  select coalesce(sum(c.n), 0) into n from public.contar_publicaciones(p_rango => 'Real Decreto', p_departamento => 'Ministerio de Prueba') c;
+  if n <> 1 then raise exception 'FALLO: contar con rango devuelve %', n; end if;
+  reset role;
+
+  -- no quedan sobrecargas antiguas (la lista blanca no debe repetir nombres)
+  if (select count(*) from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+       where s.nspname = 'public' and p.proname in ('buscar_publicaciones', 'contar_publicaciones')) <> 2 then
+    raise exception 'FALLO: hay sobrecargas de buscar/contar'; end if;
 end $$;
 
 rollback;
