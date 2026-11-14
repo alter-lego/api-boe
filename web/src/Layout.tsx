@@ -1,5 +1,6 @@
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { MODO, api } from './api';
+import { useEsAdmin } from './admin';
 import { salir, useSesion } from './auth';
 import { FreshnessBar } from './ds';
 import { fechaCorta, hoyMadrid, horaMadrid } from './labels';
@@ -28,6 +29,7 @@ function Frescura() {
 
 export function Layout() {
   const { cargando, email } = useSesion();
+  const { esAdmin } = useEsAdmin();
   const loc = useLocation();
   if (MODO === 'api') {
     if (cargando) return <p className="bboe-meta" style={{ padding: 24 }}>Cargando…</p>;
@@ -43,6 +45,7 @@ export function Layout() {
         <nav className="nav" aria-label="Principal">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Buscar</NavLink>
           <NavLink to="/dia" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Resumen de hoy</NavLink>
+          {esAdmin ? <NavLink to="/admin" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Administración</NavLink> : null}
         </nav>
         {MODO === 'prueba' ? <span className="cabecera__modo" title="Datos de ejemplo; no hay sesión ni conexión con la API">Modo de prueba</span> : null}
         {email ? <span className="cabecera__usuario">{email} · <button type="button" className="enlace" onClick={() => salir()}>Salir</button></span> : null}

@@ -84,3 +84,6 @@ Funciones de Supabase que usa la API: `buscar_publicaciones`, `contar_publicacio
 - Las URLs de la web llevan los filtros como parámetros (compartible).
 - Búsqueda: se ejecuta al pulsar Buscar o Intro (sin búsqueda en vivo).
 - La frescura se obtiene de `GET /v1/health`, que no exige sesión.
+
+## Excepción: administración de periodistas (14/11/2026)
+La pantalla `/admin` llama a Supabase por RPC con la sesión del usuario (no pasa por la API), con las funciones de `supabase/migrations/20261114120000_rls_y_admin.sql`: `es_admin()`, `admin_listar_periodistas()`, `admin_alta_periodista(p_email, p_nombre, p_limite_diario, p_es_admin)`, `admin_modificar_periodista(p_email, p_nombre, p_limite_diario, p_activo, p_es_admin)` (null = no cambiar) y `admin_ver_log(p_limite)`. Errores de Postgres: 42501 sin permiso, 22023 dato no válido, 23505 correo repetido, 23514 debe quedar un administrador activo, P0002 no existe. Si las funciones no existen aún, `es_admin()` falla y la pantalla se oculta.

@@ -101,6 +101,14 @@ Título «Sumario del día», selector de fecha con ◀ ▶ y buscador «Buscar 
 ### 5.6 Preguntar al BOE (reservado)
 No aparece en la cabecera en el MVP. La pantalla del lienzo (§7) queda como referencia para la Fase 4.
 
+### 5.7 Administración de periodistas (solo administradores; añadida el 14/11/2026)
+Ruta `/admin`, con la pestaña «Administración» visible solo si `es_admin()` devuelve true (la seguridad real está en la base de datos). Contenido:
+- **Dar de alta:** correo, nombre (opcional), preguntas al día (1-1000, por defecto 30) y casilla «Administrador». Tras el alta avisa de que su usuario también debe existir en el acceso por correo de Supabase.
+- **Periodistas:** lista con correo, nombre, límite, preguntas de hoy, «Activo/De baja» y «Administrador»; acciones «Editar» y «Dar de baja» / «Reactivar». Antes de una baja o de quitar el rol de administrador pide confirmación en la propia fila. No se borra a nadie.
+- **Registro de cambios:** plegable, con quién hizo qué y cuándo (últimos 100).
+- **Errores en español:** sin permiso, dato no válido, correo ya dado de alta, «Debe quedar al menos un administrador activo» y periodista inexistente.
+- Excepción a la regla «la web solo habla con la API»: esta pantalla llama a las funciones `admin_*` de Supabase con la sesión del usuario (`supabase.rpc`). Requiere la migración `20261114120000_rls_y_admin.sql`.
+
 ## 6. Estados y textos
 
 ### 6.1 Login (sesión aparte; solo lo ya decidido)

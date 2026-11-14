@@ -35,6 +35,7 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - **Pasos del usuario:** poner `VITE_MODO=api` y la clave anon en `web/.env`, y añadir `https://buscador-boe.alter-lego.workers.dev` y `http://localhost:5173` en Supabase → Authentication → URL Configuration.
 
 ### Pendientes del login
+- **Alta de un periodista nuevo desde `/admin`:** `admin_alta_periodista` solo escribe en `periodistas`; no crea el usuario de Supabase Auth, y la web pide el enlace con `shouldCreateUser: false`, así que esa persona no podría entrar. Opciones: (a) dar de alta también el usuario en Auth a mano (hoy), o (b) cambiar a `shouldCreateUser: true` (cualquiera que escriba su correo recibiría un enlace, pero la API y la base le dirían «Sin acceso» si no está en `periodistas`). Decisión del usuario pendiente.
 - Si se revela o no que un correo no está en la lista (`shouldCreateUser: false` o error posterior: la API devuelve 403 para un correo que no está en `periodistas`).
 - ~~Duración de la sesión~~ **Decidido (14/11/2026): 24 horas desde el login por enlace.** Lo impone la API (`SESION_MAX_HORAS` en `api/wrangler.toml`, límite a partir de `amr[].timestamp` del JWT); la web trata el 401 como «Tu sesión ha caducado», cierra la sesión local y lleva a `/entrar`.
 - Cómo cambia de cuenta quien entra con un correo equivocado (la pantalla «Sin acceso» no tiene «Salir»).
