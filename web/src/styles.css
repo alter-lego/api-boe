@@ -128,3 +128,4 @@ a { color: var(--brand); }
 @media (max-width: 640px) { .admin__alta { grid-template-columns: 1fr; } .admin__fila { grid-template-columns: 1fr; } }
 .nav__a, .cabecera__modo { white-space: nowrap; }
 .cabecera__usuario { white-space: nowrap; }
+.admin__info { grid-column: 1 / -1; }

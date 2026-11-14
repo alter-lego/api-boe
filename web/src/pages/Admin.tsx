@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AdminError, admin, useEsAdmin, type Periodista } from '../admin';
+import { AdminError, AltaError, admin, useEsAdmin, type Periodista } from '../admin';
 import { useSesion } from '../auth';
 import { Badge, Button, Field } from '../ds';
 import { Esqueletos } from '../Estados';
@@ -20,11 +20,15 @@ function Alta({ alAlta }: { alAlta: () => void }) {
     e.preventDefault();
     setEnviando(true); setMsg(null);
     try {
-      const p = await admin.alta({ email, nombre, limite, esAdmin });
-      setMsg({ ok: true, texto: `Dado de alta: ${p.email}. El periodista solo podrá entrar cuando se cree su usuario en Supabase: Authentication → Users → Add user (con la confirmación automática).` });
+      const r = await admin.alta({ email, nombre, limite, esAdmin });
+      setMsg({ ok: true, texto: `Dado de alta: ${r.periodista.email}. Ya puede entrar: que pida su enlace en la pantalla de entrada.${r.acceso_creado ? '' : ' Ya tenía acceso.'}` });
       setEmail(''); setNombre(''); setLimite(30); setEsAdmin(false);
       alAlta();
-    } catch (err) { setMsg({ ok: false, texto: texto(err) }); }
+    } catch (err) {
+      setMsg({ ok: false, texto: texto(err) });
+      // Alta hecha o quizá hecha pero sin acceso: se recarga la lista para ofrecer «Crear acceso» en su fila.
+      if (err instanceof AltaError && (err.periodistaCreado || err.quizaCreado || err.code === '409')) alAlta();
+    }
     setEnviando(false);
   };
 
@@ -49,6 +53,15 @@ function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
   const [limite, setLimite] = useState(p.limite_diario);
   const [esAdmin, setEsAdmin] = useState(p.es_admin);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+
+  const crearAcceso = async () => {
+    setError(null); setInfo(null);
+    try {
+      const r = await admin.acceso(p.email);
+      setInfo(r.acceso_creado ? 'Acceso creado. Ya puede pedir su enlace en la pantalla de entrada.' : 'Ya tenía acceso.');
+    } catch (e) { setError(texto(e)); }
+  };
 
   const ejecutar = async (cambio: Parameters<typeof admin.modificar>[1]) => {
     setError(null);
@@ -73,6 +86,7 @@ function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
         {modo === 'ver' ? (
           <>
             <Button variant="secondary" size="sm" onClick={() => { setNombre(p.nombre ?? ''); setLimite(p.limite_diario); setEsAdmin(p.es_admin); setModo('editar'); }}>Editar</Button>
+            {p.activo ? <Button variant="secondary" size="sm" onClick={() => void crearAcceso()}>Crear acceso</Button> : null}
             {p.activo ? <Button variant="secondary" size="sm" onClick={() => setModo('baja')}>Dar de baja</Button> : <Button variant="secondary" size="sm" onClick={() => (p.es_admin ? setModo('reactivar') : void ejecutar({ activo: true }))}>Reactivar</Button>}
           </>
         ) : null}
@@ -107,6 +121,7 @@ function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
           </div>
         </div>
       ) : null}
+      {info ? <p className="bboe-meta admin__info" role="status">{info}</p> : null}
       {error ? <p className="admin__error" role="alert">{error}</p> : null}
     </div>
   );
