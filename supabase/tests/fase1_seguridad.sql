@@ -81,8 +81,8 @@ do $$ begin
   begin perform 1 from public.buscar_publicaciones();
     raise exception 'FALLO: un periodista dado de baja puede buscar';
   exception when insufficient_privilege then null; end;
-  begin perform public.registrar_consulta('x', 'm', 1, 1, 1, 0, 0, null, false);
-    raise exception 'FALLO: un correo dado de baja puede registrar consultas';
+  begin perform public.reservar_consulta('x');
+    raise exception 'FALLO: un correo dado de baja puede reservar consultas';
   exception when insufficient_privilege then null; end;
   reset role;
 end $$;
@@ -142,8 +142,8 @@ begin
   if n is distinct from 1 then
     raise exception 'FALLO: contar no oculta el tipo de acto de la restringida (%)', n; end if;
 
-  -- registrar y contar consultas del día
-  perform public.registrar_consulta('pregunta de prueba', 'haiku', 1, 100, 10, 0, 0.001, array['TEST-PUB-1'], false);
+  -- reservar y contar consultas del día
+  perform public.reservar_consulta('pregunta de prueba');
   select usadas into n from public.consultas_de_hoy();
   if n <> 1 then raise exception 'FALLO: consultas_de_hoy debería dar 1 y da %', n; end if;
 
@@ -234,7 +234,7 @@ begin
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and has_function_privilege('authenticated', p.oid, 'execute');
   if lista is distinct from
-     'admin_alta_periodista, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, publicacion, registrar_consulta, sumario_del_dia, ultima_ingesta' then
+     'admin_alta_periodista, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, completar_consulta, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, publicacion, reservar_consulta, sumario_del_dia, ultima_ingesta' then
     raise exception 'FALLO: authenticated puede ejecutar: %', lista; end if;
 end $$;
 

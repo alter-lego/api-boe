@@ -1,5 +1,5 @@
 -- Pruebas de las migraciones 10 y 11: RLS (segunda barrera), rol admin, sesión vigente y permisos.
--- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 11 migraciones.
+-- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 12 migraciones.
 -- Mete filas de prueba, comprueba y deshace todo (rollback). Si algo falla, el error empieza por
 -- "FALLO". Si todo va bien, la última consulta devuelve «TODAS LAS PRUEBAS OK».
 -- (El SQL Editor ejecuta el lote y se detiene en el primer error. Con psql: `-v ON_ERROR_STOP=1`.)
@@ -429,7 +429,7 @@ begin
   if r.resumen is null then raise exception 'FALLO: la pública perdió su resumen'; end if;
   select count(*) into n from public.buscar_publicaciones(p_q => 'Fulanito Gomez', p_departamento => 'Ministerio de Prueba') where id = 'TEST-RES-1';
   if n <> 1 then raise exception 'FALLO: la búsqueda por el cuerpo dejó de encontrar la restringida'; end if;
-  perform public.registrar_consulta('otra pregunta', 'm', 1, 1, 1, 0, 0, null, false);
+  perform public.reservar_consulta('otra pregunta');
   select usadas into n from public.consultas_de_hoy();
   if n <> 2 then raise exception 'FALLO: consultas_de_hoy de otra debería dar 2 y da %', n; end if;
   reset role;
@@ -510,7 +510,7 @@ begin
     'select 1 from public.sumario_del_dia(current_date)',
     $q$select 1 from public.publicacion('TEST-PUB-1')$q$,
     'select 1 from public.consultas_de_hoy()',
-    $q$select public.registrar_consulta('x','m',1,1,1,0,0,null,false)$q$,
+    $q$select * from public.reservar_consulta('x')$q$,
     'select 1 from public.admin_listar_periodistas()',
     $q$select 1 from public.admin_alta_periodista('caducada@test.local')$q$,
     $q$select 1 from public.admin_modificar_periodista('otra@test.local', p_activo => false)$q$,
@@ -715,7 +715,7 @@ begin
   select string_agg(p.proname, ', ' order by p.proname collate "C") into lista
     from pg_proc p join pg_namespace s on s.oid = p.pronamespace
    where s.nspname = 'public' and has_function_privilege('authenticated', p.oid, 'execute');
-  if lista is distinct from 'admin_alta_periodista, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, publicacion, registrar_consulta, sumario_del_dia, ultima_ingesta' then
+  if lista is distinct from 'admin_alta_periodista, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, completar_consulta, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, publicacion, reservar_consulta, sumario_del_dia, ultima_ingesta' then
     raise exception 'FALLO: authenticated puede ejecutar: %', lista; end if;
 
   -- las funciones admin y es_admin tienen search_path fijo

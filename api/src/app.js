@@ -4,38 +4,10 @@
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { z } from 'zod';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { TEMAS, TIPOS_ACTO } from '../../ingesta/lib/listas.js';
-
-const SECCIONES = ['1', '2A', '2B', '3', '4', '5A', '5B', '5C', 'T'];
-const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'fecha no válida (AAAA-MM-DD)')
-  .refine((s) => !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(`${s}T00:00:00Z`).toISOString().startsWith(s), 'fecha no válida');
-const texto = (max) => z.string().trim().min(1).max(max);
-
-/** Filtros comunes de buscar y contar. Los parámetros vacíos se ignoran. */
-const filtros = {
-  desde: fecha.optional(),
-  hasta: fecha.optional(),
-  seccion: z.enum(SECCIONES).optional(),
-  organismo: texto(200).optional(),
-  tema: z.string().optional().transform((s) => (s ? s.split(',').map((x) => x.trim()).filter(Boolean) : undefined))
-    .pipe(z.array(z.enum(TEMAS)).max(5).optional()),
-  tipo: z.enum(TIPOS_ACTO).optional(),
-  rango: texto(100).optional(),
-  q: texto(500).optional(),
-};
-const consultaBuscar = z.object({ ...filtros, limit: z.coerce.number().int().min(1).max(100).default(20) });
-const consultaContar = z.object({ ...filtros, agrupar: z.enum(['total', 'mes', 'organismo', 'tipo']).default('total') });
-
-const AGRUPAR_SQL = { total: 'total', mes: 'mes', organismo: 'departamento', tipo: 'tipo_acto' };
-
-/** Parámetros de las RPC a partir de la consulta validada. */
-const paramsFiltros = (c) => ({
-  p_desde: c.desde ?? null, p_hasta: c.hasta ?? null, p_seccion: c.seccion ?? null,
-  p_departamento: c.organismo ?? null, p_temas: c.tema ?? null, p_tipo_acto: c.tipo ?? null,
-  p_q: c.q ?? null, p_rango: c.rango ?? null,
-});
+import { z } from 'zod';
+import { ErrorApi, rpc, leerJson, fecha, consultaBuscar, consultaContar, AGRUPAR_SQL, paramsFiltros } from './comun.js';
+import { responderPregunta } from './preguntar.js';
 
 class SesionNoValida extends Error {}
 const METODOS_VALIDOS = ['otp', 'magiclink'];
@@ -44,42 +16,10 @@ const ERRORES_DE_TOKEN = /^(ERR_JWT_|ERR_JWS_|ERR_JOSE_ALG_NOT_ALLOWED|ERR_JWKS_
 
 let jwksRemoto = null; // claves públicas del proyecto (se descargan una vez y se reutilizan)
 
-export class ErrorApi extends Error {
-  constructor(estado, mensaje) { super(mensaje); this.estado = estado; }
-}
-
-/** Llama a una función SQL con el JWT del usuario (o solo la clave anon, para /health). */
-async function rpc(env, nombre, args, { jwt, fetchFn }) {
-  let res;
-  try {
-    res = await fetchFn(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/${nombre}`, {
-      method: 'POST',
-      headers: {
-        apikey: env.SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${jwt ?? env.SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(args ?? {}),
-      signal: AbortSignal.timeout(8000),
-    });
-  } catch (e) {
-    if (e?.name === 'TimeoutError' || e?.name === 'AbortError') throw new ErrorApi(504, 'el archivo tardó demasiado en responder; inténtalo de nuevo');
-    throw new ErrorApi(502, 'error al consultar el archivo');
-  }
-  if (res.ok) return res.json();
-  let cuerpo = {};
-  try { cuerpo = await res.json(); } catch { /* sin cuerpo */ }
-  if (cuerpo.code === '42501') throw new ErrorApi(403, 'no autorizado');
-  if (cuerpo.code === '22023') throw new ErrorApi(400, cuerpo.message ?? 'consulta no válida');
-  if (res.status === 401) throw new ErrorApi(401, 'sesión no válida o caducada');
-  if (cuerpo.code === '57014') throw new ErrorApi(504, 'la consulta tardó demasiado; acótala con más filtros');
-  throw new ErrorApi(502, 'error al consultar el archivo');
-}
-
 /**
- * @param {{ fetchFn?: typeof fetch, jwks?: any }} deps  jwks: clave o conjunto de claves (por defecto, las públicas del proyecto)
+ * @param {{ fetchFn?: typeof fetch, jwks?: any, instrucciones?: string | null, esperar?: (ms: number) => Promise<void> }} deps  jwks: clave o conjunto de claves (por defecto, las públicas del proyecto)
  */
-export function crearApp({ fetchFn = fetch, jwks } = {}) {
+export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   const app = new Hono();
 
   app.use('*', async (c, next) => {
@@ -190,7 +130,14 @@ export function crearApp({ fetchFn = fetch, jwks } = {}) {
     return c.json({ fecha: f.data, total: datos.length, secciones });
   });
 
-  app.post('/v1/preguntar', (c) => c.json({ error: 'las preguntas en lenguaje natural llegan en la fase 4' }, 501));
+  // Preguntas en lenguaje natural (Fase 4). Sin clave de Anthropic o sin instrucciones no se reserva ninguna pregunta.
+  const cuerpoPregunta = z.object({ pregunta: z.string().trim().min(3, 'escribe una pregunta').max(1000, 'la pregunta es demasiado larga (máximo 1000 caracteres)') });
+  app.post('/v1/preguntar', async (c) => {
+    if (!c.env.ANTHROPIC_API_KEY || !instrucciones) throw new ErrorApi(503, 'las preguntas no están disponibles todavía');
+    const r = cuerpoPregunta.safeParse(await leerJson(c.req.raw));
+    if (!r.success) throw new ErrorApi(400, r.error.issues.map((i) => i.message).join('; '));
+    return c.json(await responderPregunta({ pregunta: r.data.pregunta, jwt: c.get('jwt'), env: c.env, fetchFn, esperar, instrucciones }));
+  });
 
   return app;
 }

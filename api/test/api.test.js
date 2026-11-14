@@ -227,9 +227,12 @@ test('CORS: solo los orígenes permitidos; cabeceras de seguridad', async () => 
   assert.equal(pre.status, 204);
 });
 
-test('preguntar: 501 hasta la fase 4; rutas inexistentes: 404 JSON', async () => {
-  const app = crearApp({ fetchFn: sbFalso().fetchFn, jwks });
+test('preguntar sin configurar (sin clave de Anthropic): 503 y no se reserva nada; rutas inexistentes: 404 JSON', async () => {
+  const sb = sbFalso();
+  const app = crearApp({ fetchFn: sb.fetchFn, jwks });
   const init = await conSesion();
-  assert.equal((await pedir(app, '/v1/preguntar', { ...init, method: 'POST' })).status, 501);
+  const r = await pedir(app, '/v1/preguntar', { ...init, method: 'POST', headers: { ...init.headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta: 'hola qué tal' }) });
+  assert.equal(r.status, 503);
+  assert.equal(sb.llamadas.length, 0);
   assert.equal((await pedir(app, '/v1/nada', init)).status, 404);
 });

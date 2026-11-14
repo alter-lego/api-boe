@@ -9,4 +9,15 @@ SUPABASE_URL = "https://dgybontyrywfdzxvapqr.supabase.co"
 ALLOWED_ORIGINS = "https://buscador-boe.alter-lego.workers.dev,http://localhost:5173,http://localhost:8080"
 # Duración máxima de la sesión, en horas, contada desde el login por enlace (no desde la última renovación).
 SESION_MAX_HORAS = "24"
+# Preguntas en lenguaje natural (Fase 4). ANTHROPIC_API_KEY es un secreto propio del buscador (distinto del de la ingesta):
+#   npx wrangler secret put ANTHROPIC_API_KEY
+MODELO_PREGUNTAR = "claude-haiku-5-5"
+# Primer día cargado en el archivo: se lo indica a Claude para que no responda de épocas que no cubre.
+COBERTURA_DESDE = "2026-08-13"
 # SUPABASE_ANON_KEY: se configura con `npx wrangler secret put SUPABASE_ANON_KEY` (publicable, pero sin versionarla).
+
+# skill/SKILL.md se incluye en el Worker como texto.
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true

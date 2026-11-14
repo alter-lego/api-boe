@@ -16,7 +16,7 @@ Decidido el 14/11/2026. Migraciones `20261114120000_rls_y_admin.sql` (10) y `202
 | `publicaciones` | periodista activo con sesión vigente, **solo filas públicas** | nadie (ingesta con `service_role`) |
 | `periodistas` | admin: todas; periodista: solo la suya | solo admin (insert/update); nadie borra |
 | `periodistas_log` | solo admin | solo el trigger |
-| `consultas` | cada periodista, solo las suyas (ni el admin ve las ajenas) | solo `registrar_consulta` |
+| `consultas` | cada periodista, solo las suyas (ni el admin ve las ajenas) | solo `reservar_consulta` / `completar_consulta` (migración 12) |
 | `boletines`, `sumarios` | periodista activo | nadie |
 | `ingestas` | nadie (el campo `error` puede tener detalles internos) | `service_role` |
 
