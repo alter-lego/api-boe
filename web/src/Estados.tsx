@@ -30,7 +30,7 @@ export function ErrorCarga({ error, reintentar }: { error: ApiError; reintentar:
     return (
       <div className="aviso" role="alert">
         <h2>Tu sesión ha caducado</h2>
-        <p>Por seguridad, se cierra tras [X] días sin usar el buscador.</p>
+        <p>Por seguridad, la sesión dura 24 horas desde que entras.</p>
         <p><Link className="enlace" to="/entrar">Entrar de nuevo</Link></p>
       </div>
     );

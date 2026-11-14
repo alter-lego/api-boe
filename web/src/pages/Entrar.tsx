@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { authConfigurado, enviarEnlace, useSesion } from '../auth';
+import { authConfigurado, enviarEnlace, haCaducado, olvidarCaducidad, useSesion } from '../auth';
 import { Button, Field } from '../ds';
 
 export function Entrar() {
@@ -10,6 +10,7 @@ export function Entrar() {
   const [estado, setEstado] = useState<'inicial' | 'enviando' | 'enviado' | 'fallo'>('inicial');
   const [espera, setEspera] = useState(0);
   const desde = (loc.state as { desde?: string } | null)?.desde ?? '/';
+  const [caducada] = useState(() => haCaducado());
 
   useEffect(() => {
     if (espera <= 0) return;
@@ -17,7 +18,7 @@ export function Entrar() {
     return () => clearTimeout(t);
   }, [espera]);
 
-  if (!cargando && sesion) return <Navigate to={desde} replace />;
+  if (!cargando && sesion) { olvidarCaducidad(); return <Navigate to={desde} replace />; }
 
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +36,7 @@ export function Entrar() {
       <img className="logo logo--claro" src="/logo.svg" alt="elDiario.es" />
       <img className="logo logo--oscuro" src="/logo-blanco.svg" alt="elDiario.es" />
       <h1>Entrar al buscador del BOE</h1>
+      {caducada ? <div className="aviso" role="alert"><p>Tu sesión ha caducado. Por seguridad, dura 24 horas desde que entras. Pide un enlace nuevo.</p></div> : null}
       {!authConfigurado() ? (
         <div className="aviso" role="alert"><p>Falta configurar el acceso (clave pública de Supabase) en esta instalación.</p></div>
       ) : estado === 'enviado' ? (
@@ -48,6 +50,7 @@ export function Entrar() {
             <input id="correo" type="email" autoComplete="email" required className="bboe-input bboe-input--lg" value={email} onChange={(e) => setEmail(e.target.value)} />
           </Field>
           <Button type="submit" disabled={estado === 'enviando'}>{estado === 'enviando' ? 'Enviando…' : 'Enviarme el enlace'}</Button>
+          <p className="bboe-meta">La sesión dura 24 horas desde que entras.</p>
           {estado === 'fallo' ? <p className="bboe-meta" role="alert">No hemos podido enviar el enlace. Inténtalo de nuevo en un minuto.</p> : null}
         </form>
       )}

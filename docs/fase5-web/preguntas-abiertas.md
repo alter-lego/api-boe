@@ -36,7 +36,7 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 
 ### Pendientes del login
 - Si se revela o no que un correo no está en la lista (`shouldCreateUser: false` o error posterior: la API devuelve 403 para un correo que no está en `periodistas`).
-- Duración de la sesión ([X] días en el aviso de sesión caducada; propuesta 30).
+- ~~Duración de la sesión~~ **Decidido (14/11/2026): 24 horas desde el login por enlace.** Lo impone la API (`SESION_MAX_HORAS` en `api/wrangler.toml`, límite a partir de `amr[].timestamp` del JWT); la web trata el 401 como «Tu sesión ha caducado», cierra la sesión local y lleva a `/entrar`.
 - Cómo cambia de cuenta quien entra con un correo equivocado (la pantalla «Sin acceso» no tiene «Salir»).
 - Texto del correo del magic link, en español, y SMTP propio (el de Supabase integrado es muy limitado).
 

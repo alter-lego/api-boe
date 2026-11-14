@@ -21,6 +21,20 @@ export async function salir() {
   await supabase?.auth.signOut();
 }
 
+// La API limita la sesión a 24 h desde el login por enlace: pasado ese tiempo responde 401 aunque el token se renueve.
+// Se cierra la sesión local una sola vez y se recuerda el motivo para decírselo en /entrar (sin bucles de reintento).
+const CLAVE_CADUCADA = 'sesion-caducada';
+export async function cerrarPorCaducidad() {
+  try { sessionStorage.setItem(CLAVE_CADUCADA, '1'); } catch { /* sin almacenamiento */ }
+  await supabase?.auth.signOut({ scope: 'local' });
+}
+export function haCaducado(): boolean {
+  try { return sessionStorage.getItem(CLAVE_CADUCADA) === '1'; } catch { return false; }
+}
+export function olvidarCaducidad() {
+  try { sessionStorage.removeItem(CLAVE_CADUCADA); } catch { /* sin almacenamiento */ }
+}
+
 export function useSesion() {
   const [estado, setEstado] = useState<{ cargando: boolean; email: string | null }>({ cargando: true, email: null });
   useEffect(() => {

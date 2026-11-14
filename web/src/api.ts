@@ -1,4 +1,4 @@
-import { getToken } from './auth';
+import { cerrarPorCaducidad, getToken } from './auth';
 import { mock } from './mock';
 import type { Conteo, Ficha, Filtros, Salud, Sumario } from './types';
 
@@ -32,6 +32,7 @@ async function llamar<T>(ruta: string, conSesion = true): Promise<T> {
   let r: Response;
   try { r = await fetch(`${API}${ruta}`, { headers }); } catch { throw new ApiError(502, 'Sin conexión'); }
   if (!r.ok) {
+    if (r.status === 401 && conSesion) await cerrarPorCaducidad();
     let msg = '';
     try { msg = ((await r.json()) as { error?: string }).error ?? ''; } catch { /* sin cuerpo */ }
     throw new ApiError(r.status, msg);
