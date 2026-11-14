@@ -49,7 +49,7 @@ Salvaguardas:
 
 ## Permisos de `service_role` (migración 11)
 
-`service_role` (la ingesta) solo puede **leer** `periodistas` y `periodistas_log`: no puede escribirlas ni borrarlas, ni usar la secuencia del log, ni ejecutar las funciones admin. La ingesta no toca esas tablas (comprobado con grep en `ingesta/`, `.github/` y `api/`). `TRUNCATE` de ambas tablas está bloqueado para todos, incluido el dueño (hay que quitar el trigger a propósito si algún día hiciera falta).
+`service_role` solo puede **leer** `periodistas` y `periodistas_log`: no puede escribirlas ni borrarlas, ni usar la secuencia del log, ni ejecutar las funciones admin. La ingesta no toca esas tablas (comprobado con grep en `ingesta/` y `.github/`). La clave vive solo en la ingesta (GitHub Secrets); no está en el Worker ni en la web. `TRUNCATE` de ambas tablas está bloqueado para todos, incluido el dueño (hay que quitar el trigger a propósito si algún día hiciera falta).
 
 Consecuencia: las altas y bajas se hacen **solo** con `admin_alta_periodista`/`admin_modificar_periodista` (desde la web) o con el SQL Editor (rol `postgres`). Quien tenga acceso al SQL Editor o a la clave de base de datos sí puede modificar o borrar filas del log: **ningún rol de la API puede, el dueño de la base sí**. Si en el futuro se vuelve a ejecutar un `grant all on all tables ... to service_role`, hay que repetir esos `revoke`.
 
@@ -62,8 +62,8 @@ Consecuencia: las altas y bajas se hacen **solo** con `admin_alta_periodista`/`a
 ## Pasos obligatorios fuera de la base de datos (los hace una persona)
 
 1. **Primer admin**, una vez, en el SQL Editor (instrucción en la cabecera de la migración 10).
-2. **Tras cada alta, crear el usuario en Supabase Auth** (Authentication → Users). `admin_alta_periodista` solo autoriza el correo; **sin usuario de Auth el periodista no puede entrar**. La web no puede crear usuarios de Auth (haría falta la clave `service_role`, que es solo de la ingesta).
-3. **Revisar en el panel de Supabase Auth**, antes de abrir a más gente: que solo se emiten sesiones con **correo verificado** (enlace mágico o similar, ningún proveedor que acepte correos sin verificar); que **«Secure email change»** está activado; y que **Redirect URLs** y el Site URL contienen solo las direcciones de la web. Todo el control de acceso se apoya en el correo del JWT.
+2. **Alta de un periodista = dos pasos.** (a) `admin_alta_periodista`, desde la pantalla de admin de la web, autoriza el correo. (b) Una persona crea a mano su usuario en Supabase → Authentication → Users → Add user, con la confirmación de correo automática. **Sin el paso (b) el periodista no puede entrar.** Se descartó automatizarlo (un `POST /v1/entrar` en el Worker que creara el usuario) para no ampliar la exposición de la clave `service_role`; el código quedó aparcado en la rama local `aparcado/entrar` y nunca se desplegó. Si algún día se automatiza, la alternativa recomendada es un Worker con su propia clave secreta revocable, no la `service_role` de la ingesta.
+3. **Requisitos de Supabase Auth** (los comprueba una persona en el panel, antes de abrir a más gente): confirmación de correo obligatoria (solo sesiones con correo verificado, ningún proveedor que acepte correos sin verificar); **«Secure email change»** activado; **registros nuevos y usuarios anónimos desactivados**; y **Redirect URLs** y Site URL con solo las direcciones exactas de la web. Todo el control de acceso se apoya en el correo del JWT.
 
 ## Riesgos y pendientes
 
