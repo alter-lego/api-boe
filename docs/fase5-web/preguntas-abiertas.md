@@ -82,3 +82,18 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - **Demasiados enlaces:** un 429 al pedir el enlace muestra «Has pedido demasiados enlaces; espera unos minutos.», sin revelar si el correo está autorizado.
 - **Dependencias:** `react-router-dom` 7.18 y `vite` 8 (con `@vitejs/plugin-react` 6); `npm audit`: 0 vulnerabilidades; el build pasa.
 - **PKCE (`flowType: 'pkce'`): no activado.** Con PKCE el enlace solo funciona en el mismo navegador y dispositivo que lo pidió (si se abre el correo en el móvil y el enlace se pide en el ordenador, falla). No se ha podido probar con un correo real; decidir si ese cambio de comportamiento compensa.
+
+## Acceso por la lista de periodistas: `POST /v1/entrar` (decidido el 14/11/2026, en construcción en la API)
+- **Objetivo:** que el correo se valide contra la lista que mantiene el administrador y que un alta desde `/admin` baste para poder entrar, sin crear a mano el usuario en Supabase Auth.
+- **Contrato (sesión de API):** `POST /v1/entrar` con JSON `{email}`. 200 `{ok:true}` siempre que el correo tenga forma válida, esté o no en la lista (tarda ~1,2 s a propósito); 400 correo no válido o JSON mal formado; 415 si no es JSON; 429 `{error:"Has pedido demasiados enlaces; espera unos minutos."}`. El enlace redirige siempre a https://buscador-boe.alter-lego.workers.dev y la sesión se recoge con supabase-js.
+- **Pendiente en la web (no se toca `Entrar` hasta que la API lo avise):** cambiar `Entrar` para llamar a este endpoint en lugar de `signInWithOtp`, mantener el aviso neutro y el de 429, y quitar de `/admin` el aviso sobre crear el usuario en Auth.
+- **Administrador como periodista:** el administrador es además una fila de `periodistas`, así que ya puede buscar; la pestaña «Administración» se suma en su cabecera.
+
+## Abierto a 14/11/2026
+- **Despliegue de la web:** el commit `93c38fa` (CSP, enlaces validados, `react-router` 7 y `vite` 8) no está desplegado en `buscador-boe`. Probado en modo prueba con un build real y la CSP; falta probarlo entero con login real antes de publicar. Lo hace la sesión web cuando el usuario lo confirme.
+- **Registro de errores** (cómo avisar a quien mantiene la herramienta cuando la web falla): sin decidir.
+- **Aviso neutro tras pedir el enlace:** pendiente de confirmación del usuario.
+- **PKCE:** no activado (el enlace solo funcionaría en el mismo navegador y dispositivo que lo pidió).
+- **«Preguntar al BOE» (Fase 4):** maqueta y pantalla pendientes de que exista el endpoint.
+- **Más componentes del design system** (filtros, estados, fila del sumario).
+- **Verificar con la respuesta real de la API** los tipos de los campos de vigencia y el significado de `estatus_derogacion`.
