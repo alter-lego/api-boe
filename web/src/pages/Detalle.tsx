@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { Badge, IA, estadoResumen } from '../ds';
+import { enlaceBoe } from '../enlaces';
 import { ErrorCarga, Esqueletos } from '../Estados';
 import { etiquetaTema, etiquetaTipo, fechaCorta, fechaLarga } from '../labels';
 import type { Ficha } from '../types';
@@ -13,7 +14,8 @@ function referencias(r: unknown): string[] {
 }
 
 function cita(f: Ficha) {
-  return `${f.titulo} ${f.id}, de ${fechaLarga(f.fecha)}.${f.url_html ? ` ${f.url_html}` : ''}`;
+  const url = enlaceBoe(f.url_html);
+  return `${f.titulo} ${f.id}, de ${fechaLarga(f.fecha)}.${url ? ` ${url}` : ''}`;
 }
 
 export function Detalle() {
@@ -66,8 +68,8 @@ export function Detalle() {
       <aside className="detalle__lateral">
         <div className="panel">
           <h2>Fuente oficial</h2>
-          {f.url_html ? <a className="bboe-btn bboe-btn--primary bboe-btn--md boton-enlace" href={f.url_html} target="_blank" rel="noopener noreferrer">Abrir en el BOE ↗</a> : <p className="bboe-meta">Sin enlace disponible</p>}
-          {f.url_pdf ? <a className="bboe-btn bboe-btn--secondary bboe-btn--md boton-enlace" href={f.url_pdf} target="_blank" rel="noopener noreferrer">PDF ↗</a> : null}
+          {enlaceBoe(f.url_html) ? <a className="bboe-btn bboe-btn--primary bboe-btn--md boton-enlace" href={enlaceBoe(f.url_html)!} target="_blank" rel="noopener noreferrer">Abrir en el BOE ↗</a> : <p className="bboe-meta">Sin enlace disponible</p>}
+          {enlaceBoe(f.url_pdf) ? <a className="bboe-btn bboe-btn--secondary bboe-btn--md boton-enlace" href={enlaceBoe(f.url_pdf)!} target="_blank" rel="noopener noreferrer">PDF ↗</a> : null}
           <div className="hov">
             <button type="button" className="bboe-btn bboe-btn--secondary bboe-btn--md" style={{ width: '100%' }} onClick={copiar}>{copiado ? 'Copiado ✓' : 'Copiar cita'}</button>
             <div className="tip" role="tooltip">Copia una referencia lista para pegar: título oficial, identificador y fecha del BOE y enlace.</div>

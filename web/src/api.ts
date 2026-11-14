@@ -78,7 +78,7 @@ export const api = {
   },
   async sumario(fecha: string): Promise<Sumario> {
     try {
-      return MODO === 'prueba' ? await mock.sumario(fecha) : await llamar<Sumario>(`/v1/sumarios/${fecha}`);
+      return MODO === 'prueba' ? await mock.sumario(fecha) : await llamar<Sumario>(`/v1/sumarios/${encodeURIComponent(fecha)}`);
     } catch (e) { return normaliza(e); }
   },
 };

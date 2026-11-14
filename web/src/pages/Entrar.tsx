@@ -7,7 +7,7 @@ export function Entrar() {
   const { cargando, email: sesion } = useSesion();
   const loc = useLocation();
   const [email, setEmail] = useState('');
-  const [estado, setEstado] = useState<'inicial' | 'enviando' | 'enviado' | 'fallo'>('inicial');
+  const [estado, setEstado] = useState<'inicial' | 'enviando' | 'enviado' | 'fallo' | 'limite'>('inicial');
   const [espera, setEspera] = useState(0);
   const desde = (loc.state as { desde?: string } | null)?.desde ?? '/';
   const [caducada] = useState(() => haCaducado());
@@ -27,6 +27,7 @@ export function Entrar() {
     const r = await enviarEnlace(email);
     // Respuesta neutra a propósito: no se revela quién está en la lista de acceso (decisión pendiente, ver preguntas-abiertas).
     if (r === 'sin-configurar') { setEstado('fallo'); return; }
+    if (r === 'limite') { setEstado('limite'); setEspera(60); return; }
     setEstado('enviado');
     setEspera(60);
   };
@@ -51,6 +52,7 @@ export function Entrar() {
           </Field>
           <Button type="submit" disabled={estado === 'enviando'}>{estado === 'enviando' ? 'Enviando…' : 'Enviarme el enlace'}</Button>
           <p className="bboe-meta">La sesión dura 24 horas desde que entras.</p>
+          {estado === 'limite' ? <p className="bboe-meta" role="alert">Has pedido demasiados enlaces; espera unos minutos.</p> : null}
           {estado === 'fallo' ? <p className="bboe-meta" role="alert">No hemos podido enviar el enlace. Inténtalo de nuevo en un minuto.</p> : null}
         </form>
       )}

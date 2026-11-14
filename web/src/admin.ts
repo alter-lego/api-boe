@@ -2,6 +2,7 @@
 // La seguridad real está en la base de datos (solo un administrador activo puede usarlas); la web solo muestra u oculta la pantalla.
 import { useEffect, useState } from 'react';
 import { MODO } from './api';
+import { cerrarPorCaducidad } from './auth';
 import { supabase } from './supabase';
 
 export type Periodista = { email: string; nombre: string | null; limite_diario: number; activo: boolean; es_admin: boolean; consultas_hoy: number };
@@ -25,8 +26,12 @@ export function mensajeError(code?: string): string {
 
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   if (!supabase) throw new AdminError('', mensajeError());
-  const { data, error } = await supabase.rpc(fn, args);
-  if (error) throw new AdminError(error.code ?? '', mensajeError(error.code));
+  const { data, error, status } = await supabase.rpc(fn, args);
+  if (error) {
+    // Sesión de más de 24 h (o token no válido): igual que en el resto de la web, se cierra la sesión local y se lleva a /entrar.
+    if (status === 401 || error.code === 'PT401' || error.code === 'PGRST301') await cerrarPorCaducidad();
+    throw new AdminError(error.code ?? '', mensajeError(error.code));
+  }
   return data as T;
 }
 
@@ -83,8 +88,14 @@ export const admin = {
   },
 };
 
-export function useEsAdmin() {
+// `email`: correo de la sesión; sin sesión no se pregunta nada a la base de datos.
+export function useEsAdmin(email: string | null) {
   const [r, setR] = useState<{ cargando: boolean; esAdmin: boolean }>({ cargando: true, esAdmin: false });
-  useEffect(() => { admin.esAdmin().then((v) => setR({ cargando: false, esAdmin: v })); }, []);
+  useEffect(() => {
+    if (MODO === 'api' && !email) { setR({ cargando: false, esAdmin: false }); return; }
+    let vivo = true;
+    admin.esAdmin().then((v) => vivo && setR({ cargando: false, esAdmin: v }));
+    return () => { vivo = false; };
+  }, [email]);
   return r;
 }

@@ -1,5 +1,6 @@
 // Componentes del design system «Buscador del BOE» (ver Claude Design). Usan components.css y tokens.css.
 import type { ReactNode } from 'react';
+import { enlaceBoe } from '../enlaces';
 import { etiquetaTema, etiquetaTipo, fechaCorta } from '../labels';
 import type { Ficha } from '../types';
 
@@ -51,7 +52,9 @@ export function IA() {
 }
 
 export function EnlacesBoe({ f }: { f: Ficha }) {
-  const links = [f.url_html && { label: 'BOE (HTML)', href: f.url_html }, f.url_pdf && { label: 'PDF', href: f.url_pdf }].filter(Boolean) as { label: string; href: string }[];
+  const html = enlaceBoe(f.url_html);
+  const pdf = enlaceBoe(f.url_pdf);
+  const links = [html && { label: 'BOE (HTML)', href: html }, pdf && { label: 'PDF', href: pdf }].filter(Boolean) as { label: string; href: string }[];
   return (
     <div className="bboe-card__links">
       {links.length ? links.map((l) => <a key={l.label} className="bboe-card__link" href={l.href} target="_blank" rel="noopener noreferrer">{l.label} ↗</a>) : <span className="bboe-meta">Sin enlace disponible</span>}

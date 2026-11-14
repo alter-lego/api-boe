@@ -74,3 +74,11 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - `ux.md` v2, `contrato-datos.md`, `etiquetas.md` y este documento: en esta carpeta.
 - Maquetas de baja fidelidad (escritorio y móvil) y design system: en Claude Design.
 - `prompt-lovable.md` y `wireframes.md` del encargo original: no se hacen (Lovable descartado; el lienzo hace de wireframes). Cuando se construya, el contrato de datos pasará a `web/CLAUDE.md`.
+
+## Seguridad de la web (revisión del 14/11/2026)
+- **Cabeceras** (`web/public/_headers`): política de contenido (CSP) que solo permite scripts propios, estilos propios y de Google Fonts, y conexiones a la API y a Supabase; además `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex`. Probado con un build real servido con `wrangler dev`: sin violaciones al recorrer inicio, resultados, detalle, sumario, administración y filtros.
+- **Enlaces a la fuente:** solo se pintan si son `https` y de `boe.es` o `*.boe.es`; si no, no hay botón.
+- **Sesión caducada:** un 401 de la API o de las funciones de administración (`PT401`, `PGRST301`) cierra la sesión local y lleva a `/entrar`; un visitante sin sesión no ve el aviso de caducidad.
+- **Demasiados enlaces:** un 429 al pedir el enlace muestra «Has pedido demasiados enlaces; espera unos minutos.», sin revelar si el correo está autorizado.
+- **Dependencias:** `react-router-dom` 7.18 y `vite` 8 (con `@vitejs/plugin-react` 6); `npm audit`: 0 vulnerabilidades; el build pasa.
+- **PKCE (`flowType: 'pkce'`): no activado.** Con PKCE el enlace solo funciona en el mismo navegador y dispositivo que lo pidió (si se abre el correo en el móvil y el enlace se pide en el ordenador, falla). No se ha podido probar con un correo real; decidir si ese cambio de comportamiento compensa.

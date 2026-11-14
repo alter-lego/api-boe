@@ -29,7 +29,7 @@ function Frescura() {
 
 export function Layout() {
   const { cargando, email } = useSesion();
-  const { esAdmin } = useEsAdmin();
+  const { esAdmin } = useEsAdmin(email);
   const loc = useLocation();
   if (MODO === 'api') {
     if (cargando) return <p className="bboe-meta" style={{ padding: 24 }}>Cargando…</p>;

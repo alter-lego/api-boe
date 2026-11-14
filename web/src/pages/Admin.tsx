@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminError, admin, useEsAdmin, type Periodista } from '../admin';
+import { useSesion } from '../auth';
 import { Badge, Button, Field } from '../ds';
 import { Esqueletos } from '../Estados';
 import { useAsync } from '../useAsync';
@@ -20,7 +21,7 @@ function Alta({ alAlta }: { alAlta: () => void }) {
     setEnviando(true); setMsg(null);
     try {
       const p = await admin.alta({ email, nombre, limite, esAdmin });
-      setMsg({ ok: true, texto: `Dado de alta: ${p.email}. Para que pueda entrar, su usuario también debe existir en el acceso por correo de Supabase.` });
+      setMsg({ ok: true, texto: `Dado de alta: ${p.email}. El periodista solo podrá entrar cuando se cree su usuario en Supabase: Authentication → Users → Add user (con la confirmación automática).` });
       setEmail(''); setNombre(''); setLimite(30); setEsAdmin(false);
       alAlta();
     } catch (err) { setMsg({ ok: false, texto: texto(err) }); }
@@ -43,7 +44,7 @@ function Alta({ alAlta }: { alAlta: () => void }) {
 }
 
 function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
-  const [modo, setModo] = useState<'ver' | 'editar' | 'baja' | 'quitar-admin'>('ver');
+  const [modo, setModo] = useState<'ver' | 'editar' | 'baja' | 'quitar-admin' | 'reactivar'>('ver');
   const [nombre, setNombre] = useState(p.nombre ?? '');
   const [limite, setLimite] = useState(p.limite_diario);
   const [esAdmin, setEsAdmin] = useState(p.es_admin);
@@ -72,7 +73,7 @@ function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
         {modo === 'ver' ? (
           <>
             <Button variant="secondary" size="sm" onClick={() => { setNombre(p.nombre ?? ''); setLimite(p.limite_diario); setEsAdmin(p.es_admin); setModo('editar'); }}>Editar</Button>
-            {p.activo ? <Button variant="secondary" size="sm" onClick={() => setModo('baja')}>Dar de baja</Button> : <Button variant="secondary" size="sm" onClick={() => void ejecutar({ activo: true })}>Reactivar</Button>}
+            {p.activo ? <Button variant="secondary" size="sm" onClick={() => setModo('baja')}>Dar de baja</Button> : <Button variant="secondary" size="sm" onClick={() => (p.es_admin ? setModo('reactivar') : void ejecutar({ activo: true }))}>Reactivar</Button>}
           </>
         ) : null}
       </div>
@@ -84,6 +85,15 @@ function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
           {modo === 'quitar-admin' ? <p className="admin__confirma" role="alert">¿Quitar el rol de administrador a {p.email}? Dejará de ver esta pantalla.</p> : null}
           <div className="admin__botones">
             <Button size="sm" onClick={guardar}>{modo === 'quitar-admin' ? 'Sí, quitar el rol' : 'Guardar'}</Button>
+            <Button variant="secondary" size="sm" onClick={() => { setModo('ver'); setError(null); }}>Cancelar</Button>
+          </div>
+        </div>
+      ) : null}
+      {modo === 'reactivar' ? (
+        <div className="admin__edicion">
+          <p className="admin__confirma" role="alert">¿Reactivar a {p.email}? Era administrador y recupera también ese rol: podrá dar de alta y gestionar periodistas.</p>
+          <div className="admin__botones">
+            <Button size="sm" onClick={() => void ejecutar({ activo: true })}>Sí, reactivar</Button>
             <Button variant="secondary" size="sm" onClick={() => { setModo('ver'); setError(null); }}>Cancelar</Button>
           </div>
         </div>
@@ -123,7 +133,8 @@ function Registro() {
 }
 
 export function Admin() {
-  const { cargando: cargandoRol, esAdmin } = useEsAdmin();
+  const { email } = useSesion();
+  const { cargando: cargandoRol, esAdmin } = useEsAdmin(email);
   const [v, setV] = useState(0);
   const lista = useAsync(() => (esAdmin ? admin.listar() : Promise.resolve([])), `lista-${esAdmin}-${v}`);
 
