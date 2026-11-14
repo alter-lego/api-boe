@@ -1,8 +1,10 @@
 -- Fase 1 · Pruebas de seguridad y privacidad.
--- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 9 migraciones.
+-- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 11 migraciones
+-- (la 10 añade las funciones admin_*, es_admin y es_periodista a la lista blanca del punto 7).
 -- Mete filas de prueba, comprueba y deshace todo (rollback): no deja nada en la base de datos.
 -- Si algo falla, sale un error que empieza por "FALLO". Si todo va bien, la última consulta
--- devuelve «TODAS LAS PRUEBAS OK».
+-- devuelve «TODAS LAS PRUEBAS OK». El SQL Editor ejecuta el script como un lote y se detiene en el primer
+-- error, así que el OK final no sale tras un FALLO. Con psql: usar `-v ON_ERROR_STOP=1`.
 
 begin;
 
@@ -38,6 +40,7 @@ select public.indexar_texto('TEST-RES-1', 'Relación de admitidos: Fulanito Góm
 
 -- 1) anon no puede leer ninguna tabla ni ejecutar funciones de lectura
 do $$ begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role anon;
   begin perform 1 from public.publicaciones limit 1;
     raise exception 'FALLO: anon lee publicaciones';
@@ -54,8 +57,9 @@ end $$;
 
 -- 2) un usuario con sesión tampoco lee las tablas directamente
 do $$ begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
   begin perform 1 from public.publicaciones limit 1;
     raise exception 'FALLO: authenticated lee publicaciones directamente';
   exception when insufficient_privilege then null; end;
@@ -67,12 +71,13 @@ end $$;
 
 -- 3) con sesión pero fuera de la lista (o dado de baja): rechazado
 do $$ begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"intruso@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"intruso@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
   begin perform 1 from public.buscar_publicaciones();
     raise exception 'FALLO: un correo fuera de la lista puede buscar';
   exception when insufficient_privilege then null; end;
-  set local request.jwt.claims = '{"role":"authenticated","email":"baja@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"baja@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
   begin perform 1 from public.buscar_publicaciones();
     raise exception 'FALLO: un periodista dado de baja puede buscar';
   exception when insufficient_privilege then null; end;
@@ -88,8 +93,9 @@ declare
   r public.ficha_publicacion;
   n int;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
 
   select count(*) into n from public.buscar_publicaciones(p_departamento => 'Ministerio de Prueba')
    where id like 'TEST-%';
@@ -150,8 +156,9 @@ declare
   r public.ficha_publicacion;
   n int;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
 
   -- pública: se encuentra por un nombre del cuerpo, con o sin tildes
   select count(*) into n from public.buscar_publicaciones(p_q => 'Menganita Sanchez', p_departamento => 'Ministerio de Prueba') where id = 'TEST-PUB-1';
@@ -190,6 +197,7 @@ end $$;
 do $$
 declare n int;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role service_role;
   insert into public.publicaciones (id, boletin, fecha, titulo)
   values ('TEST-SVC-1', 'BOE', current_date, 'Resolución sobre la prórroga de ayudas a la vivienda');
@@ -203,6 +211,7 @@ alter table public.publicaciones enable trigger publicaciones_vaciar_restringida
 do $$
 declare r public.publicaciones;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   insert into public.publicaciones (id, boletin, fecha, titulo, nivel_privacidad, resumen, temas, tipo_acto)
   values ('TEST-RES-2', 'BOE', current_date, 'Otra restringida', 'restringido', 'x', array['y'], 'z')
   returning * into r;
@@ -214,24 +223,26 @@ end $$;
 do $$
 declare lista text;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   select string_agg(p.proname, ', ' order by p.proname) into lista
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute');
   if lista is distinct from 'ultima_ingesta' then
     raise exception 'FALLO: anon puede ejecutar: %', coalesce(lista, '(ninguna)'); end if;
 
-  select string_agg(p.proname, ', ' order by p.proname) into lista
+  select string_agg(p.proname, ', ' order by p.proname collate "C") into lista
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and has_function_privilege('authenticated', p.oid, 'execute');
   if lista is distinct from
-     'buscar_publicaciones, consultas_de_hoy, contar_publicaciones, publicacion, registrar_consulta, sumario_del_dia, ultima_ingesta' then
+     'admin_alta_periodista, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, publicacion, registrar_consulta, sumario_del_dia, ultima_ingesta' then
     raise exception 'FALLO: authenticated puede ejecutar: %', lista; end if;
 end $$;
 
 -- 8) búsqueda con solo palabras vacías: error claro, no «0 resultados»
 do $$ begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
   begin perform 1 from public.buscar_publicaciones(p_q => 'de la');
     raise exception 'FALLO: una búsqueda solo con palabras vacías no da error';
   exception when invalid_parameter_value then null; end;
@@ -242,6 +253,7 @@ end $$;
 do $$
 declare n int; t text; ok boolean;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   -- la restringida guarda el índice SIN posiciones; la pública, con ellas
   select tsv_texto::text into t from public.publicaciones where id = 'TEST-RES-1';
   if t like '%:%' then raise exception 'FALLO: el índice de una restringida conserva posiciones'; end if;
@@ -252,7 +264,7 @@ begin
     raise exception 'FALLO: se indexó un número de la restringida'; end if;
 
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
   -- una frase entre comillas sigue encontrando la restringida (se trata como «y»), sin reconstruir texto
   select count(*) into n from public.buscar_publicaciones(p_q => '"Fulanito Gomez"', p_departamento => 'Ministerio de Prueba') where id = 'TEST-RES-1';
   if n <> 1 then raise exception 'FALLO: la frase entre comillas no encuentra la restringida (%)', n; end if;
@@ -285,8 +297,9 @@ end $$;
 do $$
 declare r public.ficha_publicacion; n int;
 begin
+  perform set_config('request.jwt.claims', '', true); reset role;   -- sin claims ni rol heredados
   set local role authenticated;
-  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local"}';
+  set local request.jwt.claims = '{"role":"authenticated","email":"prueba@test.local","amr":[{"method":"otp","timestamp":4102444800}]}';
 
   -- pública: sale todo, incluido el aviso y la vigencia
   select * into r from public.publicacion('TEST-PUB-1');
