@@ -37,6 +37,11 @@ const paramsFiltros = (c) => ({
   p_q: c.q ?? null, p_rango: c.rango ?? null,
 });
 
+class SesionNoValida extends Error {}
+const METODOS_VALIDOS = ['otp', 'magiclink'];
+// Códigos de jose que significan «este token no vale» (firma, caducidad, claims, clave desconocida).
+const ERRORES_DE_TOKEN = /^(ERR_JWT_|ERR_JWS_|ERR_JOSE_ALG_NOT_ALLOWED|ERR_JWKS_NO_MATCHING_KEY|ERR_JWKS_MULTIPLE_MATCHING_KEYS)/;
+
 let jwksRemoto = null; // claves públicas del proyecto (se descargan una vez y se reutilizan)
 
 export class ErrorApi extends Error {
@@ -45,16 +50,22 @@ export class ErrorApi extends Error {
 
 /** Llama a una función SQL con el JWT del usuario (o solo la clave anon, para /health). */
 async function rpc(env, nombre, args, { jwt, fetchFn }) {
-  const res = await fetchFn(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/${nombre}`, {
-    method: 'POST',
-    headers: {
-      apikey: env.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${jwt ?? env.SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(args ?? {}),
-    signal: AbortSignal.timeout(8000),
-  });
+  let res;
+  try {
+    res = await fetchFn(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/${nombre}`, {
+      method: 'POST',
+      headers: {
+        apikey: env.SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${jwt ?? env.SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(args ?? {}),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (e) {
+    if (e?.name === 'TimeoutError' || e?.name === 'AbortError') throw new ErrorApi(504, 'el archivo tardó demasiado en responder; inténtalo de nuevo');
+    throw new ErrorApi(502, 'error al consultar el archivo');
+  }
   if (res.ok) return res.json();
   let cuerpo = {};
   try { cuerpo = await res.json(); } catch { /* sin cuerpo */ }
@@ -113,16 +124,23 @@ export function crearApp({ fetchFn = fetch, jwks } = {}) {
         audience: 'authenticated',
         algorithms: ['ES256'],
       });
-      if (payload.role !== 'authenticated' || payload.is_anonymous === true) throw new Error('rol');
+      if (payload.role !== 'authenticated' || payload.is_anonymous === true) throw new SesionNoValida('rol');
+      // Solo vale una sesión iniciada con el enlace del correo (no contraseña, teléfono ni otros métodos).
+      const entradas = (Array.isArray(payload.amr) ? payload.amr : []).filter((a) => a && typeof a === 'object');
+      if (!entradas.some((a) => METODOS_VALIDOS.includes(a.method))) throw new SesionNoValida('método de acceso no permitido');
       // Duración máxima de la sesión: Supabase renueva el token cada hora sin límite, pero el token
       // conserva la fecha del login original (amr[].timestamp). Pasadas SESION_MAX_HORAS horas, se pide un enlace nuevo.
       const maxHoras = Number(c.env.SESION_MAX_HORAS ?? 24);
-      const marcas = (Array.isArray(payload.amr) ? payload.amr : []).map((a) => Number(a?.timestamp)).filter(Number.isFinite);
+      const marcas = entradas.map((a) => Number(a.timestamp)).filter(Number.isFinite);
       const inicio = marcas.length ? Math.min(...marcas) : null;
-      if (maxHoras > 0 && (inicio === null || Date.now() / 1000 - inicio > maxHoras * 3600)) throw new Error('sesión demasiado antigua');
+      if (maxHoras > 0 && (inicio === null || Date.now() / 1000 - inicio > maxHoras * 3600)) throw new SesionNoValida('sesión demasiado antigua');
       correo = payload.email;
-    } catch {
-      throw new ErrorApi(401, 'sesión no válida o caducada');
+    } catch (e) {
+      // 401 solo si el problema es del token. Si falla la descarga de las claves o la red, es un fallo
+      // nuestro o de Supabase (503): no debe cerrar la sesión a todos los usuarios.
+      if (e instanceof SesionNoValida || ERRORES_DE_TOKEN.test(String(e?.code ?? ''))) throw new ErrorApi(401, 'sesión no válida o caducada');
+      console.error('error al validar la sesión:', e?.code ?? e?.name);
+      throw new ErrorApi(503, 'servicio de autenticación no disponible; inténtalo de nuevo');
     }
     if (!correo) throw new ErrorApi(401, 'sesión sin correo');
     c.set('jwt', m[1]);

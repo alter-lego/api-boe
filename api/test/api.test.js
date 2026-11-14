@@ -11,9 +11,9 @@ async function generarClaves() { return generateKeyPair('ES256'); }
 const jwk = { ...(await exportJWK(publicKey)), kid: 'k1', alg: 'ES256', use: 'sig' };
 const jwks = createLocalJWKSet({ keys: [jwk] });
 
-async function token({ email = 'prueba@test.local', role = 'authenticated', aud = 'authenticated', iss = `${URL_SB}/auth/v1`, exp = '1h', anonimo = false, clave = privateKey, loginHace = 60, amr = undefined } = {}) {
+async function token({ email = 'prueba@test.local', role = 'authenticated', aud = 'authenticated', iss = `${URL_SB}/auth/v1`, exp = '1h', anonimo = false, clave = privateKey, loginHace = 60, amr = undefined, metodo = 'otp' } = {}) {
   const ahora = Math.floor(Date.now() / 1000);
-  const claims = { role, amr: amr === undefined ? [{ method: 'otp', timestamp: ahora - loginHace }] : amr, ...(email ? { email } : {}), ...(anonimo ? { is_anonymous: true } : {}) };
+  const claims = { role, amr: amr === undefined ? [{ method: metodo, timestamp: ahora - loginHace }] : amr, ...(email ? { email } : {}), ...(anonimo ? { is_anonymous: true } : {}) };
   return new SignJWT(claims).setProtectedHeader({ alg: 'ES256', kid: 'k1' }).setAudience(aud).setIssuer(iss).setSubject('u1').setIssuedAt().setExpirationTime(exp).sign(clave);
 }
 
@@ -86,6 +86,40 @@ test('duración de la sesión: máximo 24 h desde el login original, aunque el t
   // el límite se puede cambiar por configuración
   const largo = await app.request('/v1/publicaciones?q=hola', await conSesion({ loginHace: 25 * hora }), { ...env, SESION_MAX_HORAS: '48' });
   assert.equal(largo.status, 200);
+});
+
+test('método de acceso: solo enlace del correo (otp/magiclink); contraseña u otros, no', async () => {
+  const sb = sbFalso();
+  const app = crearApp({ fetchFn: sb.fetchFn, jwks });
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ metodo: 'magiclink' }))).status, 200);
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ metodo: 'password' }))).status, 401);
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ metodo: 'sms' }))).status, 401);
+});
+
+test('fallo de las claves de Supabase: 503 (no 401, para no cerrar la sesión a todos); token malo: 401', async () => {
+  const sb = sbFalso();
+  const init = await conSesion();
+  const jwksCaido = async () => { throw new TypeError('fetch failed'); };
+  const r = await pedir(crearApp({ fetchFn: sb.fetchFn, jwks: jwksCaido }), '/v1/publicaciones?q=hola', init);
+  assert.equal(r.status, 503);
+  const e = Object.assign(new Error('timeout'), { code: 'ERR_JWKS_TIMEOUT' });
+  const jwksLento = async () => { throw e; };
+  assert.equal((await pedir(crearApp({ fetchFn: sb.fetchFn, jwks: jwksLento }), '/v1/publicaciones?q=hola', init)).status, 503);
+  // un token mal firmado sigue siendo 401
+  const otra = (await generarClaves()).privateKey;
+  assert.equal((await pedir(crearApp({ fetchFn: sb.fetchFn, jwks }), '/v1/publicaciones?q=hola', await conSesion({ clave: otra }))).status, 401);
+  assert.equal(sb.llamadas.length, 0);
+});
+
+test('Supabase lento o caído al llamar a la RPC: 504 y 502, sin detalles', async () => {
+  const init = await conSesion();
+  const timeout = async () => { throw Object.assign(new Error('x'), { name: 'TimeoutError' }); };
+  const red = async () => { throw new TypeError('fetch failed: detalle interno'); };
+  const r1 = await pedir(crearApp({ fetchFn: timeout, jwks }), '/v1/publicaciones?q=hola', init);
+  assert.equal(r1.status, 504);
+  const r2 = await pedir(crearApp({ fetchFn: red, jwks }), '/v1/publicaciones?q=hola', init);
+  assert.equal(r2.status, 502);
+  assert.ok(!JSON.stringify(await r2.json()).includes('interno'));
 });
 
 test('publicaciones: traduce filtros a la RPC y reenvía el JWT del usuario', async () => {
