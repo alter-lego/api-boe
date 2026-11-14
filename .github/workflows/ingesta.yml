@@ -38,6 +38,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Dependencias del Worker
+        run: npm ci --omit=dev --prefix api
+
       - name: Pruebas
         run: node --test
 
