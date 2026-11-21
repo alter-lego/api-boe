@@ -1,0 +1,49 @@
+# Pruebas automáticas en cada cambio: las de Node (API, ingesta, Edge Function) y la compilación de la web.
+# No necesita secretos. Las pruebas SQL (supabase/tests/) no se pueden ejecutar aquí: necesitan una base de datos
+# con las migraciones aplicadas y se pasan a mano en el SQL Editor tras cada migración.
+name: Pruebas
+
+on:
+  push:
+    branches: [main, pre]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: Pruebas de Node
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependencias del Worker
+        run: npm ci --omit=dev --prefix api
+      - name: Pruebas
+        run: node --test
+
+  web:
+    name: Web (tipos y compilación)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependencias de la web
+        run: npm ci --prefix web
+      - name: Comprobar tipos y compilar
+        run: npm run build --prefix web
+        env:
+          VITE_MODO: api
+          VITE_PREGUNTAR: si
