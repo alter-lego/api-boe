@@ -154,7 +154,10 @@ a { color: var(--brand); }
 .portada__titulo { font: 700 clamp(32px, 5vw, 52px)/1.08 Lora, Georgia, serif; text-align: center; letter-spacing: -.02em; text-wrap: balance; }
 .portada__lead { text-align: center; margin-left: auto; margin-right: auto; font-size: 19px; line-height: 29px; color: var(--muted); max-width: 56ch; }
 .portada__caja { border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); box-shadow: 0 8px 24px rgba(0,0,0,.06); }
-.portada__caja textarea { border: 0; outline: 0; resize: none; font: 400 19px/28px var(--font-sans); color: var(--ink); background: transparent; height: 88px; width: 100%; }
+.portada__caja textarea { border: 0; outline: 0; resize: none; font: 400 19px/28px var(--font-sans); color: var(--ink); background: transparent; height: 200px; width: 100%; display: block; }
+.portada__campo { position: relative; }
+.portada__ejemplos { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; }
+.portada__campo textarea:focus ~ .portada__ejemplos, .portada__campo textarea:not(:placeholder-shown) ~ .portada__ejemplos { display: none; }
 :is(input, textarea):focus::placeholder { color: transparent; }
 .portada__caja:focus-within { border-color: var(--brand); }
 .portada__pie { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
@@ -170,4 +173,4 @@ a { color: var(--brand); }
 .hoy-tarjeta__d { max-width: 34ch; }
 .hoy-tarjeta__b { display: inline-flex; align-items: center; text-decoration: none; }
 @media (max-width: 640px) { .hoy-tarjeta { padding: 18px 20px; } .hoy-tarjeta__b { width: 100%; justify-content: center; } }
-@media (max-width: 640px) { .portada { padding-top: 0; } .portada__pie { flex-direction: column-reverse; align-items: stretch; } .portada__pie .bboe-btn { width: 100%; } }
+@media (max-width: 640px) { .portada { padding-top: 0; } .portada__caja textarea { height: 260px; } .portada__pie { flex-direction: column-reverse; align-items: stretch; } .portada__pie .bboe-btn { width: 100%; } }
