@@ -100,3 +100,13 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - **«Preguntar al BOE» (Fase 4):** maqueta y pantalla pendientes de que exista el endpoint.
 - **Más componentes del design system** (filtros, estados, fila del sumario).
 - **Verificar con la respuesta real de la API** los tipos de los campos de vigencia y el significado de `estatus_derogacion`.
+
+## Propuestas de mejora (21/11/2026): prototipos de baja fidelidad pendientes de decidir
+Lienzo de Claude Design «Propuestas de mejora Buscador del BOE» (https://claude.ai/artifact/1eFd6CUUQLHTXRMgFJCKup), 7 pantallas:
+1. **Portada «Preguntar primero»** y 2. **«Dos puertas»**: decidir dónde está el valor (preguntar frente a buscar).
+3. **Dirección visual:** estilo actual afinado frente a «editorial cálida» (blanco roto, tinta cálida, titulares en grotesca, trama de líneas de texto como firma, azul de elDiario.es como único acento; contraste AA).
+4. **Respuesta con jerarquía:** pregunta editable arriba, titular con la cifra, lista con dato destacado y fecha, «Ver las N en el buscador» (necesita que la API devuelva los filtros que usó el asistente) y leyenda.
+5. **Aviso antes de enviar una pregunta dudosa** (sin sentido o demasiado corta), con «Reformular» y «Preguntar igualmente» (cuenta en el límite). Comprobación de forma en el navegador, sin mirar resultados; reforzable en la API.
+6. **Página «Cómo funciona y hasta dónde fiarte».**
+7. **Portada en móvil.**
+Nada de esto está implementado; se decide tras verlo. Ya hecho el primer lote (commit `d9714c6`): pestaña activa por sección, sumario con recuento y flechas con texto, cierre de filtros al clicar fuera, «Agrupar resultados por…», citas sin hueco.
