@@ -79,8 +79,8 @@ export function Preguntar() {
           <textarea id="pregunta" className="bboe-input pregunta__caja" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Por ejemplo: ¿qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
         </Field>
         <div className="pregunta__acciones">
+          {cupo ? <span className="bboe-meta pregunta__cupo" role="status">{cupo.usadas} de {cupo.limite} preguntas hoy</span> : null}
           <Button type="submit" disabled={cargando || largo < 3}>Preguntar</Button>
-          {cupo ? <span className="bboe-meta" role="status">{cupo.usadas} de {cupo.limite} preguntas hoy</span> : null}
         </div>
       </form>
 
