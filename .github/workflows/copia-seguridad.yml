@@ -26,6 +26,10 @@ jobs:
       - name: Comprobar el secreto
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then echo "::error::Falta el secreto SUPABASE_DB_URL"; exit 1; fi
+          case "$SUPABASE_DB_URL" in
+            postgresql://*|postgres://*) ;;
+            *) echo "::error::SUPABASE_DB_URL no empieza por postgresql:// (¿comillas, corchetes o espacios al principio?). Vuelve a guardar el secreto."; exit 1 ;;
+          esac
 
       # Supabase usa Postgres 17: pg_dump debe ser de la misma versión o superior (el de ubuntu-latest es más antiguo).
       - name: Instalar cliente de PostgreSQL 17
