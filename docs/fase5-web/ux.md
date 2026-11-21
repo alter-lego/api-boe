@@ -177,3 +177,11 @@ Maqueta 5 del lienzo, no visible en el MVP:
 - **Navegación:** «Preguntar · Buscar · Resumen de hoy» (+ «Administración»). «Buscar» lleva a `/buscar`, que sin filtros muestra la pantalla de búsqueda de antes (buscador con filtros, ejemplos y «BOE de hoy») y con filtros, los resultados.
 - **Sin la pestaña «Preguntar»:** todo queda como antes (portada = buscador, «Buscar» en `/`).
 - **Aún sin hacer** (decisiones pendientes en `preguntas-abiertas.md`): el aviso para preguntas dudosas, la jerarquía nueva de la respuesta, el refresco visual «editorial cálido» y la página «Cómo funciona».
+
+## 12. Ruta `/confirmar` (acceso por enlace sin gastarlo)
+
+El correo de acceso debe enlazar a `{{ .SiteURL }}/confirmar?token_hash={{ .TokenHash }}&type=email` (plantilla «Magic Link» de Supabase), no directamente a supabase.co, porque algunos filtros de correo abren el enlace antes que el periodista y lo gastan (es de un solo uso).
+
+- `/confirmar` es pública (fuera del Layout, como `/entrar`) y **no verifica al cargar**: muestra «Confirmar acceso» y un botón «Entrar al buscador». Solo al pulsarlo llama a `verifyOtp({ token_hash, type: 'email' })`; si va bien, navega a `/`.
+- Solo acepta `type=email`; sin `token_hash` o con otro tipo, redirige a `/entrar`. El token se guarda en memoria y se quita de la URL al cargar.
+- Errores: enlace caducado o ya usado → «Este enlace ya no es válido. Pide uno nuevo» con enlace a `/entrar` (sin revelar si el correo está autorizado); fallo de red → botón «Reintentar» (sin reintentos automáticos).

@@ -18,6 +18,29 @@ export async function enviarEnlace(email: string): Promise<'ok' | 'error' | 'lim
   return error.status === 429 || error.code === 'over_email_send_rate_limit' ? 'limite' : 'error';
 }
 
+// Confirma el enlace del correo (flujo token_hash): el correo enlaza a la web y solo se verifica al pulsar el botón,
+// para que un filtro de correo que abra el enlace no lo gaste. Solo type='email'.
+// En modo prueba sin Supabase se simula: 'prueba-ok' entra, 'prueba-red' falla por red, cualquier otro es inválido.
+export async function confirmarEnlace(tokenHash: string): Promise<'ok' | 'invalido' | 'red' | 'sin-configurar'> {
+  if (!supabase) {
+    if (import.meta.env.VITE_MODO === 'api') return 'sin-configurar';
+    await new Promise((r) => setTimeout(r, 400));
+    return tokenHash === 'prueba-ok' ? 'ok' : tokenHash === 'prueba-red' ? 'red' : 'invalido';
+  }
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'email' });
+    if (error) {
+      const sinRed = error.name === 'AuthRetryableFetchError' || error.status === 0 || error.status === undefined || error.status >= 500;
+      return sinRed ? 'red' : 'invalido';
+    }
+    if (!data.session) return 'invalido';
+    olvidarCaducidad();
+    return 'ok';
+  } catch {
+    return 'red';
+  }
+}
+
 export async function salir() {
   if (!supabase) return;
   try {

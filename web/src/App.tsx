@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from 'react-router-dom';
 import { Layout } from './Layout';
 import { Admin } from './pages/Admin';
+import { Confirmar } from './pages/Confirmar';
 import { Detalle } from './pages/Detalle';
 import { Entrar } from './pages/Entrar';
 import { Inicio } from './pages/Inicio';
@@ -14,6 +15,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/entrar" element={<Entrar />} />
+      <Route path="/confirmar" element={<Confirmar />} />
       <Route element={<Layout />}>
         <Route path="/" element={PREGUNTAR_ACTIVO ? <Portada /> : <Inicio />} />
         <Route path="/buscar" element={<Buscar />} />
