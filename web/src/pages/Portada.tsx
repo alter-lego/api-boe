@@ -6,7 +6,6 @@ import { fechaConDia } from '../labels';
 import { useAsync } from '../useAsync';
 
 const EJEMPLOS = [
-  '¿Qué ayudas al alquiler joven se han publicado esta semana?',
   '¿Qué subvenciones se han publicado esta semana y de cuánto dinero?',
   '¿Qué ha publicado hoy el Ministerio de Hacienda?',
   '¿Cuántos contratos de hospitales se han adjudicado este mes?',
