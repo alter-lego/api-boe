@@ -13,3 +13,9 @@
 - **Web:** decisiones menores en `docs/fase5-web/preguntas-abiertas.md` (aviso tras pedir el enlace, PKCE, registro de errores).
 - **Edge Function:** publicada con el nombre automático `swift-task`; si se quiere el nombre claro, hay que publicarla de nuevo con otro nombre y actualizar la URL de la web.
 - **Mantenimiento:** el límite de sesión de 24 h vive en dos sitios (base de datos y `SESION_MAX_HORAS` del Worker): si cambia, cambiar los dos. Los workflows de GitHub avisan de que Node 20 queda obsoleto: revisar versiones de las acciones.
+
+## Decisiones y tareas añadidas el 21/11/2026
+- **Sanciones (III):** decidido el 21/11/2026: **públicas**. Sin cambios de código. Ver `niveles-privacidad.md`.
+- **Tras el piloto (decidido):** el servicio pasa a la nube propia de la organización, con otra configuración, mantenido por un equipo ya existente. No es tarea de este proyecto.
+- **Fase 6 · documentación de traspaso** (falta): arquitectura (existe `RESUMEN-PROYECTO.md` como base), registro de decisiones, runbook (despliegue, claves, caducidades, alta de periodistas, ingesta) y guía «cómo añadir una fuente». Dependencias de Supabase a documentar: Postgres + Auth (enlace por correo, `amr`) + Edge Function + claves `sb_*`; el Worker y la ingesta dependen de las funciones SQL y de PostgREST.
+- **Ampliación futura (BORME, CENDOJ, otros boletines):** el piloto ya facilita el traspaso (`publicaciones.boletin`, tabla `boletines`, reglas en `skill/*.md`), pero la ingesta está atada a BOE (`boletin: 'BOE'` fijo en `ingesta/boe.js`, `clasificarNivel` por secciones del BOE) y habrá que **rediseñar los niveles de privacidad** para BORME y CENDOJ. No se construye nada ahora.

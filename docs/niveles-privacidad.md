@@ -7,7 +7,7 @@ Decidido el 13/11/2026 tras analizar 18 sumarios reales. **Sustituye a la tabla 
 | I. Disposiciones generales | `1` | público | |
 | II.A Nombramientos y ceses | `2A` | público | cargos y actos oficiales |
 | II.B Oposiciones y concursos | `2B` | **restringido** | listas de aspirantes con nombres |
-| III. Otras disposiciones | `3` | público | incluye indultos si aparecen; sanciones: por revisar |
+| III. Otras disposiciones | `3` | público | **indultos: públicos, buscables también por el nombre del indultado** (decisión de la redacción, 21/11/2026); sanciones: públicas (decidido 21/11/2026) |
 | IV. Administración de Justicia | `4` | **restringido** | edictos y comunicaciones judiciales |
 | V.A Contratación del Sector Público | `5A` | público | contratos: organismos y empresas |
 | V.B Otros anuncios oficiales | `5B` | público, con excepciones | ver abajo |
@@ -27,6 +27,11 @@ Medido con 897 títulos reales de V.B: las palabras «notificación», «requeri
 juntas de comunidades de regantes, subastas de Hacienda y extractos de ayudas.
 La lista es de partida: se ajusta con la revisión manual de una muestra de fichas antes de cargar el histórico.
 Implementada en `ingesta/lib/sumario.js` (`clasificarNivel`) y cubierta por pruebas.
+
+## Decisiones de la redacción (documento del curso v2)
+
+- **Indultos:** se pueden buscar, también por nombre. Son sección III (pública); ninguna excepción por título (`clasificarNivel`) los restringe, y `skill/SKILL.md` y `skill/FICHA.md` permiten nombrar a quien figure en el título oficial.
+- **Sanciones: públicas** (decidido por el responsable el 21/11/2026, frente a la v2 del documento, que las daba como restringidas). Siguen en la sección III pública; se pueden nombrar si figuran en el título oficial.
 
 ## Cifras medidas (17 sumarios reales, 3.665 publicaciones)
 
