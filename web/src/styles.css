@@ -158,6 +158,10 @@ a { color: var(--brand); }
 :is(input, textarea):focus::placeholder { color: transparent; }
 .portada__caja:focus-within { border-color: var(--brand); }
 .portada__pie { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.aviso--duda { background: color-mix(in srgb, var(--warn) 9%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); transition: opacity .4s ease; }
+.aviso--fuera { opacity: 0; pointer-events: none; }
+.aviso__acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { .aviso--duda { transition: none; } }
 .portada__otros { border-top: 1px solid var(--line); padding-top: 18px; display: flex; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
 .hoy-tarjeta { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px 40px; flex-wrap: wrap; }
 .hoy-tarjeta__t { font: 500 14px/20px var(--font-sans); color: var(--muted); }

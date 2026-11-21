@@ -5,6 +5,7 @@ import { CopiarCita } from '../CopiarCita';
 import { Badge, Button } from '../ds';
 import { enlaceBoe } from '../enlaces';
 import { fechaCorta } from '../labels';
+import { evaluar, type Duda } from '../dudosa';
 import type { Respuesta } from '../types';
 
 type Estado = { t: 'libre' } | { t: 'cargando' } | { t: 'ok'; r: Respuesta } | { t: 'error'; e: ApiError };
@@ -44,6 +45,9 @@ export function Preguntar() {
   const [estado, setEstado] = useState<Estado>({ t: 'libre' });
   const [segundos, setSegundos] = useState(0);
   const [cupo, setCupo] = useState<{ usadas: number; limite: number } | null>(null);
+  const [duda, setDuda] = useState<Duda | null>(null);
+  const [atenuando, setAtenuando] = useState(false);
+  const caja = useRef<HTMLTextAreaElement | null>(null);
   const ctrl = useRef<AbortController | null>(null);
   const cargando = estado.t === 'cargando';
   const largo = texto.trim().length;
@@ -70,14 +74,28 @@ export function Preguntar() {
       setEstado({ t: 'error', e: err instanceof ApiError ? err : new ApiError(502, '') });
     }
   };
-  const preguntar = (e: React.FormEvent) => { e.preventDefault(); void lanzar(texto); };
+  // Antes de gastar una pregunta, avisa si es dudosa; «Preguntar igualmente» la envía tal cual.
+  const intentar = (t: string) => {
+    const d = evaluar(t);
+    if (d && t.trim().length >= 3) { setDuda(d); setAtenuando(false); return; }
+    setDuda(null);
+    void lanzar(t);
+  };
+  const preguntar = (e: React.FormEvent) => { e.preventDefault(); intentar(texto); };
+  const reformular = () => {
+    caja.current?.focus();
+    caja.current?.select();
+    setAtenuando(true);
+    setTimeout(() => { setDuda(null); setAtenuando(false); }, 400);
+  };
+  const igualmente = () => { setDuda(null); void lanzar(texto); };
 
   // Si llega desde la portada con la pregunta ya escrita, se envía una sola vez.
   const loc = useLocation();
   const inicial = (loc.state as { pregunta?: string } | null)?.pregunta;
   const yaEnviada = useRef(false);
   useEffect(() => {
-    if (inicial && !yaEnviada.current) { yaEnviada.current = true; setTexto(inicial); void lanzar(inicial); }
+    if (inicial && !yaEnviada.current) { yaEnviada.current = true; setTexto(inicial); intentar(inicial); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -86,7 +104,7 @@ export function Preguntar() {
       <h1>Preguntar al BOE</h1>
       <form onSubmit={preguntar} className="portada__caja">
         <label className="sr-only" htmlFor="pregunta">Tu pregunta</label>
-        <textarea id="pregunta" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void lanzar(texto); } }} placeholder="Ejemplo: ¿Qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
+        <textarea id="pregunta" ref={caja} maxLength={1000} value={texto} onChange={(e) => { setTexto(e.target.value); setDuda(null); }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); intentar(texto); } }} placeholder="Ejemplo: ¿Qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
         <div className="portada__pie">
           <span className="bboe-meta pregunta__contadores">
             <span>{largo} de 1000 caracteres</span>
@@ -95,6 +113,26 @@ export function Preguntar() {
           <Button type="submit" disabled={cargando || largo < 3}>Preguntar</Button>
         </div>
       </form>
+
+      {duda && !cargando ? (
+        <div className={`aviso aviso--duda${atenuando ? ' aviso--fuera' : ''}`} role="alert">
+          {duda === 'sinsentido' ? (
+            <>
+              <strong>Esto no parece una pregunta</strong>
+              <p>Si la envías, el asistente buscará igualmente, pero es probable que no encuentre nada útil. La pregunta contaría en tu límite de hoy{cupo ? ` (${cupo.usadas} de ${cupo.limite})` : ''}.</p>
+            </>
+          ) : (
+            <>
+              <strong>Con una sola palabra la respuesta será poco precisa</strong>
+              <p>Añade qué quieres saber: un organismo, un periodo o un tema. Por ejemplo: «ayudas al alquiler publicadas esta semana».</p>
+            </>
+          )}
+          <div className="aviso__acciones">
+            <Button onClick={reformular}>{duda === 'sinsentido' ? 'Reformular' : 'Añadir detalle'}</Button>
+            <Button variant="secondary" onClick={igualmente}>Preguntar igualmente</Button>
+          </div>
+        </div>
+      ) : null}
 
       {cargando ? (
         <div className="aviso" role="status" aria-live="polite">
