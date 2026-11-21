@@ -1,0 +1,36 @@
+# Vigila que la ingesta diaria del BOE esté al día. Si la API no responde o la última ingesta correcta es
+# de hace más de 6 horas, la ejecución FALLA y GitHub avisa por correo a quien tenga activadas las
+# notificaciones de Actions (Settings → Notifications → Actions → «Failed workflows only»).
+# No necesita secretos: /v1/health es público.
+name: Monitor de ingesta
+
+on:
+  schedule:
+    - cron: '0 9 * * *'    # 09:00 UTC = 10:00 en invierno (11:00 en verano); la ingesta corre a las 07:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      URL_HEALTH: https://api-boe.alter-lego.workers.dev/v1/health
+      MAX_HORAS: '6'
+    steps:
+      - name: Consultar /v1/health y comprobar la antigüedad de la última ingesta
+        run: |
+          cuerpo=$(curl -sS --fail-with-body --retry 3 --retry-delay 5 --max-time 20 "$URL_HEALTH") \
+            || { echo "::error::/v1/health no responde: $cuerpo"; exit 1; }
+          echo "$cuerpo"
+          [ "$(echo "$cuerpo" | jq -r '.ok')" = "true" ] || { echo "::error::/v1/health devuelve ok distinto de true"; exit 1; }
+          fin=$(echo "$cuerpo" | jq -r '.ultima_ingesta.fin // empty')
+          [ -n "$fin" ] || { echo "::error::No hay ninguna ingesta correcta registrada"; exit 1; }
+          edad_h=$(( ( $(date -u +%s) - $(date -u -d "$fin" +%s) ) / 3600 ))
+          echo "Última ingesta correcta: $fin (hace ${edad_h} h)"
+          if [ "$edad_h" -ge "$MAX_HORAS" ]; then
+            echo "::error::La última ingesta correcta es de hace ${edad_h} h (límite ${MAX_HORAS} h). Revisa el workflow «Ingesta BOE»."
+            exit 1
+          fi
