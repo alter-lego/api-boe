@@ -9,7 +9,9 @@
 - Pruebas automáticas en cada push y pull request (`pruebas.yml`: 127 pruebas de Node y compilación de la web). Las pruebas SQL (`supabase/tests/`) se pasan a mano tras cada migración.
 - Acciones de GitHub actualizadas a `checkout@v7`, `setup-node@v7` y `upload-artifact@v7` (Node 24), que eliminan el aviso de Node 20.
 - Web: portada «Preguntar primero», modo claro/oscuro, botón dentro de la caja, tarjeta «BOE de hoy».
-- Claves de Anthropic: la del buscador se renovó (`buscador-boe-worker-2`, caduca el 21/12/2026); hay que **borrar la antigua** `buscador-boe-worker` (caduca el 03/12/2026) cuando se confirme que la nueva consume. La de la ingesta (`api-boe-ingesta`) caduca el 29/01/2027.
+- Claves de Anthropic: la del buscador se renovó (`buscador-boe-worker-2`, caduca el 21/12/2026); la antigua `buscador-boe-worker` se borró (confirmado el 21/11/2026). **Renovar `buscador-boe-worker-2` antes del 21/12/2026** (con `npx wrangler secret put ANTHROPIC_API_KEY` en el panel Terminal). La de la ingesta (`api-boe-ingesta`) caduca el 29/01/2027.
+
+- **Panel de Supabase** comprobado el 21/11/2026: «Secure email change» activo, Site URL de la web y Redirect URLs exactas (sin comodines y sin `localhost`).
 
 ## Aplazado por decisión del usuario
 - **Rol de ingesta con permisos mínimos.** Hoy la ingesta usa `service_role` (GitHub Secrets). Un rol propio exigiría conexión directa a Postgres o funciones con token, porque las claves `sb_secret_` solo actúan como `service_role`.
@@ -20,7 +22,6 @@
 
 ## Abierto
 - **Nota de protección de datos (RGPD)** sobre el índice de nombres de las restringidas (finalidad, plazo de conservación, supresión).
-- **Panel de Supabase:** «Secure email change» activo y Redirect URLs exactas, sin comodines (más la Site URL de la web).
 - **Fase 6:**
   - Batería `evals/preguntas.jsonl` (60–80 preguntas, ~10 sin respuesta; se están reuniendo preguntas de periodistas) y script que la lanza contra `/v1/preguntar` (acierto, cobertura, fidelidad, honestidad, coste y tiempo). Elegir modelo con datos (hoy Haiku 5.5, esfuerzo `medium`; el documento pedía `low`).
   - Revisión manual de 50–100 fichas antes de cargar más histórico.
