@@ -223,6 +223,17 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
   const modelo = env.MODELO_PREGUNTAR || MODELO_POR_DEFECTO;
   const ctx = { env, jwt, fetchFn, vistos: new Map() };
 
+  // 0) Caché por periodista: la misma pregunta, el mismo día y sin ingesta nueva se sirve sin llamar a Claude ni gastar cupo.
+  try {
+    const [guardada] = await rpc(env, 'respuesta_guardada', { p_pregunta: pregunta }, { jwt, fetchFn });
+    if (guardada?.respuesta && typeof guardada.respuesta === 'object') {
+      return { ...guardada.respuesta, en_cache: true, preguntas_hoy: { usadas: guardada.usadas, limite: guardada.limite } };
+    }
+  } catch (e) {
+    if (e instanceof ErrorApi && [401, 403].includes(e.estado)) throw e;   // sesión caducada o sin permiso
+    console.error('respuesta_guardada:', e instanceof ErrorApi ? e.estado : String(e?.message ?? e).slice(0, 60));
+  }
+
   // 1) Reserva atómica del sitio en el límite diario (si no hay, la base responde 429 y no se llama a Claude).
   const [reserva] = await rpc(env, 'reservar_consulta', { p_pregunta: pregunta }, { jwt, fetchFn });
   const ingesta = (await rpc(env, 'ultima_ingesta', {}, { fetchFn }).catch(() => []))[0] ?? null;
@@ -304,14 +315,24 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
   const respuesta = limpiarRespuesta(final.respuesta, vistos);
   await completar(env, jwt, fetchFn, reserva, modelo, rondas, uso, citas, final.sin_resultados);
 
-  return {
+  const cuerpo = {
     respuesta,
     citas: citas.map((id) => citaRenderizada(vistos.get(id))),
     sin_resultados: final.sin_resultados || (citas.length === 0 && !respuesta),
     datos_hasta: ingesta?.fecha ?? null,
     datos_desde: env.COBERTURA_DESDE ?? null,
-    preguntas_hoy: { usadas: reserva.usadas, limite: reserva.limite },
   };
+  await guardarRespuesta(env, jwt, fetchFn, reserva, cuerpo);
+  return { ...cuerpo, preguntas_hoy: { usadas: reserva.usadas, limite: reserva.limite } };
+}
+
+// Guarda la respuesta para la caché (sin `preguntas_hoy`, que cambia). Si falla, la respuesta ya se entrega igual.
+async function guardarRespuesta(env, jwt, fetchFn, reserva, cuerpo) {
+  try {
+    await rpc(env, 'guardar_respuesta', { p_id: reserva.id, p_token: reserva.token, p_respuesta: cuerpo }, { jwt, fetchFn });
+  } catch (e) {
+    console.error('guardar_respuesta:', e instanceof ErrorApi ? e.estado : String(e?.message ?? e).slice(0, 60));
+  }
 }
 
 async function completar(env, jwt, fetchFn, reserva, modelo, rondas, uso, citas, sinResultados) {

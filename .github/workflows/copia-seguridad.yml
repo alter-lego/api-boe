@@ -1,0 +1,58 @@
+# Copia de seguridad semanal de la base de datos (el plan gratuito de Supabase no incluye copias).
+# Guarda un volcado como artefacto de GitHub durante 90 días. Ver docs/copia-seguridad.md.
+# Secreto necesario (Settings → Secrets and variables → Actions): SUPABASE_DB_URL
+#   (cadena de conexión al «Session pooler» de Supabase, con el rol de solo lectura `respaldo`).
+name: Copia de seguridad
+
+on:
+  schedule:
+    - cron: '15 3 * * 0'   # domingos 03:15 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: copia-seguridad
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  copia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - name: Comprobar el secreto
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "::error::Falta el secreto SUPABASE_DB_URL"; exit 1; fi
+
+      # Supabase usa Postgres 17: pg_dump debe ser de la misma versión o superior (el de ubuntu-latest es más antiguo).
+      - name: Instalar cliente de PostgreSQL 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo $VERSION_CODENAME)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      # Solo el esquema public (los esquemas de Supabase los gestiona la plataforma). Sin los datos de `consultas`:
+      # son las preguntas de los periodistas (sensibles, se borran a los 90 días y no hace falta restaurarlas).
+      - name: Volcar la base de datos
+        run: |
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --format=custom --no-owner --no-privileges --schema=public \
+            --exclude-table-data=public.consultas \
+            --file=respaldo.dump
+          /usr/lib/postgresql/17/bin/pg_restore --list respaldo.dump > contenido.txt
+          # Comprobación mínima: el volcado tiene las tablas principales.
+          for t in publicaciones sumarios periodistas; do grep -q "TABLE DATA public $t " contenido.txt || { echo "::error::Falta la tabla $t en el volcado"; exit 1; }; done
+          ls -l respaldo.dump
+
+      - name: Guardar el volcado (90 días)
+        uses: actions/upload-artifact@v4
+        with:
+          name: respaldo-${{ github.run_id }}
+          path: respaldo.dump
+          retention-days: 90
+          if-no-files-found: error

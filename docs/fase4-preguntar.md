@@ -10,6 +10,9 @@ Escrito el 14/11/2026. Código: `api/src/preguntar.js`, ruta en `api/src/app.js`
 5. Se completa la consulta en `consultas` (modelo, rondas, tokens, caché, coste y citas) con el **token** que devolvió la reserva: solo quien reservó puede completar su fila (los ids son secuenciales y sin token se podría rellenar la reserva del Worker con coste 0). `registrar_consulta` (migración 4) se elimina por permitir filas inventadas. Se borra a los 90 días.
 6. Si Claude responde sin haber consultado ninguna herramienta, **no se entrega lo que diga**: se devuelve un aviso neutro para que se reformule la pregunta.
 
+## Caché de respuestas (migración 13, 21/11/2026)
+Antes de reservar, la API pregunta a `respuesta_guardada`: si **el mismo periodista** ya hizo hoy la misma pregunta (normalizada: sin tildes, mayúsculas ni ¿?) y **no ha entrado ninguna ingesta después**, se devuelve la respuesta guardada con `en_cache: true`, sin llamar a Claude y sin gastar cupo. La respuesta final se guarda con `guardar_respuesta` (misma reserva y token). **La caché es por persona, no compartida:** el Worker escribe con la sesión del propio periodista, y con una caché compartida cualquiera podría guardar un texto inventado y servírselo a sus compañeros. Los avisos de «no he consultado el archivo» y los errores no se guardan. El texto se borra con `consultas` a los 90 días.
+
 ## Diseño del límite: sin «devolver» preguntas
 No existe ninguna función para liberar una reserva: la podría llamar el propio periodista con su sesión y se saltaría el límite (reservar, liberar mientras Claude trabaja, repetir en paralelo). **Un fallo del servidor tras reservar consume una pregunta.** Es lo seguro y raro.
 

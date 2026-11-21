@@ -130,6 +130,17 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
     return c.json({ fecha: f.data, total: datos.length, secciones });
   });
 
+  // Gasto por mes en preguntas a Claude. Solo administradores: lo decide la base de datos (exigir_admin).
+  app.get('/v1/admin/gasto', async (c) => {
+    const m = z.coerce.number().int().min(1).max(24).safeParse(c.req.query('meses') ?? '3');
+    if (!m.success) throw new ErrorApi(400, 'meses debe estar entre 1 y 24');
+    const filas = await rpc(c.env, 'admin_gasto', { p_meses: m.data }, { jwt: c.get('jwt'), fetchFn });
+    return c.json({ meses: filas.map((f) => ({
+      mes: f.mes, preguntas: Number(f.preguntas), usuarios: Number(f.usuarios), tokens_entrada: Number(f.tokens_entrada),
+      tokens_salida: Number(f.tokens_salida), tokens_cache: Number(f.tokens_cache), coste_usd: Number(f.coste_usd),
+    })) });
+  });
+
   // Preguntas en lenguaje natural (Fase 4). Sin clave de Anthropic o sin instrucciones no se reserva ninguna pregunta.
   const cuerpoPregunta = z.object({ pregunta: z.string().trim().min(3, 'escribe una pregunta').max(1000, 'la pregunta es demasiado larga (máximo 1000 caracteres)') });
   app.post('/v1/preguntar', async (c) => {

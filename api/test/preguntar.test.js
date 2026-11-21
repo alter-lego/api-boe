@@ -29,7 +29,7 @@ const llamadaClaude = (...bloques) => ({ stop_reason: 'tool_use', content: bloqu
 const finalClaude = (obj, u = uso()) => ({ stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify(obj) }], usage: u });
 
 /** Entorno falso: Supabase (rpc) + Anthropic (guion de respuestas) + boe.es (XML). */
-function mundo({ claude = [], fichas = [ficha('BOE-A-2026-1')], reservar, xml, claudeEstado = 200 } = {}) {
+function mundo({ claude = [], fichas = [ficha('BOE-A-2026-1')], reservar, xml, claudeEstado = 200, guardada = [], gasto = [] } = {}) {
   const log = { supabase: [], claude: [], boe: [] };
   const json = (cuerpo, status = 200) => new Response(JSON.stringify(cuerpo), { status, headers: { 'Content-Type': 'application/json' } });
   const guion = [...claude];
@@ -50,6 +50,9 @@ function mundo({ claude = [], fichas = [ficha('BOE-A-2026-1')], reservar, xml, c
     if (nombre === 'publicacion') return json(fichas.filter((f) => f.id === cuerpo.p_id));
     if (nombre === 'contar_publicaciones') return json([{ grupo: '2026-10', n: 6 }, { grupo: '2026-11', n: 4 }]);
     if (nombre === 'completar_consulta') return json(true);
+    if (nombre === 'respuesta_guardada') return json(guardada);
+    if (nombre === 'guardar_respuesta') return json(true);
+    if (nombre === 'admin_gasto') return json(gasto);
     return json({}, 404);
   };
   return { fetchFn, log };
@@ -82,7 +85,8 @@ test('flujo completo: reserva, herramienta con la sesión del usuario, respuesta
   assert.equal(j.sin_resultados, false);
   // orden de llamadas a la base de datos: reservar primero; herramienta con el JWT del usuario
   const nombres = m.log.supabase.map((l) => l.nombre);
-  assert.equal(nombres[0], 'reservar_consulta');
+  assert.equal(nombres[0], 'respuesta_guardada');
+  assert.equal(nombres[1], 'reservar_consulta');
   assert.ok(nombres.indexOf('buscar_publicaciones') > 0);
   const buscar = m.log.supabase.find((l) => l.nombre === 'buscar_publicaciones');
   assert.match(buscar.cab.Authorization, /^Bearer ey/);
@@ -390,4 +394,73 @@ test('el esfuerzo del asistente se configura con ESFUERZO_PREGUNTAR', async () =
   const app = crearApp({ fetchFn: m.fetchFn, jwks, instrucciones: INSTRUCCIONES, esperar: async () => {} });
   await app.request('/v1/preguntar', { method: 'POST', headers: { Authorization: `Bearer ${await token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta: 'hola qué tal' }) }, { ...env, ESFUERZO_PREGUNTAR: 'low' });
   assert.equal(m.log.claude[0].cuerpo.output_config.effort, 'low');
+});
+
+test('caché: la misma pregunta del mismo periodista se sirve sin llamar a Claude ni reservar cupo', async () => {
+  const guardado = { respuesta: 'Hay una ayuda [BOE-A-2026-1].', citas: [], sin_resultados: false, datos_hasta: '2026-11-14', datos_desde: '2026-08-13' };
+  const m = mundo({ guardada: [{ respuesta: guardado, usadas: 4, limite: 30 }] });
+  const r = await preguntar(m);
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.respuesta, guardado.respuesta);
+  assert.equal(j.en_cache, true);
+  assert.deepEqual(j.preguntas_hoy, { usadas: 4, limite: 30 });
+  assert.equal(m.log.claude.length, 0);
+  assert.deepEqual(m.log.supabase.map((l) => l.nombre), ['respuesta_guardada']);
+});
+
+test('caché: tras responder con Claude se guarda la respuesta con el token de la reserva, sin preguntas_hoy', async () => {
+  const m = mundo({ claude: [
+    llamadaClaude(usoTool('t1', 'buscar_publicaciones', { q: 'vivienda' })),
+    finalClaude({ respuesta: 'Una ayuda [BOE-A-2026-1].', citas: ['BOE-A-2026-1'], sin_resultados: false }),
+  ] });
+  const r = await preguntar(m);
+  assert.equal(r.status, 200);
+  const g = m.log.supabase.find((l) => l.nombre === 'guardar_respuesta')?.cuerpo;
+  assert.equal(g.p_id, 77);
+  assert.equal(g.p_token, 'tok-secreto-77');
+  assert.equal(g.p_respuesta.citas[0].id, 'BOE-A-2026-1');
+  assert.equal('preguntas_hoy' in g.p_respuesta, false);
+});
+
+test('caché: si guardar_respuesta falla, la respuesta se entrega igual', async () => {
+  const m = mundo({ claude: [
+    llamadaClaude(usoTool('t1', 'buscar_publicaciones', { q: 'vivienda' })),
+    finalClaude({ respuesta: 'Una ayuda [BOE-A-2026-1].', citas: ['BOE-A-2026-1'], sin_resultados: false }),
+  ] });
+  const original = m.fetchFn;
+  const fetchFn = async (url, init) => (url.endsWith('/rpc/guardar_respuesta') ? new Response(JSON.stringify({ code: '22023' }), { status: 400 }) : original(url, init));
+  const r = await preguntar({ ...m, fetchFn });
+  assert.equal(r.status, 200);
+});
+
+test('caché: no se cachea el aviso de «no he consultado el archivo»', async () => {
+  const m = mundo({ claude: [finalClaude({ respuesta: 'De memoria', citas: [], sin_resultados: false })] });
+  await preguntar(m);
+  assert.equal(m.log.supabase.some((l) => l.nombre === 'guardar_respuesta'), false);
+});
+
+test('GET /v1/admin/gasto: devuelve el gasto por mes con números y reenvía la sesión', async () => {
+  const m = mundo({ gasto: [{ mes: '2026-11-01', preguntas: '12', usuarios: '3', tokens_entrada: '1000', tokens_salida: '200', tokens_cache: '50', coste_usd: '0.0345' }] });
+  const app = crearApp({ fetchFn: m.fetchFn, jwks, instrucciones: INSTRUCCIONES, esperar: async () => {} });
+  const t = await token();
+  const r = await app.request('/v1/admin/gasto?meses=2', { headers: { Authorization: `Bearer ${t}` } }, env);
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.deepEqual(j.meses[0], { mes: '2026-11-01', preguntas: 12, usuarios: 3, tokens_entrada: 1000, tokens_salida: 200, tokens_cache: 50, coste_usd: 0.0345 });
+  assert.equal(m.log.supabase[0].cuerpo.p_meses, 2);
+  assert.match(m.log.supabase[0].cab.Authorization, /^Bearer ey/);
+  const mal = await app.request('/v1/admin/gasto?meses=99', { headers: { Authorization: `Bearer ${t}` } }, env);
+  assert.equal(mal.status, 400);
+  const sin = await app.request('/v1/admin/gasto', {}, env);
+  assert.equal(sin.status, 401);
+});
+
+test('GET /v1/admin/gasto: un periodista que no es admin recibe 403', async () => {
+  const m = mundo();
+  const original = m.fetchFn;
+  const fetchFn = async (url, init) => (url.endsWith('/rpc/admin_gasto') ? new Response(JSON.stringify({ code: '42501' }), { status: 403 }) : original(url, init));
+  const app = crearApp({ fetchFn, jwks, instrucciones: INSTRUCCIONES, esperar: async () => {} });
+  const r = await app.request('/v1/admin/gasto', { headers: { Authorization: `Bearer ${await token()}` } }, env);
+  assert.equal(r.status, 403);
 });
