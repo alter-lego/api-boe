@@ -121,6 +121,11 @@ export function Preguntar() {
               <strong>Esto no parece una pregunta</strong>
               <p>No se puede enviar así. Escríbela con palabras, por ejemplo: «ayudas al alquiler joven».</p>
             </>
+          ) : duda === 'rara' ? (
+            <>
+              <strong>Esto no parece una pregunta</strong>
+              <p>Si la envías, el asistente buscará igualmente, pero es probable que no encuentre nada útil. La pregunta contaría en tu límite de hoy{cupo ? ` (${cupo.usadas} de ${cupo.limite})` : ''}.</p>
+            </>
           ) : (
             <>
               <strong>Con una sola palabra la respuesta será poco precisa</strong>
@@ -128,8 +133,8 @@ export function Preguntar() {
             </>
           )}
           <div className="aviso__acciones">
-            <Button onClick={reformular}>{duda === 'sinsentido' ? 'Reformular' : 'Añadir detalle'}</Button>
-            {duda === 'corta' ? <Button variant="secondary" onClick={igualmente}>Preguntar igualmente</Button> : null}
+            <Button onClick={reformular}>{duda === 'corta' ? 'Añadir detalle' : 'Reformular'}</Button>
+            {duda !== 'sinsentido' ? <Button variant="secondary" onClick={igualmente}>Preguntar igualmente</Button> : null}
           </div>
         </div>
       ) : null}
