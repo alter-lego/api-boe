@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ApiError, api } from '../api';
 import { CopiarCita } from '../CopiarCita';
-import { Badge, Button, Field } from '../ds';
+import { Badge, Button } from '../ds';
 import { enlaceBoe } from '../enlaces';
 import { fechaCorta } from '../labels';
 import type { Respuesta } from '../types';
@@ -84,12 +84,14 @@ export function Preguntar() {
   return (
     <div className="preguntar">
       <h1>Preguntar al BOE</h1>
-      <form onSubmit={preguntar} className="pregunta__form">
-        <Field label="Tu pregunta" id="pregunta" hint={`${largo} de 1000 caracteres`}>
-          <textarea id="pregunta" className="bboe-input pregunta__caja" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void lanzar(texto); } }} placeholder="Por ejemplo: ¿qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
-        </Field>
-        <div className="pregunta__acciones">
-          {cupo ? <span className="bboe-meta pregunta__cupo" role="status">{cupo.usadas} de {cupo.limite} preguntas hoy</span> : null}
+      <form onSubmit={preguntar} className="portada__caja">
+        <label className="sr-only" htmlFor="pregunta">Tu pregunta</label>
+        <textarea id="pregunta" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void lanzar(texto); } }} placeholder="Ejemplo: ¿Qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
+        <div className="portada__pie">
+          <span className="bboe-meta pregunta__contadores">
+            <span>{largo} de 1000 caracteres</span>
+            {cupo ? <span role="status">{cupo.usadas} de {cupo.limite} preguntas hoy</span> : null}
+          </span>
           <Button type="submit" disabled={cargando || largo < 3}>Preguntar</Button>
         </div>
       </form>

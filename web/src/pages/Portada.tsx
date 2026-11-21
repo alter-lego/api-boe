@@ -11,16 +11,22 @@ const EJEMPLOS = [
   '¿Cuántos contratos de hospitales se han adjudicado este mes?',
 ];
 
-function BoeDeHoyResumen() {
+// Tarjeta «BOE de hoy» (la de la propuesta «dos puertas»): fecha, nº de publicaciones y enlace al sumario.
+function BoeDeHoyTarjeta() {
   const { data } = useAsync(async () => {
     const s = await api.salud();
     return s.ultima_ingesta ? api.sumario(s.ultima_ingesta.fecha) : null;
   }, 'portada-hoy');
-  if (!data) return <p className="bboe-meta portada__hoy">BOE de hoy</p>;
+  if (!data) return null;
   return (
-    <p className="bboe-meta portada__hoy">
-      BOE de hoy · {fechaConDia(data.fecha).toLowerCase()} · {data.total} publicaciones · <Link className="enlace" to={`/dia/${data.fecha}`}>Ver el sumario</Link>
-    </p>
+    <section className="hoy-tarjeta" aria-label="BOE de hoy">
+      <div>
+        <div className="hoy-tarjeta__t">BOE de hoy · {fechaConDia(data.fecha).toLowerCase()}</div>
+        <div className="hoy-tarjeta__num">{data.total} <span>publicaciones</span></div>
+      </div>
+      <p className="bboe-meta hoy-tarjeta__d">Disposiciones, nombramientos, contratos y anuncios del día, ordenados por sección.</p>
+      <Link className="bboe-btn bboe-btn--secondary hoy-tarjeta__b" to={`/dia/${data.fecha}`}>Ver el sumario completo</Link>
+    </section>
   );
 }
 
@@ -51,8 +57,8 @@ export function Portada() {
       </div>
       <div className="portada__otros">
         <p>¿Prefieres buscar por palabras y filtros? <Link className="enlace" to="/buscar">Buscar con filtros →</Link></p>
-        <BoeDeHoyResumen />
       </div>
+      <BoeDeHoyTarjeta />
     </div>
   );
 }
