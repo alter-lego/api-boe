@@ -78,11 +78,11 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 
 // ---- Datos de ejemplo para el modo prueba ----
 let ejemplo: Periodista[] = [
-  { email: 'alter.lego@gmail.com', nombre: 'Cuenta de pruebas', limite_diario: 30, activo: true, es_admin: true, consultas_hoy: 3 },
-  { email: 'jotocuen@gmail.com', nombre: null, limite_diario: 30, activo: true, es_admin: false, consultas_hoy: 0 },
-  { email: 'persona.ejemplo@eldiario.es', nombre: 'Persona de ejemplo', limite_diario: 50, activo: false, es_admin: false, consultas_hoy: 0 },
+  { email: 'admin.ejemplo@example.com', nombre: 'Cuenta de pruebas', limite_diario: 30, activo: true, es_admin: true, consultas_hoy: 3 },
+  { email: 'periodista.ejemplo@example.com', nombre: null, limite_diario: 30, activo: true, es_admin: false, consultas_hoy: 0 },
+  { email: 'baja.ejemplo@example.com', nombre: 'Persona de ejemplo', limite_diario: 50, activo: false, es_admin: false, consultas_hoy: 0 },
 ];
-let logEjemplo: FilaLog[] = [{ id: 1, creado_en: '2026-11-13T09:00:00Z', actor: 'alter.lego@gmail.com', accion: 'alta', email: 'jotocuen@gmail.com', detalle: null }];
+let logEjemplo: FilaLog[] = [{ id: 1, creado_en: '2026-11-13T09:00:00Z', actor: 'admin.ejemplo@example.com', accion: 'alta', email: 'periodista.ejemplo@example.com', detalle: null }];
 const espera = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(v), 250));
 const norm = (s: string) => s.trim().toLowerCase();
 

@@ -1,7 +1,11 @@
 # Copia de seguridad semanal de la base de datos (el plan gratuito de Supabase no incluye copias).
-# Guarda un volcado como artefacto de GitHub durante 90 días. Ver docs/copia-seguridad.md.
-# Secreto necesario (Settings → Secrets and variables → Actions): SUPABASE_DB_URL
-#   (cadena de conexión al «Session pooler» de Supabase, con el rol de solo lectura `respaldo`).
+# Guarda un volcado CIFRADO como artefacto de GitHub durante 90 días. Ver docs/copia-seguridad.md.
+# En un repositorio público los artefactos los puede descargar cualquiera: por eso el volcado va cifrado
+# y NUNCA se sube en claro.
+# Secretos necesarios (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     cadena de conexión al «Session pooler» de Supabase, con el rol de solo lectura `respaldo`.
+#   BACKUP_PASSPHRASE   contraseña con la que se cifra el volcado (guárdala también fuera de GitHub: sin ella
+#                       la copia no se puede restaurar).
 name: Copia de seguridad
 
 on:
@@ -22,10 +26,13 @@ jobs:
     timeout-minutes: 20
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
     steps:
-      - name: Comprobar el secreto
+      - name: Comprobar los secretos
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then echo "::error::Falta el secreto SUPABASE_DB_URL"; exit 1; fi
+          if [ -z "$BACKUP_PASSPHRASE" ]; then echo "::error::Falta el secreto BACKUP_PASSPHRASE: sin él no se sube nada (el volcado no puede ir en claro)"; exit 1; fi
+          if [ "${#BACKUP_PASSPHRASE}" -lt 20 ]; then echo "::error::BACKUP_PASSPHRASE es demasiado corta (mínimo 20 caracteres)"; exit 1; fi
           case "$SUPABASE_DB_URL" in
             postgresql://*|postgres://*) ;;
             *) echo "::error::SUPABASE_DB_URL no empieza por postgresql:// (¿comillas, corchetes o espacios al principio?). Vuelve a guardar el secreto."; exit 1 ;;
@@ -53,10 +60,21 @@ jobs:
           for t in publicaciones sumarios periodistas; do grep -q "TABLE DATA public $t " contenido.txt || { echo "::error::Falta la tabla $t en el volcado"; exit 1; }; done
           ls -l respaldo.dump
 
-      - name: Guardar el volcado (90 días)
+      # AES-256 con clave derivada (PBKDF2). El volcado en claro se borra y no entra en el artefacto.
+      - name: Cifrar el volcado
+        run: |
+          openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -in respaldo.dump -out respaldo.dump.enc -pass env:BACKUP_PASSPHRASE
+          # Comprobar que se puede descifrar y que sigue siendo un volcado válido, antes de borrar el original.
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in respaldo.dump.enc -pass env:BACKUP_PASSPHRASE -out comprobacion.dump
+          /usr/lib/postgresql/17/bin/pg_restore --list comprobacion.dump > /dev/null
+          cmp respaldo.dump comprobacion.dump
+          shred -u respaldo.dump comprobacion.dump contenido.txt
+          ls -l respaldo.dump.enc
+
+      - name: Guardar el volcado cifrado (90 días)
         uses: actions/upload-artifact@v4
         with:
-          name: respaldo-${{ github.run_id }}
-          path: respaldo.dump
+          name: respaldo-cifrado-${{ github.run_id }}
+          path: respaldo.dump.enc
           retention-days: 90
           if-no-files-found: error
