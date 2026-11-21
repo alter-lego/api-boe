@@ -31,3 +31,7 @@ Hecho ese día: caché de respuestas por periodista, gasto mensual solo para adm
 - **Caché compartida entre periodistas:** descartada por seguridad (cualquiera podría envenenarla escribiendo con su sesión); solo habría forma segura con un escritor de confianza (p. ej. un rol de servicio propio del Worker).
 - **Gasto de la ingesta** (fichas con Haiku) no se registra en la base: el gasto mostrado solo cuenta preguntas.
 - **Desviaciones conscientes respecto al documento v2** (por si se revisa): ingesta 2 veces al día (no cada 15 min); histórico de 3 meses (no 12); esfuerzo `medium`; las preguntas las lee cada periodista solo las suyas.
+
+## Entornos: no hay pre (apuntado el 21/11/2026)
+Hoy solo existe producción: una rama (`main`; la local `aparcado/entrar` no se subió), un proyecto de Supabase (`main · PRODUCTION`, plan gratuito sin ramas de base de datos), un Worker de API y uno de web, y una clave de Anthropic por uso. Los cambios llegan directos a producción; la red de seguridad es: 125 pruebas locales antes de desplegar, tests SQL con `rollback`, revisión independiente de lo sensible y despliegues solo desde la sesión principal.
+Para el traspaso a la nube de la organización (o antes, si se abre a la redacción): crear un entorno de pre (opciones: Worker `api-boe-pre`; segundo proyecto de Supabase con datos de prueba para ensayar migraciones), proteger `main` en GitHub (pruebas obligatorias antes de integrar) y separar claves por entorno. Incluir en la documentación de traspaso.
