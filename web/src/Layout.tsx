@@ -4,6 +4,7 @@ import { useEsAdmin } from './admin';
 import { salir, useSesion } from './auth';
 import { PREGUNTAR_ACTIVO } from './config';
 import { FreshnessBar } from './ds';
+import { useTema } from './tema';
 import { fechaCorta, hoyMadrid, horaMadrid } from './labels';
 import { useAsync } from './useAsync';
 
@@ -31,6 +32,7 @@ function Frescura() {
 export function Layout() {
   const { cargando, email } = useSesion();
   const { esAdmin } = useEsAdmin(email);
+  const { oscuro, alternar } = useTema();
   const loc = useLocation();
   // La pestaña activa sigue a la sección, también en el detalle (que recuerda desde dónde se abrió) y en los resultados.
   const origen = (loc.state as { origen?: string } | null)?.origen;
@@ -57,6 +59,11 @@ export function Layout() {
         </nav>
         {MODO === 'prueba' ? <span className="cabecera__modo" title="Datos de ejemplo; no hay sesión ni conexión con la API">Modo de prueba</span> : null}
         {email ? <span className="cabecera__usuario">{email} · <button type="button" className="enlace" onClick={() => salir()}>Salir</button></span> : null}
+              <button type="button" className="tema-sw" role="switch" aria-checked={oscuro} aria-label="Modo oscuro" onClick={alternar}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+          <span className="tema-sw__pista"><span className="tema-sw__bola" /></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+        </button>
       </header>
       <Frescura />
       <main className="contenido"><Outlet /></main>
