@@ -5,9 +5,11 @@ name: Ingesta BOE
 
 on:
   schedule:
-    # El cron va en UTC: 07:30 y 13:30 UTC = 08:30 y 14:30 en Madrid en invierno (09:30 y 15:30 en verano).
-    - cron: '30 7 * * *'
-    - cron: '30 13 * * *'
+    # El cron va en UTC. GitHub retrasa o se salta a veces las ejecuciones programadas (el 21/11/2026 no lanzó
+    # la de las 07:30), así que hay varias pasadas por la mañana: la primera que funcione ingiere el día y las
+    # siguientes terminan casi al instante (mismo hash, sin cambios). El BOE se publica de lunes a sábado.
+    - cron: '30 5-9 * * 1-6'   # 05:30–09:30 UTC (06:30–10:30 en Madrid en invierno), una cada hora
+    - cron: '30 13 * * *'      # tarde, todos los días: extraordinarios (14:30 en Madrid en invierno)
   workflow_dispatch:
     inputs:
       fecha:
