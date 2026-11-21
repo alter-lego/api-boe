@@ -14,6 +14,7 @@ a { color: var(--brand); }
 .cabecera { display: flex; align-items: center; gap: 12px 24px; flex-wrap: wrap; padding: 8px max(16px, calc((100vw - 1120px) / 2)); min-height: 72px; border-bottom: 1px solid var(--line); background: var(--bg); }
 .cabecera__logo { display: flex; align-items: center; }
 .logo { height: 36px; width: auto; display: block; }
+@media (max-width: 640px) { .cabecera .logo { height: 24px; } }
 .logo--oscuro { display: none; }
 @media (prefers-color-scheme: dark) { :root:not([data-tema]) .logo--claro { display: none; } :root:not([data-tema]) .logo--oscuro { display: block; } }
 :root[data-tema="oscuro"] .logo--claro { display: none; }
