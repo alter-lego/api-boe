@@ -12,7 +12,7 @@ type Estado = { t: 'libre' } | { t: 'cargando' } | { t: 'ok'; r: Respuesta } | {
 
 function mensajeError(e: ApiError): string {
   switch (e.status) {
-    case 400: return 'Revisa la pregunta: debe tener entre 3 y 1000 caracteres.';
+    case 400: return e.message || 'Revisa la pregunta: debe tener entre 3 y 1000 caracteres.';
     case 401: return 'Tu sesión ha caducado.';
     case 403: return 'Tu correo no está en la lista de acceso de este buscador.';
     case 413: case 415: return 'No se pudo enviar la pregunta. Inténtalo de nuevo.';
@@ -119,7 +119,7 @@ export function Preguntar() {
           {duda === 'sinsentido' ? (
             <>
               <strong>Esto no parece una pregunta</strong>
-              <p>Si la envías, el asistente buscará igualmente, pero es probable que no encuentre nada útil. La pregunta contaría en tu límite de hoy{cupo ? ` (${cupo.usadas} de ${cupo.limite})` : ''}.</p>
+              <p>No se puede enviar así. Escríbela con palabras, por ejemplo: «ayudas al alquiler joven».</p>
             </>
           ) : (
             <>
@@ -129,7 +129,7 @@ export function Preguntar() {
           )}
           <div className="aviso__acciones">
             <Button onClick={reformular}>{duda === 'sinsentido' ? 'Reformular' : 'Añadir detalle'}</Button>
-            <Button variant="secondary" onClick={igualmente}>Preguntar igualmente</Button>
+            {duda === 'corta' ? <Button variant="secondary" onClick={igualmente}>Preguntar igualmente</Button> : null}
           </div>
         </div>
       ) : null}
