@@ -36,7 +36,7 @@ export function Portada() {
   return (
     <div className="portada">
       <h1 className="portada__titulo">Lo que dice el BOE, a una pregunta de distancia</h1>
-      <p className="portada__lead">Pregunta con tus palabras. Te respondemos con las publicaciones oficiales y enlaces para comprobarlas.</p>
+      <p className="portada__lead">Pregunta con tus palabras. Respuestas con las publicaciones oficiales y enlaces para comprobarlas.</p>
       <form className="portada__caja" onSubmit={enviar}>
         <label className="sr-only" htmlFor="p">Tu pregunta</label>
         <textarea id="p" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Ejemplo: ¿Qué ayudas al alquiler joven se han publicado esta semana?" />
