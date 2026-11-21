@@ -41,7 +41,7 @@ export function Portada() {
   };
   return (
     <div className="portada">
-      <h1 className="portada__titulo">Lo que dice el BOE, a una pregunta de distancia</h1>
+      <h1 className="portada__titulo">Pregunta al BOE</h1>
       <p className="portada__lead">Pregunta con tus palabras. Respuestas con las publicaciones oficiales y enlaces para comprobarlas.</p>
       <form className="portada__caja" onSubmit={enviar}>
         <label className="sr-only" htmlFor="p">Tu pregunta</label>
