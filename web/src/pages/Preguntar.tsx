@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ApiError, api } from '../api';
 import { CopiarCita } from '../CopiarCita';
+import { partirInicio } from '../destacar';
 import { Badge, Button } from '../ds';
 import { enlaceBoe } from '../enlaces';
 import { fechaCorta } from '../labels';
@@ -23,20 +24,38 @@ function mensajeError(e: ApiError): string {
 }
 
 // Texto plano escapado por React; los [BOE-…] se convierten en enlaces a su cita solo si el id está en `citas`.
+// Las líneas que empiezan por «- » se muestran como lista, con las primeras palabras de cada punto en negrita.
 function TextoRespuesta({ r }: { r: Respuesta }) {
   const orden = new Map(r.citas.map((c, i) => [c.id, i + 1]));
-  const partes = r.respuesta.split(/(\[BOE-[A-Za-z0-9-]+\])/g);
+  const conCitas = (texto: string, clave: string) => texto.split(/(\[BOE-[A-Za-z0-9-]+\])/g).map((p, i) => {
+    const id = /^\[(BOE-[A-Za-z0-9-]+)\]$/.exec(p)?.[1];
+    const n = id ? orden.get(id) : undefined;
+    if (id && n) {
+      return <a key={`${clave}${i}`} className="cita-ref" href={`#cita-${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(`cita-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>[{n}]</a>;
+    }
+    return <span key={`${clave}${i}`}>{p}</span>;
+  });
+  const bloques: Array<{ lista: boolean; lineas: string[] }> = [];
+  for (const linea of r.respuesta.split('\n')) {
+    const punto = /^\s*[-•*]\s+(.*)$/.exec(linea);
+    const lista = punto !== null;
+    const texto = punto ? punto[1] : linea;
+    const ultimo = bloques[bloques.length - 1];
+    if (ultimo && ultimo.lista === lista) ultimo.lineas.push(texto); else bloques.push({ lista, lineas: [texto] });
+  }
   return (
-    <p className="pregunta__texto">
-      {partes.map((p, i) => {
-        const id = /^\[(BOE-[A-Za-z0-9-]+)\]$/.exec(p)?.[1];
-        const n = id ? orden.get(id) : undefined;
-        if (id && n) {
-          return <a key={i} className="cita-ref" href={`#cita-${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(`cita-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>[{n}]</a>;
-        }
-        return <span key={i}>{p}</span>;
-      })}
-    </p>
+    <div className="pregunta__texto">
+      {bloques.map((b, bi) => b.lista ? (
+        <ul key={bi} className="pregunta__lista">
+          {b.lineas.map((l, li) => {
+            const [lead, resto] = partirInicio(l);
+            return <li key={li}><strong className="destacado">{conCitas(lead, `${bi}-${li}-a`)}</strong>{conCitas(resto, `${bi}-${li}-b`)}</li>;
+          })}
+        </ul>
+      ) : (
+        <p key={bi}>{conCitas(b.lineas.join('\n'), `${bi}-p`)}</p>
+      ))}
+    </div>
   );
 }
 

@@ -1,4 +1,5 @@
 // Componentes del design system «Buscador del BOE» (ver Claude Design). Usan components.css y tokens.css.
+import { ConInicioDestacado } from '../destacar';
 import type { ReactNode } from 'react';
 import { enlaceBoe } from '../enlaces';
 import { etiquetaTema, etiquetaTipo, fechaCorta } from '../labels';
@@ -73,7 +74,7 @@ export function ResultCard({ f, ocultarTipo, enlace }: { f: Ficha; ocultarTipo?:
       {!ocultarTipo && f.tipo_acto && status !== 'noSummary' ? <div className="bboe-card__kicker">{etiquetaTipo(f.tipo_acto)}</div> : null}
       {enlace}
       {f.corrige_a ? <p className="bboe-meta">Corrige: {f.corrige_a}</p> : null}
-      {status === 'summary' ? <p className="bboe-card__summary">{f.resumen} <IA /></p> : null}
+      {status === 'summary' ? <p className="bboe-card__summary"><ConInicioDestacado texto={f.resumen ?? ''} /> <IA /></p> : null}
       {status === 'noSummary' ? (
         <div className="bboe-card__row">
           <Badge tone="restricted">Sin resumen</Badge>

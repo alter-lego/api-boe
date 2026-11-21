@@ -1,3 +1,4 @@
+import { ConInicioDestacado } from '../destacar';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { api } from '../api';
@@ -53,7 +54,7 @@ export function Sumario() {
                       <div key={p.id} className="pub">
                         {p.departamento ? <div className="sec">{p.departamento}</div> : null}
                         <Link className="bboe-card__title pub__tit" to={`/publicacion/${p.id}`} state={{ origen: 'dia' }}>{p.titulo}</Link>
-                        {st === 'summary' ? <p className="bboe-meta">{p.resumen} <IA /></p> : st === 'noSummary' ? <p><Badge tone="restricted">Sin resumen</Badge></p> : st === 'review' ? <p><Badge tone="warn">Resumen pendiente de revisión</Badge></p> : null}
+                        {st === 'summary' ? <p className="bboe-meta pub__resumen"><ConInicioDestacado texto={p.resumen ?? ''} /> <IA /></p> : st === 'noSummary' ? <p><Badge tone="restricted">Sin resumen</Badge></p> : st === 'review' ? <p><Badge tone="warn">Resumen pendiente de revisión</Badge></p> : null}
                         <EnlacesBoe f={p} />
                       </div>
                     );
