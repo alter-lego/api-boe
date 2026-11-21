@@ -86,7 +86,7 @@ export function Preguntar() {
       <h1>Preguntar al BOE</h1>
       <form onSubmit={preguntar} className="pregunta__form">
         <Field label="Tu pregunta" id="pregunta" hint={`${largo} de 1000 caracteres`}>
-          <textarea id="pregunta" className="bboe-input pregunta__caja" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Por ejemplo: ¿qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
+          <textarea id="pregunta" className="bboe-input pregunta__caja" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void lanzar(texto); } }} placeholder="Por ejemplo: ¿qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
         </Field>
         <div className="pregunta__acciones">
           {cupo ? <span className="bboe-meta pregunta__cupo" role="status">{cupo.usadas} de {cupo.limite} preguntas hoy</span> : null}
