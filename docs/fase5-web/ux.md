@@ -164,3 +164,10 @@ Maqueta 5 del lienzo, no visible en el MVP:
 - De un anuncio con datos personales solo se muestra título, datos y enlaces.
 - El resumen siempre lleva «Generado con IA».
 - Ningún texto de la interfaz usa jerga interna (ver §0).
+
+## 10. Ajustes del 21/11/2026 (primer lote de mejoras)
+- **Pestañas:** la activa sigue a la sección: «Buscar» en la portada, los resultados y el detalle abierto desde ellos; «Resumen de hoy» en el sumario y en el detalle abierto desde él; «Preguntar» en la pantalla de preguntas y en el detalle abierto desde sus fuentes.
+- **Sumario del día:** el recuento va junto al título («Sumario del día · 282 publicaciones»); las flechas son botones con texto («← 20 nov», «22 nov →»), centrados, y el del futuro aparece desactivado.
+- **Filtros:** el menú se cierra al clicar fuera o con Esc.
+- **Resultados:** «Desglose» pasa a «Agrupar resultados por…».
+- **Citas de «Preguntar»:** sin hueco entre `[n]` y el signo que le sigue.

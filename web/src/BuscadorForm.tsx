@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Field } from './ds';
 import { filtrosDesdeUrl, numFiltros, urlDesdeFiltros } from './filtros';
@@ -9,6 +9,15 @@ export function BuscadorForm({ inicial }: { inicial: Filtros }) {
   const nav = useNavigate();
   const [f, setF] = useState<Filtros>(inicial);
   const [abierto, setAbierto] = useState(false);
+  const caja = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: MouseEvent) => { if (caja.current && !caja.current.contains(e.target as Node)) setAbierto(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false); };
+    document.addEventListener('mousedown', fuera);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc); };
+  }, [abierto]);
   const n = numFiltros(f);
   const set = (c: Partial<Filtros>) => setF((x) => ({ ...x, ...c }));
   const enviar = (e: React.FormEvent) => { e.preventDefault(); setAbierto(false); nav(urlDesdeFiltros(f)); };
@@ -16,7 +25,7 @@ export function BuscadorForm({ inicial }: { inicial: Filtros }) {
   const toggleTema = (t: string) => set({ tema: f.tema?.includes(t) ? f.tema.filter((x) => x !== t) : [...(f.tema ?? []), t].slice(0, 5) });
 
   return (
-    <form onSubmit={enviar} className="buscador">
+    <form ref={caja} onSubmit={enviar} className="buscador">
       <div className="buscador__fila">
         <Field label="Texto libre" id="q">
           <input id="q" className="bboe-input bboe-input--lg" value={f.q ?? ''} onChange={(e) => set({ q: e.target.value })} placeholder="Nombres, organismos, temas…" />

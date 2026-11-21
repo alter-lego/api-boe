@@ -26,9 +26,9 @@ function Desglose({ f }: { f: Filtros }) {
   const { data, cargando, error } = useAsync(() => api.conteos(f, por), `${urlDesdeFiltros(f)}|${por}`);
   return (
     <details className="desglose">
-      <summary className="bboe-btn bboe-btn--secondary bboe-btn--sm">Desglose ▾</summary>
+      <summary className="bboe-btn bboe-btn--secondary bboe-btn--sm">Agrupar resultados por… ▾</summary>
       <div className="desglose__cuerpo">
-        <label className="bboe-field__label" htmlFor="por">Agrupar por</label>
+        <label className="bboe-field__label" htmlFor="por">Agrupar los resultados por</label>
         <select id="por" className="bboe-input" value={por} onChange={(e) => setPor(e.target.value as typeof por)}>
           <option value="organismo">Organismo</option>
           <option value="mes">Mes</option>
@@ -86,7 +86,7 @@ export function Resultados() {
           ) : (
             <div className="lista">
               {data.map((x) => (
-                <ResultCard key={x.id} f={x} ocultarTipo={!!f.tipo} enlace={<Link className="bboe-card__title" to={`/publicacion/${x.id}`}>{x.titulo}</Link>} />
+                <ResultCard key={x.id} f={x} ocultarTipo={!!f.tipo} enlace={<Link className="bboe-card__title" to={`/publicacion/${x.id}`} state={{ origen: 'buscar' }}>{x.titulo}</Link>} />
               ))}
             </div>
           )}

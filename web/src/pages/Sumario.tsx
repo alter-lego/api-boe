@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { Badge, EnlacesBoe, IA, estadoResumen } from '../ds';
 import { ErrorCarga, Esqueletos } from '../Estados';
-import { fechaConDia, sumarDias } from '../labels';
+import { fechaConDia, fechaCorta, hoyMadrid, sumarDias } from '../labels';
 import { useAsync } from '../useAsync';
 
 export function DiaDeHoy() {
@@ -14,6 +14,8 @@ export function DiaDeHoy() {
   return <Navigate to={`/dia/${data.ultima_ingesta.fecha}`} replace />;
 }
 
+const diaCorto = (f: string) => fechaCorta(f).replace(/ \d{4}$/, '');
+
 export function Sumario() {
   const { fecha = '' } = useParams();
   const [buscar, setBuscar] = useState('');
@@ -22,12 +24,13 @@ export function Sumario() {
 
   return (
     <div className="sumario">
-      <h1>Sumario del día</h1>
+      <h1>Sumario del día{data ? <span className="sumario__n"> · {data.total} publicaciones</span> : null}</h1>
       <div className="sumario__nav">
-        <Link className="bboe-btn bboe-btn--secondary bboe-btn--sm" to={`/dia/${sumarDias(fecha, -1)}`} aria-label="Día anterior">◀</Link>
-        <strong>{fechaConDia(fecha)}</strong>
-        <Link className="bboe-btn bboe-btn--secondary bboe-btn--sm" to={`/dia/${sumarDias(fecha, 1)}`} aria-label="Día siguiente">▶</Link>
-        {data ? <span className="bboe-meta">{data.total} publicaciones</span> : null}
+        <Link className="bboe-btn bboe-btn--secondary bboe-btn--sm boton-dia" to={`/dia/${sumarDias(fecha, -1)}`}>← {diaCorto(sumarDias(fecha, -1))}</Link>
+        <strong className="sumario__fecha">{fechaConDia(fecha)}</strong>
+        {sumarDias(fecha, 1) > hoyMadrid()
+          ? <span className="bboe-btn bboe-btn--secondary bboe-btn--sm boton-dia boton-dia--off" aria-disabled="true">{diaCorto(sumarDias(fecha, 1))} →</span>
+          : <Link className="bboe-btn bboe-btn--secondary bboe-btn--sm boton-dia" to={`/dia/${sumarDias(fecha, 1)}`}>{diaCorto(sumarDias(fecha, 1))} →</Link>}
         <div className="sumario__buscar">
           <label className="bboe-field__label" htmlFor="b">Buscar en este día</label>
           <input id="b" className="bboe-input" placeholder="Palabra del título" value={buscar} onChange={(e) => setBuscar(e.target.value)} />
@@ -49,7 +52,7 @@ export function Sumario() {
                     return (
                       <div key={p.id} className="pub">
                         {p.departamento ? <div className="sec">{p.departamento}</div> : null}
-                        <Link className="bboe-card__title pub__tit" to={`/publicacion/${p.id}`}>{p.titulo}</Link>
+                        <Link className="bboe-card__title pub__tit" to={`/publicacion/${p.id}`} state={{ origen: 'dia' }}>{p.titulo}</Link>
                         {st === 'summary' ? <p className="bboe-meta">{p.resumen} <IA /></p> : st === 'noSummary' ? <p><Badge tone="restricted">Sin resumen</Badge></p> : st === 'review' ? <p><Badge tone="warn">Resumen pendiente de revisión</Badge></p> : null}
                         <EnlacesBoe f={p} />
                       </div>

@@ -32,6 +32,12 @@ export function Layout() {
   const { cargando, email } = useSesion();
   const { esAdmin } = useEsAdmin(email);
   const loc = useLocation();
+  // La pestaña activa sigue a la sección, también en el detalle (que recuerda desde dónde se abrió) y en los resultados.
+  const origen = (loc.state as { origen?: string } | null)?.origen;
+  const ruta = loc.pathname;
+  const tab = ruta.startsWith('/dia') ? 'dia' : ruta.startsWith('/preguntar') ? 'preguntar' : ruta.startsWith('/admin') ? 'admin'
+    : ruta.startsWith('/publicacion') ? (origen === 'dia' ? 'dia' : origen === 'preguntar' ? 'preguntar' : 'buscar') : 'buscar';
+  const clase = (t: string) => () => (t === tab ? 'nav__a nav__a--on' : 'nav__a');
   if (MODO === 'api') {
     if (cargando) return <p className="bboe-meta" style={{ padding: 24 }}>Cargando…</p>;
     if (!email) return <Navigate to="/entrar" replace state={{ desde: `${loc.pathname}${loc.search}` }} />;
@@ -44,10 +50,10 @@ export function Layout() {
           <img className="logo logo--oscuro" src="/logo-blanco.svg" alt="elDiario.es" />
         </NavLink>
         <nav className="nav" aria-label="Principal">
-          <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Buscar</NavLink>
-          <NavLink to="/dia" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Resumen de hoy</NavLink>
-          {PREGUNTAR_ACTIVO ? <NavLink to="/preguntar" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Preguntar</NavLink> : null}
-          {esAdmin ? <NavLink to="/admin" className={({ isActive }) => (isActive ? 'nav__a nav__a--on' : 'nav__a')}>Administración</NavLink> : null}
+          <NavLink to="/" aria-current={tab === 'buscar' ? 'page' : undefined} className={clase('buscar')}>Buscar</NavLink>
+          <NavLink to="/dia" aria-current={tab === 'dia' ? 'page' : undefined} className={clase('dia')}>Resumen de hoy</NavLink>
+          {PREGUNTAR_ACTIVO ? <NavLink to="/preguntar" aria-current={tab === 'preguntar' ? 'page' : undefined} className={clase('preguntar')}>Preguntar</NavLink> : null}
+          {esAdmin ? <NavLink to="/admin" aria-current={tab === 'admin' ? 'page' : undefined} className={clase('admin')}>Administración</NavLink> : null}
         </nav>
         {MODO === 'prueba' ? <span className="cabecera__modo" title="Datos de ejemplo; no hay sesión ni conexión con la API">Modo de prueba</span> : null}
         {email ? <span className="cabecera__usuario">{email} · <button type="button" className="enlace" onClick={() => salir()}>Salir</button></span> : null}

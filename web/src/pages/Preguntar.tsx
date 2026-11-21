@@ -115,7 +115,7 @@ export function Preguntar() {
                   return (
                     <li key={c.id} id={`cita-${c.id}`} className="bboe-card">
                       <div className="bboe-meta">[{i + 1}] {fechaCorta(c.fecha)}{c.organismo ? ` · ${c.organismo}` : ''}</div>
-                      <Link className="bboe-card__title cita-tit" to={`/publicacion/${c.id}`}>{c.titulo}</Link>
+                      <Link className="bboe-card__title cita-tit" to={`/publicacion/${c.id}`} state={{ origen: 'preguntar' }}>{c.titulo}</Link>
                       {c.avisos?.length ? <div className="bboe-card__row">{c.avisos.map((a) => <Badge key={a} tone="warn">{a}</Badge>)}</div> : null}
                       <div className="bboe-card__links">
                         {html ? <a className="bboe-card__link" href={html} target="_blank" rel="noopener noreferrer">BOE (HTML) ↗</a> : null}
