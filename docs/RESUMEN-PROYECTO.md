@@ -120,7 +120,7 @@ Riesgos/limitaciones conocidos:
 - Correo por defecto de Supabase: **2 correos/hora en todo el proyecto** → login inviable con más de un par de periodistas; SMTP propio imprescindible antes de abrir al equipo.
 - Cloudflare 10 ms CPU en plan gratuito (posibles 1102 en `/v1/preguntar`).
 - Resúmenes IA pueden ser imperfectos; la vigencia de normas debe comprobarse en la fuente; sin paginación ni orden ascendente.
-- Caducidades: clave de Anthropic del buscador **15/12/2026**; clave de ingesta 29/01/2027.
+- Caducidades: clave de Anthropic del buscador: la antigua caduca el 03/12/2026 y la nueva `buscador-boe-worker-2` el 21/12/2026; clave de ingesta 29/01/2027.
 - Node 20 obsoleto en workflows de GitHub (revisar versiones de acciones).
 
 ## 11. Pendientes y decisiones aplazadas
