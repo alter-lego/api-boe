@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminError, AltaError, admin, useEsAdmin, type Periodista } from '../admin';
+import { api } from '../api';
 import { useSesion } from '../auth';
 import { Badge, Button, Field } from '../ds';
 import { Esqueletos } from '../Estados';
@@ -127,6 +128,32 @@ function Fila({ p, alCambio }: { p: Periodista; alCambio: () => void }) {
   );
 }
 
+const mesLargo = (iso: string) => new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
+const dinero = (usd: number) => `${new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(usd)} $`;
+const miles = (n: number) => new Intl.NumberFormat('es-ES').format(n);
+
+function Gasto() {
+  const { data, cargando, error, reintentar } = useAsync(() => api.gasto(3), 'gasto');
+  return (
+    <section className="panel">
+      <h2>Gasto en preguntas</h2>
+      <p className="bboe-meta">Coste de las preguntas a la IA por mes (últimos tres). No incluye la generación de resúmenes. No muestra qué pregunta nadie.</p>
+      {cargando ? <p className="bboe-meta">Cargando…</p> : error ? (
+        <p className="admin__error">No se pudo cargar el gasto. <button type="button" className="enlace" onClick={reintentar}>Reintentar</button></p>
+      ) : data?.length ? (
+        <div className="filas">
+          {data.map((m) => (
+            <div key={m.mes} className="fila">
+              <span><strong>{mesLargo(m.mes)}</strong> <span className="bboe-meta">{miles(m.preguntas)} preguntas · {m.usuarios} {m.usuarios === 1 ? 'persona' : 'personas'}</span></span>
+              <span><strong>{dinero(m.coste_usd)}</strong></span>
+            </div>
+          ))}
+        </div>
+      ) : <p className="bboe-meta">Aún no hay preguntas este periodo.</p>}
+    </section>
+  );
+}
+
 function Registro() {
   const [abierto, setAbierto] = useState(false);
   const { data, cargando, error } = useAsync(() => (abierto ? admin.log() : Promise.resolve(null)), `log-${abierto}`);
@@ -167,6 +194,7 @@ export function Admin() {
           <div className="admin__lista">{lista.data?.map((p) => <Fila key={p.email} p={p} alCambio={() => setV((n) => n + 1)} />)}</div>
         )}
       </section>
+      <Gasto />
       <Registro />
     </div>
   );
