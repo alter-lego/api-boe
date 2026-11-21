@@ -22,7 +22,7 @@
 
 ## Pendiente tras la revisión del documento del curso v2 (21/11/2026)
 Hecho ese día: caché de respuestas por periodista, gasto mensual solo para admins (`GET /v1/admin/gasto`) y copia de seguridad semanal (`docs/copia-seguridad.md`). Decidido que **no** hace falta el aviso de «preguntas guardadas 90 días» en la web. Queda:
-- **Purga semanal de `consultas`** (`select public.purgar_consultas();` en un workflow). Hoy no se ejecuta nunca; ahora además guarda el texto de las respuestas: hacerlo pronto.
+- ~~Purga semanal de `consultas`~~: hecha el 21/11/2026 (`.github/workflows/purga-consultas.yml`, domingos). Falta lanzarla una vez a mano para comprobar que funciona.
 - **Monitor de `/v1/health`** y aviso si a las 10:00 no hay ingesta correcta.
 - **Batería `evals/preguntas.jsonl`** (60–80 preguntas, ~10 sin respuesta) y script que la lanza contra `/v1/preguntar` (acierto, cobertura, fidelidad, honestidad, coste y tiempo); elegir modelo con datos (hoy Haiku 5.5, esfuerzo `medium`; el documento pedía `low`).
 - **Revisión manual de 50–100 fichas** antes de cargar más histórico.

@@ -1,0 +1,31 @@
+# Borra de `consultas` las preguntas con más de 90 días (preguntas de los periodistas y respuestas guardadas).
+# Secretos (los mismos de la ingesta): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+name: Purga de consultas
+
+on:
+  schedule:
+    - cron: '45 3 * * 0'   # domingos 03:45 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: purga-consultas
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  purga:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Borrar consultas de más de 90 días
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then echo "::error::Faltan secretos de Supabase"; exit 1; fi
+          respuesta=$(curl -sS --fail-with-body --max-time 60 -X POST "$SUPABASE_URL/rest/v1/rpc/purgar_consultas" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" -d '{}') || { echo "::error::La purga falló: $respuesta"; exit 1; }
+          echo "Filas borradas: $respuesta"
