@@ -5,13 +5,6 @@ import { ErrorCarga } from '../Estados';
 import { fechaConDia } from '../labels';
 import { useAsync } from '../useAsync';
 
-const EJEMPLOS = [
-  'vivienda, última semana',
-  'lo publicado hoy por un ministerio',
-  'subvenciones de la última semana, por organismo',
-  'contratos de hospitales este mes',
-];
-
 function BoeDeHoy() {
   const { data, error, cargando, reintentar } = useAsync(async () => {
     const s = await api.salud();
@@ -43,10 +36,6 @@ export function Inicio() {
       <div className="inicio__izq">
         <h1>Buscar en el BOE</h1>
         <BuscadorForm inicial={{}} />
-        <div className="ejemplos">
-          <div className="ejemplos__titulo">Ejemplos de búsquedas que puedes hacer</div>
-          <ul>{EJEMPLOS.map((e) => <li key={e}>{e}</li>)}</ul>
-        </div>
       </div>
       <BoeDeHoy />
     </div>
