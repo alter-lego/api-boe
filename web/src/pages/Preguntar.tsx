@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ApiError, api } from '../api';
 import { CopiarCita } from '../CopiarCita';
 import { Badge, Button, Field } from '../ds';
@@ -56,13 +56,13 @@ export function Preguntar() {
   }, [cargando]);
   useEffect(() => () => ctrl.current?.abort(), []);
 
-  const preguntar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (largo < 3 || largo > 1000 || cargando) return;
+  const lanzar = async (t: string) => {
+    const l = t.trim().length;
+    if (l < 3 || l > 1000 || cargando) return;
     ctrl.current = new AbortController();
     setEstado({ t: 'cargando' });
     try {
-      const r = await api.preguntar(texto.trim(), ctrl.current.signal);
+      const r = await api.preguntar(t.trim(), ctrl.current.signal);
       setCupo(r.preguntas_hoy);
       setEstado({ t: 'ok', r });
     } catch (err) {
@@ -70,6 +70,16 @@ export function Preguntar() {
       setEstado({ t: 'error', e: err instanceof ApiError ? err : new ApiError(502, '') });
     }
   };
+  const preguntar = (e: React.FormEvent) => { e.preventDefault(); void lanzar(texto); };
+
+  // Si llega desde la portada con la pregunta ya escrita, se envía una sola vez.
+  const loc = useLocation();
+  const inicial = (loc.state as { pregunta?: string } | null)?.pregunta;
+  const yaEnviada = useRef(false);
+  useEffect(() => {
+    if (inicial && !yaEnviada.current) { yaEnviada.current = true; setTexto(inicial); void lanzar(inicial); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="preguntar">

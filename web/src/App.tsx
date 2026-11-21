@@ -4,8 +4,9 @@ import { Admin } from './pages/Admin';
 import { Detalle } from './pages/Detalle';
 import { Entrar } from './pages/Entrar';
 import { Inicio } from './pages/Inicio';
+import { Portada } from './pages/Portada';
 import { Preguntar } from './pages/Preguntar';
-import { Resultados } from './pages/Resultados';
+import { Buscar } from './pages/Resultados';
 import { PREGUNTAR_ACTIVO } from './config';
 import { DiaDeHoy, Sumario } from './pages/Sumario';
 
@@ -14,8 +15,8 @@ export default function App() {
     <Routes>
       <Route path="/entrar" element={<Entrar />} />
       <Route element={<Layout />}>
-        <Route path="/" element={<Inicio />} />
-        <Route path="/buscar" element={<Resultados />} />
+        <Route path="/" element={PREGUNTAR_ACTIVO ? <Portada /> : <Inicio />} />
+        <Route path="/buscar" element={<Buscar />} />
         <Route path="/publicacion/:id" element={<Detalle />} />
         {PREGUNTAR_ACTIVO ? <Route path="/preguntar" element={<Preguntar />} /> : null}
         <Route path="/admin" element={<Admin />} />

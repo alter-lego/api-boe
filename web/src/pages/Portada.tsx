@@ -1,0 +1,58 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../api';
+import { Button } from '../ds';
+import { fechaConDia } from '../labels';
+import { useAsync } from '../useAsync';
+
+const EJEMPLOS = [
+  '¿Qué subvenciones se han publicado esta semana y de cuánto dinero?',
+  '¿Qué ha publicado hoy el Ministerio de Hacienda?',
+  '¿Cuántos contratos de hospitales se han adjudicado este mes?',
+];
+
+function BoeDeHoyResumen() {
+  const { data } = useAsync(async () => {
+    const s = await api.salud();
+    return s.ultima_ingesta ? api.sumario(s.ultima_ingesta.fecha) : null;
+  }, 'portada-hoy');
+  if (!data) return <p className="bboe-meta portada__hoy">BOE de hoy</p>;
+  return (
+    <p className="bboe-meta portada__hoy">
+      BOE de hoy · {fechaConDia(data.fecha).toLowerCase()} · {data.total} publicaciones · <Link className="enlace" to={`/dia/${data.fecha}`}>Ver el sumario</Link>
+    </p>
+  );
+}
+
+// Portada «Preguntar primero»: la pregunta es la acción principal; el buscador queda un clic más allá.
+export function Portada() {
+  const nav = useNavigate();
+  const [texto, setTexto] = useState('');
+  const largo = texto.trim().length;
+  const enviar = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (largo >= 3) nav('/preguntar', { state: { pregunta: texto.trim() } });
+  };
+  return (
+    <div className="portada">
+      <h1 className="portada__titulo">Lo que dice el BOE, a una pregunta de distancia</h1>
+      <p className="portada__lead">Pregunta con tus palabras. Te respondemos con las publicaciones oficiales y enlaces para comprobarlas.</p>
+      <form className="portada__caja" onSubmit={enviar}>
+        <label className="sr-only" htmlFor="p">Tu pregunta</label>
+        <textarea id="p" maxLength={1000} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="¿Qué ayudas al alquiler joven se han publicado esta semana?" />
+        <div className="portada__pie">
+          <span className="bboe-meta">Responde en unos 10 segundos.</span>
+          <Button type="submit" disabled={largo < 3}>Preguntar</Button>
+        </div>
+      </form>
+      <div className="ejemplos">
+        <div className="ejemplos__titulo">Ejemplos de preguntas que puedes hacer</div>
+        <ul>{EJEMPLOS.map((e) => <li key={e}>{e}</li>)}</ul>
+      </div>
+      <div className="portada__otros">
+        <p>¿Prefieres buscar por palabras y filtros? <Link className="enlace" to="/buscar">Buscar con filtros →</Link></p>
+        <BoeDeHoyResumen />
+      </div>
+    </div>
+  );
+}

@@ -171,3 +171,9 @@ Maqueta 5 del lienzo, no visible en el MVP:
 - **Filtros:** el menú se cierra al clicar fuera o con Esc.
 - **Resultados:** «Desglose» pasa a «Agrupar resultados por…».
 - **Citas de «Preguntar»:** sin hueco entre `[n]` y el signo que le sigue.
+
+## 11. Portada «Preguntar primero» (decidida el 21/11/2026)
+- **Con la pestaña «Preguntar» activada** (`VITE_PREGUNTAR=si` o modo prueba): la portada `/` pasa a ser la pregunta: titular «Lo que dice el BOE, a una pregunta de distancia», una frase de apoyo, una caja de pregunta grande con «Preguntar», ejemplos de preguntas (texto plano, no pulsables), el enlace «¿Prefieres buscar por palabras y filtros? Buscar con filtros →» y una línea «BOE de hoy · … · N publicaciones · Ver el sumario». Al enviar, se abre `/preguntar` y la pregunta se envía sola una vez.
+- **Navegación:** «Preguntar · Buscar · Resumen de hoy» (+ «Administración»). «Buscar» lleva a `/buscar`, que sin filtros muestra la pantalla de búsqueda de antes (buscador con filtros, ejemplos y «BOE de hoy») y con filtros, los resultados.
+- **Sin la pestaña «Preguntar»:** todo queda como antes (portada = buscador, «Buscar» en `/`).
+- **Aún sin hacer** (decisiones pendientes en `preguntas-abiertas.md`): el aviso para preguntas dudosas, la jerarquía nueva de la respuesta, el refresco visual «editorial cálido» y la página «Cómo funciona».

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Inicio } from './Inicio';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { BuscadorForm } from '../BuscadorForm';
@@ -44,6 +45,12 @@ function Desglose({ f }: { f: Filtros }) {
       </div>
     </details>
   );
+}
+
+// /buscar sin filtros muestra la pantalla de búsqueda; con filtros, los resultados (componentes separados para respetar el orden de los hooks).
+export function Buscar() {
+  const [params] = useSearchParams();
+  return params.toString() === '' ? <Inicio /> : <Resultados />;
 }
 
 export function Resultados() {

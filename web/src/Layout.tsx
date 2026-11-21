@@ -35,7 +35,7 @@ export function Layout() {
   // La pestaña activa sigue a la sección, también en el detalle (que recuerda desde dónde se abrió) y en los resultados.
   const origen = (loc.state as { origen?: string } | null)?.origen;
   const ruta = loc.pathname;
-  const tab = ruta.startsWith('/dia') ? 'dia' : ruta.startsWith('/preguntar') ? 'preguntar' : ruta.startsWith('/admin') ? 'admin'
+  const tab = ruta === '/' ? (PREGUNTAR_ACTIVO ? 'preguntar' : 'buscar') : ruta.startsWith('/dia') ? 'dia' : ruta.startsWith('/preguntar') ? 'preguntar' : ruta.startsWith('/admin') ? 'admin'
     : ruta.startsWith('/publicacion') ? (origen === 'dia' ? 'dia' : origen === 'preguntar' ? 'preguntar' : 'buscar') : 'buscar';
   const clase = (t: string) => () => (t === tab ? 'nav__a nav__a--on' : 'nav__a');
   if (MODO === 'api') {
@@ -50,9 +50,9 @@ export function Layout() {
           <img className="logo logo--oscuro" src="/logo-blanco.svg" alt="elDiario.es" />
         </NavLink>
         <nav className="nav" aria-label="Principal">
-          <NavLink to="/" aria-current={tab === 'buscar' ? 'page' : undefined} className={clase('buscar')}>Buscar</NavLink>
+          {PREGUNTAR_ACTIVO ? <NavLink to="/" aria-current={tab === 'preguntar' ? 'page' : undefined} className={clase('preguntar')}>Preguntar</NavLink> : null}
+          <NavLink to={PREGUNTAR_ACTIVO ? '/buscar' : '/'} aria-current={tab === 'buscar' ? 'page' : undefined} className={clase('buscar')}>Buscar</NavLink>
           <NavLink to="/dia" aria-current={tab === 'dia' ? 'page' : undefined} className={clase('dia')}>Resumen de hoy</NavLink>
-          {PREGUNTAR_ACTIVO ? <NavLink to="/preguntar" aria-current={tab === 'preguntar' ? 'page' : undefined} className={clase('preguntar')}>Preguntar</NavLink> : null}
           {esAdmin ? <NavLink to="/admin" aria-current={tab === 'admin' ? 'page' : undefined} className={clase('admin')}>Administración</NavLink> : null}
         </nav>
         {MODO === 'prueba' ? <span className="cabecera__modo" title="Datos de ejemplo; no hay sesión ni conexión con la API">Modo de prueba</span> : null}

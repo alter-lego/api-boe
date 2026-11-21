@@ -150,3 +150,15 @@ a { color: var(--brand); }
 .boton-dia { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink); white-space: nowrap; }
 .boton-dia--off { opacity: .4; cursor: not-allowed; }
 @media (max-width: 640px) { .sumario__fecha { min-width: 0; flex: 1; } }
+
+/* Portada «Preguntar primero» */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.portada { max-width: 820px; margin: 0 auto; padding-top: 48px; display: flex; flex-direction: column; gap: 24px; }
+.portada__titulo { font: 700 clamp(32px, 5vw, 52px)/1.08 var(--font-sans); letter-spacing: -.02em; text-wrap: balance; }
+.portada__lead { font-size: 19px; line-height: 29px; color: var(--muted); max-width: 56ch; }
+.portada__caja { border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+.portada__caja textarea { border: 0; outline: 0; resize: none; font: 400 19px/28px var(--font-sans); color: var(--ink); background: transparent; height: 88px; width: 100%; }
+.portada__caja:focus-within { border-color: var(--brand); }
+.portada__pie { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.portada__otros { border-top: 1px solid var(--line); padding-top: 18px; display: flex; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+@media (max-width: 640px) { .portada { padding-top: 24px; } .portada__pie { flex-direction: column-reverse; align-items: stretch; } .portada__pie .bboe-btn { width: 100%; } }
