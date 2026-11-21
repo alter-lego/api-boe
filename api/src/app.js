@@ -8,6 +8,7 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { z } from 'zod';
 import { ErrorApi, rpc, leerJson, fecha, consultaBuscar, consultaContar, AGRUPAR_SQL, paramsFiltros } from './comun.js';
 import { responderPregunta } from './preguntar.js';
+import { preguntaSinSentido } from './pregunta-valida.js';
 
 class SesionNoValida extends Error {}
 const METODOS_VALIDOS = ['otp', 'magiclink'];
@@ -147,6 +148,8 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
     if (!c.env.ANTHROPIC_API_KEY || !instrucciones) throw new ErrorApi(503, 'las preguntas no están disponibles todavía');
     const r = cuerpoPregunta.safeParse(await leerJson(c.req.raw));
     if (!r.success) throw new ErrorApi(400, r.error.issues.map((i) => i.message).join('; '));
+    // Sin sentido evidente: se rechaza antes de reservar cupo y antes de llamar a Claude.
+    if (preguntaSinSentido(r.data.pregunta)) throw new ErrorApi(400, 'Esto no parece una pregunta. Escríbela con palabras (por ejemplo: «ayudas al alquiler joven»).');
     return c.json(await responderPregunta({ pregunta: r.data.pregunta, jwt: c.get('jwt'), env: c.env, fetchFn, esperar, instrucciones }));
   });
 

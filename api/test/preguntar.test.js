@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from 'jose';
 import { crearApp } from '../src/app.js';
+import { preguntaSinSentido } from '../src/pregunta-valida.js';
 import { quitarDatosPersonales, limpiarRespuesta, costeUSD } from '../src/preguntar.js';
 
 const URL_SB = 'https://proyecto.supabase.co';
@@ -463,4 +464,24 @@ test('GET /v1/admin/gasto: un periodista que no es admin recibe 403', async () =
   const app = crearApp({ fetchFn, jwks, instrucciones: INSTRUCCIONES, esperar: async () => {} });
   const r = await app.request('/v1/admin/gasto', { headers: { Authorization: `Bearer ${await token()}` } }, env);
   assert.equal(r.status, 403);
+});
+
+test('preguntas sin sentido evidente: 400 antes de reservar cupo y sin llamar a Claude', async () => {
+  for (const pregunta of ['lkjegjreg', '¿?¿?¿?', '123 456', 'aaaaaa', 'qué es el', 'ababab ababab']) {
+    const m = mundo();
+    const r = await preguntar(m, { pregunta });
+    assert.equal(r.status, 400, `«${pregunta}» debería rechazarse`);
+    assert.match((await r.json()).error, /no parece una pregunta/i);
+    assert.equal(m.log.supabase.length, 0, `«${pregunta}»: no debe tocar la base de datos ni gastar cupo`);
+    assert.equal(m.log.claude.length, 0, `«${pregunta}»: no debe llamar a Claude`);
+  }
+});
+
+test('preguntas válidas, cortas o con siglas, NO se rechazan en el servidor', () => {
+  for (const t of ['IRPF', 'BOE', 'subvenciones', 'ley', '¿Qué ayudas hay para el alquiler joven?', 'indultos 2026', 'Real Decreto 1234/2026', 'ayudas vivienda Canarias']) {
+    assert.equal(preguntaSinSentido(t), false, `«${t}» es válida`);
+  }
+  for (const t of ['lkjegjreg', 'zxcvbnmk', '', '   ', '¡¡¡', 'el la los']) {
+    assert.equal(preguntaSinSentido(t), true, `«${t}» no tiene sentido`);
+  }
 });
