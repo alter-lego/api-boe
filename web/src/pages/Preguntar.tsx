@@ -45,12 +45,15 @@ export function Preguntar() {
   const [estado, setEstado] = useState<Estado>({ t: 'libre' });
   const [segundos, setSegundos] = useState(0);
   const [cupo, setCupo] = useState<{ usadas: number; limite: number } | null>(null);
+  const [enviada, setEnviada] = useState('');
   const [duda, setDuda] = useState<Duda | null>(null);
   const [atenuando, setAtenuando] = useState(false);
   const caja = useRef<HTMLTextAreaElement | null>(null);
   const ctrl = useRef<AbortController | null>(null);
   const cargando = estado.t === 'cargando';
   const largo = texto.trim().length;
+  // Mientras se busca y al mostrar la respuesta, la caja se pliega: la pregunta queda en una línea, no en la caja.
+  const plegada = cargando || estado.t === 'ok';
 
   useEffect(() => {
     if (!cargando) return;
@@ -64,6 +67,7 @@ export function Preguntar() {
     const l = t.trim().length;
     if (l < 3 || l > 1000 || cargando) return;
     ctrl.current = new AbortController();
+    setEnviada(t.trim());
     setEstado({ t: 'cargando' });
     try {
       const r = await api.preguntar(t.trim(), ctrl.current.signal);
@@ -88,6 +92,10 @@ export function Preguntar() {
     setAtenuando(true);
     setTimeout(() => { setDuda(null); setAtenuando(false); }, 400);
   };
+  const nueva = () => {
+    setEstado({ t: 'libre' });
+    setTimeout(() => { caja.current?.focus(); caja.current?.select(); }, 50);
+  };
   const igualmente = () => { setDuda(null); void lanzar(texto); };
 
   // Si llega desde la portada con la pregunta ya escrita, se envía una sola vez.
@@ -102,7 +110,7 @@ export function Preguntar() {
   return (
     <div className="preguntar">
       <h1>Preguntar al BOE</h1>
-      <form onSubmit={preguntar} className="portada__caja">
+      <form onSubmit={preguntar} className={`portada__caja caja-plegable${plegada ? ' caja-plegable--fuera' : ''}`}>
         <label className="sr-only" htmlFor="pregunta">Tu pregunta</label>
         <textarea id="pregunta" ref={caja} maxLength={1000} value={texto} onChange={(e) => { setTexto(e.target.value); setDuda(null); }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); intentar(texto); } }} placeholder="Ejemplo: ¿Qué ayudas al alquiler joven se han publicado esta semana?" disabled={cargando} />
         <div className="portada__pie">
@@ -140,9 +148,14 @@ export function Preguntar() {
       ) : null}
 
       {cargando ? (
-        <div className="aviso" role="status" aria-live="polite">
-          <p>Buscando en el BOE… esto puede tardar hasta un minuto{segundos >= 5 ? ` (${segundos} s)` : ''}.</p>
-          <p><button type="button" className="enlace" onClick={() => ctrl.current?.abort()}>Cancelar</button></p>
+        <div className="espera" role="status" aria-live="polite">
+          <div className="bboe-meta">Tu pregunta · «{enviada}»</div>
+          <p>
+            Buscando en el BOE<span className="espera__puntos" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span>{' '}
+            {segundos >= 15 ? 'Está tardando más de lo normal; puede llegar a un minuto.' : 'Suele tardar unos 10 segundos.'}
+          </p>
+          <div className="espera__barra" aria-hidden="true" />
+          <p><button type="button" className="enlace" onClick={() => ctrl.current?.abort()}>Cancelar</button>{segundos >= 5 ? <span className="bboe-meta"> ({segundos} s)</span> : null}</p>
         </div>
       ) : null}
 
@@ -150,6 +163,13 @@ export function Preguntar() {
         <div className="aviso" role="alert">
           <p>{mensajeError(estado.e)}</p>
           {estado.e.status === 429 || estado.e.status === 401 || estado.e.status === 403 ? null : <p className="bboe-meta">Puedes volver a intentarlo.</p>}
+        </div>
+      ) : null}
+
+      {estado.t === 'ok' ? (
+        <div className="pregunta__tarjeta">
+          <div><div className="sec">Tu pregunta</div><p className="pregunta__enviada">{enviada}</p>{cupo ? <p className="bboe-meta">{cupo.usadas} de {cupo.limite} preguntas hoy</p> : null}</div>
+          <button type="button" className="enlace" onClick={nueva}>Nueva pregunta</button>
         </div>
       ) : null}
 

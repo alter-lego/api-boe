@@ -43,7 +43,7 @@ export function Portada() {
   return (
     <div className="portada">
       <h1 className="portada__titulo">Pregunta al BOE</h1>
-      <p className="portada__lead">Pregunta con tus palabras. Respuestas con las publicaciones oficiales y enlaces para comprobarlas.</p>
+      <p className="portada__lead">Respuestas con las publicaciones oficiales y enlaces para comprobarlas.</p>
       <form className="portada__caja" onSubmit={enviar}>
         <label className="sr-only" htmlFor="p">Tu pregunta</label>
         <div className="portada__campo">
@@ -54,7 +54,7 @@ export function Portada() {
           </div>
         </div>
         <div className="portada__pie">
-          <span className="bboe-meta">Responde en unos 10 segundos.</span>
+          <span className="bboe-meta">Suele responder en unos 10 segundos.</span>
           <Button type="submit" disabled={largo < 3}>Preguntar</Button>
         </div>
       </form>
