@@ -60,7 +60,7 @@ export type Respuesta = {
   preguntas_hoy: { usadas: number; limite: number };
 };
 
-/** Dónde aparece el nombre buscado: exacto en el título, exacto en el resumen o en el texto completo (menos fiable). */
-export type Coincidencia = 'titulo' | 'resumen' | 'texto';
+/** Dónde aparece el nombre buscado: exacto en el título o el resumen, completo y seguido en el texto, o con las palabras sueltas en el texto (lo menos fiable). */
+export type Coincidencia = 'titulo' | 'resumen' | 'seguido' | 'texto';
 export type ResultadoPersona = Ficha & { coincidencia: Coincidencia };
 export type BusquedaPersona = { n: number; totales: Record<Coincidencia, number>; resultados: ResultadoPersona[] };

@@ -98,7 +98,7 @@ export const mock = {
   personas: (nombre: string): Promise<BusquedaPersona> => {
     const limpio = nombre.trim();
     if (sinTildes(limpio).replace(/[^a-z]/g, '').length < 3) return Promise.reject(Object.assign(new Error('escribe al menos un nombre o apellido de 3 letras o más'), { status: 400 }));
-    if (sinTildes(limpio).includes('zzz')) return espera({ n: 0, totales: { titulo: 0, resumen: 0, texto: 0 }, resultados: [] });
+    if (sinTildes(limpio).includes('zzz')) return espera({ n: 0, totales: { titulo: 0, resumen: 0, seguido: 0, texto: 0 }, resultados: [] });
     const resultados = [
       { ...base({ id: 'BOE-A-2026-23901', fecha: '2026-11-12', departamento: 'Ministerio de Justicia', rango: 'Real Decreto', tipo_acto: 'indulto_sancion', temas: ['justicia'],
         titulo: `Real Decreto 1101/2026, de 10 de noviembre, por el que se indulta a don ${limpio} (ejemplo inventado).`,
@@ -106,9 +106,10 @@ export const mock = {
       { ...base({ id: 'BOE-A-2026-23655', fecha: '2026-10-30', seccion: '2A', seccion_nombre: 'II.A. Nombramientos y ceses', departamento: 'Ministerio de Hacienda', tipo_acto: 'nombramiento', temas: ['empleo_publico_y_administracion'],
         titulo: 'Orden HAC/1190/2026, de 27 de octubre, por la que se resuelve convocatoria de libre designación.',
         resumen: `Adjudica el puesto de subdirector general a ${limpio}. Ejemplo inventado.` }), coincidencia: 'resumen' as const },
+      ...DATOS.filter((x) => x.nivel_privacidad === 'publico' && x.seccion === '3').slice(0, 1).map((x) => ({ ...x, coincidencia: 'seguido' as const })),
       ...DATOS.filter((x) => x.nivel_privacidad === 'restringido').slice(0, 3).map((x) => ({ ...x, coincidencia: 'texto' as const })),
     ];
-    return espera({ n: resultados.length, totales: { titulo: 1, resumen: 1, texto: 214 }, resultados });
+    return espera({ n: resultados.length, totales: { titulo: 1, resumen: 1, seguido: 1, texto: 214 }, resultados });
   },
   publicacion: (id: string) => espera(DATOS.find((x) => x.id === id) ?? null),
   sumario: (fecha: string): Promise<Sumario> => {

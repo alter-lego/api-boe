@@ -14,7 +14,7 @@ Todas son GET salvo la última; todas exigen sesión salvo `/v1/health`.
 | `GET /v1/conteos` | mismos filtros + `agrupar` = `total` \| `mes` \| `organismo` \| `tipo` | `{agrupar, grupos:[{grupo, n}]}` |
 | `GET /v1/publicaciones/{id}` | — | una ficha; 404 si no existe |
 | `GET /v1/sumarios/{AAAA-MM-DD}` | — | `{fecha, total, secciones:[{seccion, seccion_nombre, publicaciones:[ficha]}]}` (ya agrupado por sección) |
-| `GET /v1/personas` | `nombre`, `desde`, `hasta`, `seccion`, `limit` | `{n, totales:{titulo, resumen, texto}, resultados:[ficha + coincidencia]}`; `coincidencia` = `titulo` \| `resumen` \| `texto`. Pantalla `/persona` («Buscar a una persona») |
+| `GET /v1/personas` | `nombre`, `desde`, `hasta`, `seccion`, `limit` | `{n, totales:{titulo, resumen, seguido, texto}, resultados:[ficha + coincidencia]}`; `coincidencia` = `titulo` \| `resumen` \| `seguido` (nombre completo seguido en el texto) \| `texto` (palabras sueltas). Pantalla `/persona` («Buscar a una persona») |
 | `POST /v1/preguntar` | JSON `{pregunta}` (3-1000 caracteres) | `{respuesta, citas:[{id,titulo,fecha,organismo,seccion,nivel_privacidad,url_html,url_pdf,avisos}], sin_resultados, datos_desde, datos_hasta, preguntas_hoy:{usadas,limite}}`; contrato completo en `docs/fase4-preguntar.md` |
 
 ### Filtros de `/v1/publicaciones` y `/v1/conteos`

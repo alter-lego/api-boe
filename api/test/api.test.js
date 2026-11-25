@@ -264,7 +264,7 @@ test('personas: valida el nombre, reenvía la sesión y aplana la ficha con su c
   assert.equal(r.status, 200);
   const j = await r.json();
   assert.equal(j.n, 3);
-  assert.deepEqual(j.totales, { titulo: 2, resumen: 0, texto: 340 });
+  assert.deepEqual(j.totales, { titulo: 2, resumen: 0, seguido: 0, texto: 340 });
   assert.deepEqual(j.resultados[2], { id: 'BOE-A-2026-3', titulo: 't', nivel_privacidad: 'publico', coincidencia: 'texto' });
   assert.deepEqual(sb.llamadas[0].args, { p_nombre: 'Herrero', p_desde: '2026-09-01', p_hasta: null, p_seccion: '3', p_limite: 100 });
   assert.match(sb.llamadas[0].cab.Authorization, /^Bearer /);

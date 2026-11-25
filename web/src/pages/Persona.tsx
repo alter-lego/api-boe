@@ -14,9 +14,14 @@ const GRUPOS: { clave: Coincidencia; titulo: string; nota?: string }[] = [
   { clave: 'titulo', titulo: 'Con el nombre en el título' },
   { clave: 'resumen', titulo: 'Con el nombre en el resumen' },
   {
+    clave: 'seguido',
+    titulo: 'Con el nombre completo en el texto',
+    nota: 'El nombre y los apellidos aparecen seguidos en el texto («Ana Pérez Gil» o «Pérez Gil, Ana»). Es muy probable que sea esa persona, pero compruébalo en el BOE: podría haber alguien con el mismo nombre o un apellido parecido.',
+  },
+  {
     clave: 'texto',
-    titulo: 'Con el nombre en el texto',
-    nota: 'Coinciden en el texto completo, pero puede ser otra persona o un apellido parecido (al buscar «Herrero» también salen «Herrera» o «herreros»). Compruébalo siempre en el BOE.',
+    titulo: 'Con las palabras sueltas en el texto',
+    nota: 'Todas las palabras están en el texto, pero no seguidas: en listas largas suelen ser personas distintas (un nombre en una, un apellido en otra). En los anuncios con datos personales no se puede comprobar si van seguidas, así que también salen aquí. Compruébalo siempre en el BOE.',
   },
 ];
 
@@ -68,7 +73,7 @@ function Resultados({ nombre, desde, hasta }: { nombre: string; desde: string; h
       </div>
     );
   }
-  const total = data.totales.titulo + data.totales.resumen + data.totales.texto;
+  const total = Object.values(data.totales).reduce((a, b) => a + (b ?? 0), 0);
   return (
     <>
       <h2 aria-live="polite">{total} publicacion{total === 1 ? '' : 'es'} con «{nombre}»{rango}</h2>

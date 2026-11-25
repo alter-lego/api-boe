@@ -102,7 +102,8 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
   });
 
   // Buscar a una persona por su nombre (migración 15). La base comprueba el nombre exacto en título y resumen
-  // y clasifica cada resultado: 'titulo', 'resumen' o 'texto' (coincidencia en el texto completo, menos fiable).
+  // y clasifica cada resultado: 'titulo', 'resumen', 'seguido' (nombre completo seguido en el texto, migración 17)
+  // o 'texto' (palabras sueltas en el texto, o en una restringida: lo menos fiable).
   const consultaPersona = z.object({
     nombre: z.string().trim().min(2, 'escribe un nombre').max(100, 'el nombre es demasiado largo'),
     desde: fecha.optional(),
@@ -115,7 +116,7 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
     const filas = await rpc(c.env, 'buscar_persona', {
       p_nombre: q.nombre, p_desde: q.desde ?? null, p_hasta: q.hasta ?? null, p_seccion: q.seccion ?? null, p_limite: q.limit,
     }, { jwt: c.get('jwt'), fetchFn });
-    const totales = { titulo: 0, resumen: 0, texto: 0 };
+    const totales = { titulo: 0, resumen: 0, seguido: 0, texto: 0 };
     for (const f of filas) totales[f.coincidencia] = Number(f.total_grupo);
     return c.json({
       n: filas.length,
