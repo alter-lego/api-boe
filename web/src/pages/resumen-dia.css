@@ -1,29 +1,45 @@
-/* Resumen editorial del día («Lo más destacado» en el sumario). Clases propias con prefijo rd. */
-.rd { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+/* Resumen editorial del día («Lo más destacado» en el sumario). Clases propias con prefijo rd.
+   El filete azul de la izquierda lo distingue del listado oficial: es contenido redactado con IA. */
+.rd { border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: var(--radius-lg); background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.rd__saltar { align-self: flex-start; font-size: 15px; line-height: 22px; }
 .rd__cab { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.rd__cab h2 { margin: 0; font: 700 24px/30px var(--font-serif); color: var(--ink); }
+/* «Lo más destacado» y «Todas las publicaciones» son hermanos: mismo tamaño. */
+.rd__cab h2, .sumario__todas { margin: 0; font: 700 24px/30px var(--font-serif); color: var(--ink); }
+.sumario__todas { margin-top: 8px; }
+.sumario__todas:focus, .rd__bloque:focus { outline: none; }
+.sumario__todas:focus-visible, .rd__bloque:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: var(--radius-sm); }
 .rd__nota { margin: -8px 0 0; }
 .rd ul, .rd ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
 .rd li { font-size: 17px; line-height: 26px; }
 .rd__titulares li { font-size: 18px; line-height: 28px; }
 .rd__titulares li::marker { color: var(--brand); }
-.rd__seccion { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.rd__mas { align-self: flex-start; }
+.rd__completo { display: flex; flex-direction: column; gap: 16px; }
+.rd__completo[hidden] { display: none; }
+.rd__seccion { display: flex; flex-direction: column; gap: 14px; padding-top: 16px; border-top: 1px solid var(--line); }
 .rd__seccion h3 { margin: 0; font: 600 13.5px/18px var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--brand); }
-.rd__bloque { display: flex; flex-direction: column; gap: 6px; }
-.rd__bloque h4 { margin: 0; font: 600 19px/26px var(--font-sans); color: var(--ink); }
+.rd__bloque { display: flex; flex-direction: column; gap: 6px; scroll-margin-top: 16px; }
+.rd__bloque h4 { margin: 0; font: 700 19px/26px var(--font-serif); color: var(--ink); }
+.rd__bloque h4 a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; }
+.rd__bloque h4 a:hover { text-decoration-color: currentColor; }
 .rd__bloque p { margin: 0; font-size: 17px; line-height: 26px; color: var(--ink); }
 .rd__bloque .rd__porque { color: var(--muted); font-size: 16px; line-height: 24px; }
-.rd__fuente { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-.rd__fuente .bboe-card__links { display: inline-flex; gap: 12px; margin: 0; padding: 0; border: 0; }
-.rd__fuente .rd-ref, .rd__fuente .bboe-card__links { font-size: 15px; line-height: 22px; }
+/* Fuente: organismo y rango en gris; BOE (HTML) y PDF en la misma fila, sin el filete de las tarjetas. */
+.rd__fuentes { list-style: none; padding-left: 0 !important; gap: 4px !important; }
+.rd__fuente { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; font-size: 15px; line-height: 22px; }
+.rd__org { color: var(--muted); }
+.rd__fuente .bboe-card__links { display: inline-flex; gap: 16px; margin: 0; padding: 0; border: 0; font-size: 15px; line-height: 22px; }
 .rd-ref { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .rd-refs { font-size: 15px; }
 .rd__apartados { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
 .rd__apartado .seccion__cuerpo { padding: 12px 16px; }
-.sumario__todas { margin: 8px 0 0; font: 700 22px/28px var(--font-serif); }
 @media (max-width: 640px) {
   .rd { padding: 16px; }
-  .rd__cab h2 { font-size: 21px; line-height: 26px; }
+  .rd__cab h2, .sumario__todas { font-size: 21px; line-height: 26px; }
   .rd li, .rd__bloque p { font-size: 16px; line-height: 24px; }
   .rd__titulares li { font-size: 17px; line-height: 26px; }
+  .rd__bloque h4 { font-size: 18px; line-height: 24px; }
+  /* El mínimo de 44 px de los enlaces BOE/PDF de las tarjetas aquí deja huecos: basta con 32 px (AA pide 24). */
+  .rd__fuente .bboe-card__link { min-height: 32px; }
+  .rd__org { flex-basis: 100%; }
 }

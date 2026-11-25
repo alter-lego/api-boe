@@ -42,9 +42,9 @@ export function Sumario() {
         <div className="aviso"><p>No hay publicaciones cargadas para este día.</p><p className="bboe-meta">Puede que ese día no se publicara BOE o que todavía no esté cargado.</p></div>
       ) : data && (
         <>
-        {!q && data.resumen ? <ResumenDia resumen={data.resumen} publicaciones={data.secciones.flatMap((s) => s.publicaciones)} /> : null}
+        {!q && data.resumen ? <ResumenDia resumen={data.resumen} publicaciones={data.secciones.flatMap((s) => s.publicaciones)} total={data.total} /> : null}
         {!q && !data.resumen && fecha === hoyMadrid() ? <p className="bboe-meta">El resumen de hoy aún se está preparando. Mientras, aquí tienes todas las publicaciones.</p> : null}
-        {!q && data.resumen ? <h2 className="sumario__todas">Todas las publicaciones</h2> : null}
+        {!q && data.resumen ? <h2 id="todas" tabIndex={-1} className="sumario__todas">Todas las publicaciones</h2> : null}
         <div className="lista">
           {data.secciones.map((s, i) => {
             const pubs = s.publicaciones.filter((p) => !q || p.titulo.toLowerCase().includes(q));

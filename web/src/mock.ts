@@ -80,6 +80,7 @@ function resumenMock(fecha: string): ResumenDia | null {
         { ids: [id('06')], titulo: '18 millones para alquiler asequible en la Comunidad de Madrid', resumen: 'Convenio entre el Ministerio de Vivienda y la Comunidad de Madrid para financiar viviendas de alquiler asequible, con un plazo de ejecución de cuatro años.', por_que_importa: null },
       ], lineas: [
         { tema: 'Ayudas al alquiler joven', texto: 'Corrección de errores en la tabla de cuantías', ids: [id('03')] },
+        { tema: 'Convenios y ayudas', texto: 'Convenio de alquiler asequible con Madrid y ayudas a la investigación en salud pública', ids: [id('06'), id('07')] },
       ] },
       { titulo: 'Política y gobierno · Nombramientos', bloques: [], lineas: [
         { tema: 'Tributos', texto: 'Nombramiento del nuevo director general de Tributos del Ministerio de Hacienda', ids: [id('04')] },
