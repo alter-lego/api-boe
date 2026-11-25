@@ -1,5 +1,6 @@
--- Pruebas de la migración 17: buscar_persona separa el nombre completo seguido en el texto ('seguido')
--- de las palabras sueltas ('texto'). Pegar entero en Supabase → SQL Editor DESPUÉS de la migración 17.
+-- Pruebas de las migraciones 17 y 18: buscar_persona devuelve las públicas con el nombre seguido en el texto
+-- ('seguido'), descarta las públicas con las palabras sueltas y deja las restringidas en su grupo ('restringida').
+-- Pegar entero en Supabase → SQL Editor DESPUÉS de la migración 18.
 -- Todo en una transacción con rollback. Si algo falla, el error empieza por "FALLO".
 -- Nombres y publicaciones inventados, con fecha de 2099.
 begin;
@@ -32,21 +33,22 @@ begin
   for r in select coincidencia, (ficha).id as id
              from public.buscar_persona('Zacarías Herrero Quintanilla', '2099-01-01', '2099-12-31') loop
     g := case r.id when 'TEST-SEG-1' then 'seguido' when 'TEST-SEG-2' then 'seguido'
-                   when 'TEST-SEG-3' then 'texto' when 'TEST-SEG-4' then 'texto' else 'ninguno' end;
+                   when 'TEST-SEG-3' then 'descartada' when 'TEST-SEG-4' then 'restringida' else 'ninguno' end;
+    if g = 'descartada' then raise exception 'FALLO: una pública con las palabras sueltas sigue saliendo'; end if;
     if g = 'ninguno' then continue; end if;   -- puede haber publicaciones reales de 2099: no las hay, pero no fallar por ellas
     if r.coincidencia <> g then raise exception 'FALLO: % clasificada como % (esperaba %)', r.id, r.coincidencia, g; end if;
   end loop;
   select count(*) into n from public.buscar_persona('Zacarías Herrero Quintanilla', '2099-01-01', '2099-12-31')
    where (ficha).id like 'TEST-SEG-%';
-  if n <> 4 then raise exception 'FALLO: esperaba 4 resultados de prueba y salen %', n; end if;
+  if n <> 3 then raise exception 'FALLO: esperaba 3 resultados de prueba (sin la de palabras sueltas) y salen %', n; end if;
 
-  -- B) orden: 'seguido' antes que 'texto'
+  -- B) orden: 'seguido' antes que 'restringida'
   select string_agg(coincidencia, ',') into g from public.buscar_persona('Zacarías Herrero Quintanilla', '2099-01-01', '2099-12-31');
-  if g <> 'seguido,seguido,texto,texto' then raise exception 'FALLO: orden de grupos inesperado %', g; end if;
+  if g <> 'seguido,seguido,restringida' then raise exception 'FALLO: orden de grupos inesperado %', g; end if;
 
-  -- C) con una sola palabra no hay 'seguido' (no tendría sentido)
-  select count(*) into n from public.buscar_persona('Quintanilla', '2099-01-01', '2099-12-31') where coincidencia = 'seguido';
-  if n <> 0 then raise exception 'FALLO: con una sola palabra hay resultados «seguido»'; end if;
+  -- C) con una sola palabra, toda pública que la contenga cuenta (no hay «sueltas» posibles)
+  select count(*) into n from public.buscar_persona('Quintanilla', '2099-01-01', '2099-12-31') where coincidencia = 'seguido' and (ficha).id like 'TEST-SEG-%';
+  if n <> 3 then raise exception 'FALLO: con una sola palabra esperaba 3 públicas y salen %', n; end if;
 
   -- D) dos palabras en orden inverso también cuentan como seguidas
   select coincidencia into g from public.buscar_persona('Quintanilla Herrero', '2099-01-01', '2099-12-31') where (ficha).id = 'TEST-SEG-1';

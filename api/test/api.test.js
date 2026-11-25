@@ -257,15 +257,15 @@ test('personas: valida el nombre, reenvía la sesión y aplana la ficha con su c
   const sb = sbFalso({ buscar_persona: { cuerpo: [
     { coincidencia: 'titulo', total_grupo: 2, ficha: ficha('BOE-A-2026-1') },
     { coincidencia: 'titulo', total_grupo: 2, ficha: ficha('BOE-A-2026-2') },
-    { coincidencia: 'texto', total_grupo: 340, ficha: ficha('BOE-A-2026-3') },
+    { coincidencia: 'restringida', total_grupo: 340, ficha: ficha('BOE-A-2026-3') },
   ] } });
   const app = crearApp({ fetchFn: sb.fetchFn, jwks });
   const r = await pedir(app, '/v1/personas?nombre=%20Herrero%20&desde=2026-09-01&seccion=3', await conSesion());
   assert.equal(r.status, 200);
   const j = await r.json();
   assert.equal(j.n, 3);
-  assert.deepEqual(j.totales, { titulo: 2, resumen: 0, seguido: 0, texto: 340 });
-  assert.deepEqual(j.resultados[2], { id: 'BOE-A-2026-3', titulo: 't', nivel_privacidad: 'publico', coincidencia: 'texto' });
+  assert.deepEqual(j.totales, { titulo: 2, resumen: 0, seguido: 0, restringida: 340 });
+  assert.deepEqual(j.resultados[2], { id: 'BOE-A-2026-3', titulo: 't', nivel_privacidad: 'publico', coincidencia: 'restringida' });
   assert.deepEqual(sb.llamadas[0].args, { p_nombre: 'Herrero', p_desde: '2026-09-01', p_hasta: null, p_seccion: '3', p_limite: 100 });
   assert.match(sb.llamadas[0].cab.Authorization, /^Bearer /);
   for (const mala of ['', 'nombre=a', 'nombre=Herrero&seccion=9', 'nombre=Herrero&desde=2026-13-01', `nombre=${'x'.repeat(101)}`]) {

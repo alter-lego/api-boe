@@ -10,7 +10,7 @@ import { fechaCorta } from '../labels';
 import type { Coincidencia, ResultadoPersona } from '../types';
 import { useAsync } from '../useAsync';
 
-const GRUPOS: { clave: Coincidencia; titulo: string; nota?: string }[] = [
+const GRUPOS: { clave: Coincidencia; titulo: string; nota?: string; plegado?: boolean }[] = [
   { clave: 'titulo', titulo: 'Con el nombre en el título' },
   { clave: 'resumen', titulo: 'Con el nombre en el resumen' },
   {
@@ -19,9 +19,10 @@ const GRUPOS: { clave: Coincidencia; titulo: string; nota?: string }[] = [
     nota: 'El nombre y los apellidos aparecen seguidos en el texto («Ana Pérez Gil» o «Pérez Gil, Ana»). Es muy probable que sea esa persona, pero compruébalo en el BOE: podría haber alguien con el mismo nombre o un apellido parecido.',
   },
   {
-    clave: 'texto',
-    titulo: 'Con las palabras sueltas en el texto',
-    nota: 'Todas las palabras están en el texto, pero no seguidas: en listas largas suelen ser personas distintas (un nombre en una, un apellido en otra). En los anuncios con datos personales no se puede comprobar si van seguidas, así que también salen aquí. Compruébalo siempre en el BOE.',
+    clave: 'restringida',
+    titulo: 'En anuncios con datos personales (no podemos comprobar si es esa persona)',
+    nota: 'Son anuncios de oposiciones, juzgados o expropiaciones. Las palabras que buscas están en su texto, pero por privacidad no guardamos su orden, así que pueden ser de personas distintas. Ábrelos en el BOE y busca el nombre para comprobarlo.',
+    plegado: true,
   },
 ];
 
@@ -82,9 +83,9 @@ function Resultados({ nombre, desde, hasta }: { nombre: string; desde: string; h
         const lista: ResultadoPersona[] = data.resultados.filter((x) => x.coincidencia === g.clave);
         const n = data.totales[g.clave];
         if (!n) return null;
-        return (
-          <section key={g.clave} className="persona__grupo" aria-labelledby={`grupo-${g.clave}`}>
-            <h3 id={`grupo-${g.clave}`}>{g.titulo} <span className="num">({n}{lista.length < n ? `, se muestran ${lista.length}` : ''})</span></h3>
+        const cuenta = <span className="num">({n}{lista.length < n ? `, se muestran ${lista.length}` : ''})</span>;
+        const cuerpo = (
+          <>
             {g.nota ? <p className="bboe-meta">{g.nota}</p> : null}
             {lista.length ? (
               <div className="lista">
@@ -93,9 +94,22 @@ function Resultados({ nombre, desde, hasta }: { nombre: string; desde: string; h
                 ))}
               </div>
             ) : null}
+          </>
+        );
+        // Los grupos dudosos van plegados: se ve que existen, pero no estorban.
+        return g.plegado ? (
+          <details key={g.clave} className="persona__grupo persona__grupo--plegado">
+            <summary><h3>{g.titulo} {cuenta}</h3></summary>
+            {cuerpo}
+          </details>
+        ) : (
+          <section key={g.clave} className="persona__grupo" aria-labelledby={`grupo-${g.clave}`}>
+            <h3 id={`grupo-${g.clave}`}>{g.titulo} {cuenta}</h3>
+            {cuerpo}
           </section>
         );
       })}
+      <p className="bboe-meta persona__consejo">¿No encuentras a quien buscas? Prueba solo con los apellidos («Santos Martínez»): si el BOE escribe el nombre con un segundo nombre o una inicial en medio, así sí aparece.</p>
     </>
   );
 }

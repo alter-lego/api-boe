@@ -34,7 +34,7 @@ Tablas: `boletines`, `sumarios`, `publicaciones` (id tipo `BOE-A-2026-12345`; fe
 
 Funciones públicas (todas con comprobación de periodista + sesión): `buscar_publicaciones`, `contar_publicaciones`, `sumario_del_dia`, `publicacion`, `ultima_ingesta`, `es_admin`, `admin_listar_periodistas`, `admin_alta_periodista`, `admin_modificar_periodista`, `admin_ver_log`, `reservar_consulta`, `completar_consulta`. Internas: `es_periodista`, `exigir_periodista`, `sesion_vigente`, `_ficha` (punto único que decide qué campos se muestran según privacidad), `indexar_texto` (solo `service_role`).
 
-Migraciones (17): tablas → seguridad → funciones de lectura → consultas → correcciones de revisión → fichas y vigencia → índice de texto completo (7) → endurecer índice (8) → vigencia y rango (9) → RLS y admin (10) → endurecer admin (11) → reservar consulta (12) → caché y gasto (13) → gasto de la ingesta (14) → buscar persona (15) → restringir ocupaciones de V.B (16) → nombre seguido en buscar persona (17).
+Migraciones (18): tablas → seguridad → funciones de lectura → consultas → correcciones de revisión → fichas y vigencia → índice de texto completo (7) → endurecer índice (8) → vigencia y rango (9) → RLS y admin (10) → endurecer admin (11) → reservar consulta (12) → caché y gasto (13) → gasto de la ingesta (14) → buscar persona (15) → restringir ocupaciones de V.B (16) → nombre seguido en buscar persona (17) → sin palabras sueltas en buscar persona (18).
 
 ## 4. Privacidad: dos niveles por sección
 
@@ -85,7 +85,7 @@ Todas las rutas exigen sesión salvo `/v1/health`. CORS solo para orígenes de `
 | `GET /v1/conteos` | mismos filtros + `agrupar` = total/mes/organismo/tipo |
 | `GET /v1/publicaciones/{id}` | ficha o 404 |
 | `GET /v1/sumarios/{fecha}` | sumario agrupado por sección |
-| `GET /v1/personas` | `nombre` (2-100 car.), `desde`, `hasta`, `seccion`, `limit` (1-100, por defecto 100). Clasifica cada resultado por dónde está el nombre: exacto en el título, exacto en el resumen, completo y seguido en el texto (solo públicas, que guardan posiciones) o con las palabras sueltas (lo menos fiable); devuelve `totales` por grupo |
+| `GET /v1/personas` | `nombre` (2-100 car.), `desde`, `hasta`, `seccion`, `limit` (1-100, por defecto 100). Clasifica cada resultado por dónde está el nombre: exacto en el título, exacto en el resumen, completo y seguido en el texto (solo públicas, que guardan posiciones) o en un anuncio restringido (no se puede comprobar; la web lo pliega). Las públicas con las palabras sueltas no se devuelven; devuelve `totales` por grupo |
 | `POST /v1/preguntar` | pregunta en lenguaje natural (ver §8) |
 
 Ficha de publicación: id, fecha, sección(+nombre), departamento(+código), epígrafe, título, rango, urls, resumen/temas/tipo_acto (nulos si restringida o sin ficha), nivel_privacidad. Los campos conservan nombres de BD; los filtros usan el vocabulario de la interfaz (`organismo`, `tipo`).
