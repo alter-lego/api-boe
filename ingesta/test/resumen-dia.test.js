@@ -81,7 +81,7 @@ test('esquema: todos los objetos cierran sus propiedades (lo exige la salida est
   recorrer(ESQUEMA_RESUMEN);
 });
 
-test('depurar: quita ids inventados, URLs, HTML y DNI, y completa los apartados', () => {
+test('depurar: quita ids inventados, URLs, HTML y DNI; en los apartados manda Claude', () => {
   const c = clasificar(DIA);
   const salida = {
     titulares: [
@@ -102,8 +102,9 @@ test('depurar: quita ids inventados, URLs, HTML y DNI, y completa los apartados'
   assert.equal(contenido.secciones[0].bloques[0].por_que_importa, null);
   assert.equal(contenido.secciones[0].lineas[0].texto, 'Licitación de drones', 'sin punto final');
   assert.deepEqual(contenido.apartados.ayudas, [{ id: 'A2', texto: 'Ayudas MOVES' }]);
-  assert.deepEqual(contenido.apartados.oposiciones, [{ id: 'A3', texto: null }], 'lo marcado que Claude omite se añade');
-  assert.deepEqual(contenido.apartados.impuestos, [{ id: 'A1', texto: null }]);
+  assert.deepEqual(contenido.apartados.oposiciones, [], 'lo marcado que Claude quita no se vuelve a añadir');
+  assert.deepEqual(contenido.apartados.impuestos, []);
+  assert.ok(avisos.includes('apartado oposiciones: Claude quita A3'));
   assert.deepEqual(contenido.apartados.automocion, [{ id: 'A2', texto: null }], 'el texto con DNI se quita');
   assert.deepEqual(Object.keys(contenido.apartados), APARTADOS);
   for (const a of ['INVENTADO', 'NO-EXISTE', 'Enlace', 'Admitidos', 'ZZZ']) assert.ok(avisos.some((x) => x.includes(a)), a);
@@ -148,7 +149,7 @@ test('resumirDia: guarda el resumen depurado y no repite si el día no ha cambia
   assert.equal(fila.conflicto, 'fecha');
   assert.equal(fila.filas[0].n_publicaciones, 10);
   assert.equal(fila.filas[0].contenido.titulares[0].texto, 'Cambia el IVA');
-  assert.deepEqual(fila.filas[0].contenido.apartados.oposiciones, [{ id: 'A3', texto: null }]);
+  assert.deepEqual(fila.filas[0].contenido.apartados.oposiciones, []);
 
   const igual = await resumirDia('2026-11-25', { db: dbFalsa({ previo: [{ n_publicaciones: 10, version: 1 }] }), claveApi: 'k', instrucciones: 'I', pedir: () => assert.fail('no debe llamar') });
   assert.equal(igual.estado, 'ya_generado');

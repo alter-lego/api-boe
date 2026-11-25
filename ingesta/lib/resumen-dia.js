@@ -182,8 +182,8 @@ export function construirPeticionResumen(instrucciones, fecha, c, { modelo = MOD
   };
 }
 
-/** Tokens de entrada aproximados (≈3,5 caracteres por token), para el tope de coste antes de llamar. */
-export const tokensAproximados = (peticion) => Math.ceil((peticion.system.length + peticion.messages[0].content.length) / 3.5);
+/** Tokens de entrada aproximados (≈2,5 caracteres por token, medido el 25/11/2026), para el tope de coste antes de llamar. */
+export const tokensAproximados = (peticion) => Math.ceil((peticion.system.length + peticion.messages[0].content.length) / 2.5);
 
 /**
  * Llama a Claude y devuelve { salida, uso, coste, modelo }. Lanza si se niega, se corta o no devuelve JSON:
@@ -218,7 +218,7 @@ const RE_DNI = /\b\d{8}[A-HJ-NP-TV-Z]\b|\b[XYZ]\d{7}[A-Z]\b|\*{2,}\d{3,}\**/i;
  * Deja solo lo que la web puede pintar con seguridad:
  * - ids que existen entre las publicaciones enviadas (los demás se quitan con aviso);
  * - ningún texto con URL, HTML o DNI (se quita la pieza entera con aviso);
- * - en los apartados, cada publicación marcada aparece aunque Claude la omita (sin texto: la web pone el título).
+ * - en los apartados manda Claude: lo marcado por las reglas que no incluye se anota en avisos, no se añade.
  * @returns {{ contenido, avisos: string[] }}
  */
 export function depurar(salida, c) {
@@ -278,9 +278,10 @@ export function depurar(salida, c) {
       vistos.add(it.id);
       lista.push({ id: it.id, texto: texto || null });
     }
-    for (const id of c.apartados[a] ?? []) {
-      if (!vistos.has(id)) { vistos.add(id); lista.push({ id, texto: null }); }
-    }
+    // Lo marcado por las reglas que Claude no incluye es casi siempre un falso positivo (p. ej. una «tasa»
+    // que es una tasa de reposición, o «becas» en un extravío de título): se respeta y queda anotado.
+    const quitados = (c.apartados[a] ?? []).filter((id) => !vistos.has(id));
+    if (quitados.length) avisos.push(`apartado ${a}: Claude quita ${quitados.join(', ')}`);
     apartados[a] = lista;
   }
 

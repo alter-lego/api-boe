@@ -27,7 +27,7 @@ Solo el JSON del esquema. Nada de HTML, Markdown ni enlaces: la web pinta el tí
    - `oposiciones`: convocatorias de empleo público, listas de admitidos y aprobados.
    - `impuestos`: impuestos, tributos, tasas y cotizaciones.
    - `automocion`: industria del automóvil, vehículo eléctrico, ayudas a la compra (Programa Auto+, MOVES), puntos de recarga y baterías.
-   Parte de los id de `apartados` de la entrada; quita los falsos positivos evidentes (por ejemplo, una «tasa» que en realidad es una tasa de reposición de plazas) y añade lo que las reglas no hayan visto. Una publicación puede estar en el cuerpo y en un apartado. Si un apartado queda vacío, devuelve la lista vacía.
+   Parte de los id de `apartados` de la entrada, que salen de reglas automáticas sobre el título: quita los falsos positivos (por ejemplo, una «tasa» que en realidad es una tasa de reposición de plazas, «becas» en el nombre de un servicio universitario o un contrato de mantenimiento de la Agencia Tributaria) y añade lo que las reglas no hayan visto. Lo que no incluyas no aparecerá. Una publicación puede estar en el cuerpo y en un apartado. Si un apartado queda vacío, devuelve la lista vacía.
 
 ## Reglas
 
