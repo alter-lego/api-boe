@@ -58,3 +58,9 @@ jobs:
       - name: Texto de las restringidas
         if: ${{ !cancelled() }}
         run: node ingesta/fichas.js --restringidas --limite 1000 --concurrencia 4
+
+      # Resumen editorial del día («Resumen de hoy» de la web), con Claude. Solo llama si el día aún no tiene
+      # resumen o si han cambiado sus publicaciones (p. ej. un extraordinario); un día sin BOE no hace nada.
+      - name: Resumen del día
+        if: ${{ !cancelled() }}
+        run: node ingesta/resumen-dia.js --fecha "${FECHA:-hoy}" --max-coste 1

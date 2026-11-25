@@ -38,7 +38,8 @@ export function construirPeticion(instrucciones, entrada) {
   };
 }
 
-async function llamar(peticion, { claveApi, fetchFn = fetch, esperas = ESPERAS_MS }) {
+/** POST a la API de Mensajes con reintentos en 429/5xx. También la usa el resumen del día (resumen-dia.js). */
+export async function llamar(peticion, { claveApi, fetchFn = fetch, esperas = ESPERAS_MS, timeoutMs = 120_000, cabeceras = {} }) {
   let ultimo = null;
   for (let i = 0; i <= esperas.length; i++) {
     try {
@@ -48,9 +49,10 @@ async function llamar(peticion, { claveApi, fetchFn = fetch, esperas = ESPERAS_M
           'x-api-key': claveApi,
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
+          ...cabeceras,
         },
         body: JSON.stringify(peticion),
-        signal: AbortSignal.timeout(120_000),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       const texto = await res.text();
       if (res.status === 429 || res.status >= 500) throw new Error(`HTTP ${res.status}`);

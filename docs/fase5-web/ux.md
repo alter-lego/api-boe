@@ -185,3 +185,12 @@ El correo de acceso debe enlazar a `{{ .SiteURL }}/confirmar?token_hash={{ .Toke
 - `/confirmar` es pública (fuera del Layout, como `/entrar`) y **no verifica al cargar**: muestra «Confirmar acceso» y un botón «Entrar al buscador». Solo al pulsarlo llama a `verifyOtp({ token_hash, type: 'email' })`; si va bien, navega a `/`.
 - Solo acepta `type=email`; sin `token_hash` o con otro tipo, redirige a `/entrar`. El token se guarda en memoria y se quita de la URL al cargar.
 - Errores: enlace caducado o ya usado → «Este enlace ya no es válido. Pide uno nuevo» con enlace a `/entrar` (sin revelar si el correo está autorizado); fallo de red → botón «Reintentar» (sin reintentos automáticos).
+
+## 13. «Lo más destacado» en el Sumario del día (añadido el 25/11/2026)
+
+La versión web del resumen que llega por correo a la redacción cada mañana (workflow de n8n `boe-spec`), generada aquí sobre las fichas de la base.
+
+- **Dónde:** arriba del Sumario del día (`/dia/:fecha`), antes de «Todas las publicaciones». Se oculta mientras se busca en el día. Si hoy aún no hay resumen: «El resumen de hoy aún se está preparando. Mientras, aquí tienes todas las publicaciones.» Los días anteriores sin resumen muestran solo el sumario.
+- **Contenido:** «Lo más destacado» con «Generado con IA» y la nota «Resumen redactado con IA a partir de los títulos y resúmenes del día (a las HH:MM). Comprueba siempre el BOE antes de publicar.»; titulares (3-6); secciones por tema con bloques (titular, resumen, «Por qué importa») y líneas cortas; y los cuatro apartados fijos plegados con su recuento: Ayudas y subvenciones, Oposiciones y empleo público, Impuestos, tributos y tasas, Automoción y vehículo eléctrico (si están vacíos, «Hoy no hay…»).
+- **Enlaces:** cada pieza enlaza a la página de la publicación (texto = rango, título oficial al pasar el ratón) y los bloques muestran organismo, «BOE (HTML)» y «PDF» desde `url_html`/`url_pdf` de la ficha. Claude nunca escribe enlaces: cita ids y la web los busca entre las fichas del sumario (si un id no está, la pieza no se pinta).
+- **Generación:** `ingesta/resumen-dia.js` (paso «Resumen del día» de la ingesta), con Claude Opus 5.5 e instrucciones en `skill/RESUMEN-DIA.md`; se guarda en `resumenes_dia` y llega en `GET /v1/sumarios/{fecha}` como `resumen`. Detalles en `contrato-datos.md`.
