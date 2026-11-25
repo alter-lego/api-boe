@@ -1,5 +1,5 @@
 -- Pruebas de la migración 15: buscar_persona (nombre exacto en título o resumen; resto, «en el texto»).
--- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las 15 migraciones.
+-- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de las migraciones (actualizada a la 18).
 -- Todo en una transacción con rollback. Si algo falla, el error empieza por "FALLO".
 -- Los nombres son inventados. Las fechas futuras (2099) evitan mezclarse con publicaciones reales.
 begin;
@@ -26,10 +26,10 @@ begin
   perform set_config('request.jwt.claims', '{"role":"authenticated","email":"p1@test.local","amr":[{"method":"otp","timestamp":4102444800}]}', true);
   set local role authenticated;
 
-  -- A) clasificación: exacto en título, exacto en resumen, el resto «texto»; la restringida, sin resumen
+  -- A) clasificación: exacto en título, exacto en resumen; la restringida, en su grupo y sin resumen
   for r in select coincidencia, total_grupo, (ficha).id as id, (ficha).resumen as resumen, (ficha).nivel_privacidad as nivel
              from public.buscar_persona('Zacarías HERRERO quintanilla', '2099-01-01', '2099-12-31') loop
-    g := case r.id when 'TEST-PER-1' then 'titulo' when 'TEST-PER-3' then 'resumen' when 'TEST-PER-4' then 'texto' else 'ninguno' end;
+    g := case r.id when 'TEST-PER-1' then 'titulo' when 'TEST-PER-3' then 'resumen' when 'TEST-PER-4' then 'restringida' else 'ninguno' end;
     if g = 'ninguno' then raise exception 'FALLO: sale % y no tiene a esa persona', r.id; end if;
     if r.coincidencia <> g then raise exception 'FALLO: % clasificada como % (esperaba %)', r.id, r.coincidencia, g; end if;
     if r.nivel = 'restringido' and r.resumen is not null then raise exception 'FALLO: una restringida muestra resumen'; end if;
@@ -43,9 +43,9 @@ begin
 
   -- C) un apellido parecido no cuenta como exacto: «Herrero» no está en el título de Úrsula Herrera
   select coincidencia into g from public.buscar_persona('Herrero', '2099-01-01', '2099-12-31') where (ficha).id = 'TEST-PER-2';
-  if g is not null and g <> 'texto' then raise exception 'FALLO: «Herrera» cuenta como «Herrero» exacto (%)', g; end if;
+  if g in ('titulo', 'resumen') then raise exception 'FALLO: «Herrera» cuenta como «Herrero» exacto (%)', g; end if;
   select coincidencia into g from public.buscar_persona('Herrero', '2099-01-01', '2099-12-31') where (ficha).id = 'TEST-PER-5';
-  if g is not null and g <> 'texto' then raise exception 'FALLO: «herreros» cuenta como «Herrero» exacto (%)', g; end if;
+  if g in ('titulo', 'resumen') then raise exception 'FALLO: «herreros» cuenta como «Herrero» exacto (%)', g; end if;
 
   -- D) total_grupo cuenta aunque el límite corte
   select total_grupo into n from public.buscar_persona('Quintanilla', '2099-01-01', '2099-12-31', null, 1);
