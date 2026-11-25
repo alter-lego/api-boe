@@ -59,7 +59,7 @@ test('clasificar: de las restringidas solo van título y metadatos', () => {
 test('petición: instrucciones, salida estructurada, sin enlaces en la entrada y con modelo de reserva', () => {
   const c = clasificar(DIA);
   const p = construirPeticionResumen('INSTR', '2026-11-25', c);
-  assert.equal(p.model, 'claude-opus-5-5');
+  assert.equal(p.model, 'claude-sonnet-5-5');
   assert.equal(p.system, 'INSTR');
   assert.equal(p.output_config.format.schema, ESQUEMA_RESUMEN);
   assert.equal(p.fallbacks, 'default');
@@ -113,7 +113,7 @@ test('depurar: quita ids inventados, URLs, HTML y DNI, y completa los apartados'
 test('pedirResumen: lanza si Claude se niega, se corta o no devuelve JSON; cabecera del modelo de reserva', async () => {
   const respuesta = (cuerpo) => async (_url, init) => {
     respuesta.cab = init.headers;
-    return new Response(JSON.stringify({ model: 'claude-opus-5-5', usage: { input_tokens: 1000, output_tokens: 100 }, ...cuerpo }), { status: 200 });
+    return new Response(JSON.stringify({ model: 'claude-sonnet-5-5', usage: { input_tokens: 1000, output_tokens: 100 }, ...cuerpo }), { status: 200 });
   };
   const p = construirPeticionResumen('I', '2026-11-25', clasificar(DIA));
   const ok = await pedirResumen(p, { claveApi: 'k', fetchFn: respuesta({ stop_reason: 'end_turn', content: [{ type: 'thinking', thinking: '' }, { type: 'text', text: '{"titulares":[]}' }] }) });
@@ -137,7 +137,7 @@ function dbFalsa({ pubs = DIA, previo = [] } = {}) {
   };
 }
 const SALIDA = { titulares: [{ tema: 'IVA', texto: 'Cambia el IVA', ids: ['A1'] }], secciones: [], apartados: { ayudas: [], oposiciones: [], impuestos: [], automocion: [] } };
-const pedirFalso = async () => ({ salida: SALIDA, uso: { input_tokens: 20000, output_tokens: 5000 }, coste: 0.18, modelo: 'claude-opus-5-5' });
+const pedirFalso = async () => ({ salida: SALIDA, uso: { input_tokens: 20000, output_tokens: 5000 }, coste: 0.18, modelo: 'claude-sonnet-5-5' });
 
 test('resumirDia: guarda el resumen depurado y no repite si el día no ha cambiado', async () => {
   const db = dbFalsa();
@@ -180,8 +180,8 @@ test('resumirDia: día sin BOE, fichas pendientes, tope de coste y modo seco', a
 
 test('registrarGastoResumen: anota tokens y coste con 0 fichas; no lanza si la tabla falla', async () => {
   const db = dbFalsa();
-  assert.equal(await registrarGastoResumen(db, { modelo: 'claude-opus-5-5', uso: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 0 }, coste: 0.123456 }), true);
-  assert.deepEqual(db.escrito.inserts[0], { tabla: 'gasto_ingesta', fila: { modelo: 'claude-opus-5-5', n_fichas: 0, tokens_entrada: 10, tokens_salida: 5, tokens_cache: 0, coste_usd: 0.12346 } });
+  assert.equal(await registrarGastoResumen(db, { modelo: 'claude-sonnet-5-5', uso: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 0 }, coste: 0.123456 }), true);
+  assert.deepEqual(db.escrito.inserts[0], { tabla: 'gasto_ingesta', fila: { modelo: 'claude-sonnet-5-5', n_fichas: 0, tokens_entrada: 10, tokens_salida: 5, tokens_cache: 0, coste_usd: 0.12346 } });
   const rota = { insertar: async () => { throw new Error('HTTP 404'); } };
   assert.equal(await registrarGastoResumen(rota, { uso: { input_tokens: 1 }, coste: 0 }), false);
 });

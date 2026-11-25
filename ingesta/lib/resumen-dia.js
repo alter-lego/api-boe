@@ -11,10 +11,10 @@ import { readFileSync } from 'node:fs';
 import { llamar } from './ficha-ia.js';
 
 export const RESUMEN_VERSION = 1;
-export const MODELO_RESUMEN = 'claude-opus-5-5';
+export const MODELO_RESUMEN = 'claude-sonnet-5-5';
 
-// USD por millón de tokens (Claude Opus 5.5). Si responde el modelo de reserva, el coste es aproximado.
-const PRECIOS = { entrada: 4, salida: 20, lectura_cache: 0.2, escritura_cache: 5 };
+// USD por millón de tokens (Claude Sonnet 5.5). Si responde el modelo de reserva, el coste es aproximado.
+const PRECIOS = { entrada: 2, salida: 10, lectura_cache: 0.1, escritura_cache: 2.5 };
 
 export const leerInstruccionesResumen = () =>
   readFileSync(new URL('../../skill/RESUMEN-DIA.md', import.meta.url), 'utf8');

@@ -13,9 +13,9 @@ declare n int;
 begin
   set local role service_role;
   insert into public.resumenes_dia (fecha, contenido, n_publicaciones, modelo, version)
-    values ('2099-01-02', '{"titulares":[{"tema":"Vivienda","texto":"Prueba","ids":["TEST-1"]}],"secciones":[],"apartados":{}}', 3, 'claude-opus-5-5', 1);
+    values ('2099-01-02', '{"titulares":[{"tema":"Vivienda","texto":"Prueba","ids":["TEST-1"]}],"secciones":[],"apartados":{}}', 3, 'claude-sonnet-5-5', 1);
   insert into public.resumenes_dia (fecha, contenido, n_publicaciones, modelo, version)
-    values ('2099-01-02', '{"titulares":[]}', 4, 'claude-opus-5-5', 1)
+    values ('2099-01-02', '{"titulares":[]}', 4, 'claude-sonnet-5-5', 1)
     on conflict (fecha) do update set contenido = excluded.contenido, n_publicaciones = excluded.n_publicaciones;
   select n_publicaciones into n from public.resumenes_dia where fecha = '2099-01-02';
   if n <> 4 then raise exception 'FALLO: service_role no puede regenerar el resumen de un día'; end if;
