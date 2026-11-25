@@ -1,4 +1,4 @@
-# Listas cerradas de las fichas (propuesta v1, pendiente de aprobar)
+# Listas cerradas de las fichas (aprobadas; en uso con `FICHA_VERSION = 3`)
 
 Salen de los 399 títulos públicos reales ya ingeridos (12 y 13/11/2026) y de lo que un periodista suele preguntar.
 Claude Haiku solo puede elegir valores de estas listas (salida estructurada con `enum`); la ficha guarda además `ficha_version`.
@@ -36,7 +36,9 @@ Claude Haiku solo puede elegir valores de estas listas (salida estructurada con 
 `politica_territorial_y_local`, `igualdad_y_derechos_sociales`, `consumo`, `exteriores_y_cooperacion`,
 `instituciones_y_parlamento`, `memoria_democratica`, `otros`.
 
-## Reglas para el resumen (irán a `skill/FICHA.md`)
+Las listas en uso viven en `ingesta/lib/listas.js`; las etiquetas que ve la interfaz, en `docs/fase5-web/etiquetas.md`.
+
+## Reglas para el resumen (resumen histórico; las vigentes están en `skill/FICHA.md`)
 
 - 2–3 líneas, en castellano claro, solo con lo que dice el texto oficial; nada de valoraciones.
 - Cargos públicos en actos oficiales sí se nombran; particulares no (incluidas las partes de sentencias).

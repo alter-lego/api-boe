@@ -1,6 +1,16 @@
 # Decisiones, pendientes y dependencias (Fase 5)
 
-Última actualización: 13/11/2026, tras revisar las maquetas.
+Última actualización: 13/11/2026, tras revisar las maquetas. Estado puesto al día el 25/11/2026 (ver el bloque siguiente); el resto del documento se conserva como registro de decisiones.
+
+> **Ya resuelto desde que se escribió (no volver a abrir):**
+> - **Correo propio (SMTP):** configurado con Gmail el 21/11/2026; ya no aplica el límite de 2 correos por hora (`docs/pendientes.md`).
+> - **Alta de periodistas desde `/admin`:** crea también el acceso con la Edge Function (14/11/2026); solo el primer administrador se crea a mano.
+> - **Fase 4:** API de `/v1/preguntar` desplegada y probada; la web publicada lleva `VITE_PREGUNTAR=si` y la portada «Preguntar primero».
+> - **CORS:** el dominio `buscador-boe.alter-lego.workers.dev` ya está en `ALLOWED_ORIGINS`. No se usa Cloudflare Pages sino un Worker con activos.
+> - **Enlace de acceso que gastaban los filtros de correo:** resuelto con la ruta `/confirmar` (`ux.md` §12).
+> - **Propuesta 5 (aviso de preguntas dudosas):** hecha en la web (`web/src/dudosa.ts`), y la API rechaza las evidentes (`api/src/pregunta-valida.js`).
+>
+> **Sigue abierto:** registro de errores, aviso neutro tras pedir el enlace (confirmación), PKCE, cómo cambiar de cuenta desde «Sin acceso», «Corregida por», cobertura del histórico en la interfaz, resto de propuestas de mejora (2, 3, 4, 6 y 7) y barra de pestañas que se sale en móvil de 375 px.
 
 ## 1. Decisiones tomadas
 | Tema | Decisión |

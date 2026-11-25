@@ -47,8 +47,8 @@ Errores `{error}`: 400 pregunta no válida · 401 sesión caducada (cerrar sesi�
 4. La sesión principal despliega `api-boe` y hace una prueba real (cuesta céntimos).
 
 ## Qué conviene saber
-- **Coste:** Haiku 5.5 a 0,10/0,50 USD por millón de tokens (entrada/salida); con 3 rondas y resúmenes, del orden de **1–4 céntimos por pregunta** (tope teórico por pregunta ≈ 4 céntimos). El tope real es el saldo prepago de la clave y el límite diario por periodista (30 por defecto, ajustable en `periodistas.limite_diario`).
+- **Coste:** Haiku 5.5 a 0,10/0,50 USD por millón de tokens (entrada/salida); el coste medido con Claude real es de **0,03–0,25 céntimos por pregunta** (tope teórico por pregunta ≈ 4 céntimos, con 3 rondas y textos largos). El tope real es el saldo prepago de la clave y el límite diario por periodista (30 por defecto, ajustable en `periodistas.limite_diario`).
 - **Límites de Cloudflare (plan gratuito):** 10 ms de CPU por petición. Esperar a Claude no cuenta, pero la lectura de JSON grandes y del XML de `leer_publicacion` sí. Si salen errores 1102, el plan de pago (5 USD al mes) lo resuelve.
-- **Sin caché de respuestas** (el diseño original proponía devolver la respuesta guardada si la misma pregunta se repite el mismo día): no se guarda el texto de las respuestas; se podrá añadir si el gasto lo pide.
+- **Caché de respuestas:** existe desde la migración 13 (21/11/2026), por periodista y no compartida; ver «Caché de respuestas» más arriba.
 - El modelo se cambia con `MODELO_PREGUNTAR` en `api/wrangler.toml`; con otro modelo, el coste anotado es una estimación con los precios de Haiku.
 - `COBERTURA_DESDE` (hoy `2026-08-13`) indica a Claude desde cuándo hay datos: **actualizarla si se carga más histórico**.

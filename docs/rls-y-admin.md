@@ -16,7 +16,7 @@ Decidido el 14/11/2026. Migraciones `20261114120000_rls_y_admin.sql` (10) y `202
 | `publicaciones` | periodista activo con sesión vigente, **solo filas públicas** | nadie (ingesta con `service_role`) |
 | `periodistas` | admin: todas; periodista: solo la suya | solo admin (insert/update); nadie borra |
 | `periodistas_log` | solo admin | solo el trigger |
-| `consultas` | cada periodista, solo las suyas (ni el admin ve las ajenas) | solo `reservar_consulta` / `completar_consulta` (migración 12) |
+| `consultas` | cada periodista, solo las suyas (ni el admin ve las ajenas; el gasto agregado sale por `admin_gasto`, migración 13) | solo `reservar_consulta` / `completar_consulta` (migración 12) y `guardar_respuesta` (migración 13) |
 | `boletines`, `sumarios` | periodista activo | nadie |
 | `ingestas` | nadie (el campo `error` puede tener detalles internos) | `service_role` |
 
@@ -62,7 +62,7 @@ Consecuencia: las altas y bajas se hacen **solo** con `admin_alta_periodista`/`a
 ## Pasos obligatorios fuera de la base de datos (los hace una persona)
 
 1. **Primer admin**, una vez, en el SQL Editor (instrucción en la cabecera de la migración 10).
-2. **Alta de un periodista = dos pasos.** (a) `admin_alta_periodista`, desde la pantalla de admin de la web, autoriza el correo. (b) Una persona crea a mano su usuario en Supabase → Authentication → Users → Add user, con la confirmación de correo automática. **Sin el paso (b) el periodista no puede entrar.** Se descartó automatizarlo (un `POST /v1/entrar` en el Worker que creara el usuario) para no ampliar la exposición de la clave `service_role`; el código quedó aparcado en la rama local `aparcado/entrar` y nunca se desplegó. Si algún día se automatiza, la alternativa recomendada es un Worker con su propia clave secreta revocable, no la `service_role` de la ingesta.
+2. **Alta de un periodista = un paso** (desde el 14/11/2026). El alta en la pantalla de admin de la web llama a la Edge Function de `docs/edge-function-alta.md`, que pasa por `admin_alta_periodista` y, solo si la base acepta, crea el usuario de Supabase Auth (confirmado y sin contraseña). El botón «Crear acceso» repara a quien se dio de alta sin usuario. Solo el **primer administrador** necesita crear su usuario a mano en Supabase → Authentication → Users → Add user. Se descartó hacerlo con un `POST /v1/entrar` en el Worker para no ampliar la exposición de la clave `service_role`; ese código quedó en la rama local `aparcado/entrar` y nunca se desplegó.
 3. **Requisitos de Supabase Auth** (los comprueba una persona en el panel, antes de abrir a más gente): confirmación de correo obligatoria (solo sesiones con correo verificado, ningún proveedor que acepte correos sin verificar); **«Secure email change»** activado; **registros nuevos y usuarios anónimos desactivados**; y **Redirect URLs** y Site URL con solo las direcciones exactas de la web. Todo el control de acceso se apoya en el correo del JWT.
 
 ## Riesgos y pendientes
