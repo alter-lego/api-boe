@@ -27,7 +27,7 @@
   - Revisión manual de 50–100 fichas antes de cargar más histórico.
   - Prueba con 4–5 periodistas una semana, con encuesta y tiempos antes y después.
   - Documentación de traspaso: arquitectura (base: `RESUMEN-PROYECTO.md`), registro de decisiones, runbook (despliegue, claves y caducidades, alta de periodistas, ingesta) y guía «cómo añadir una fuente».
-- **Web:** decisiones menores en `docs/fase5-web/preguntas-abiertas.md`; en móvil de 375 px la barra de pestañas se sale por la derecha (la sesión de web puede arreglarlo).
+- **Web:** decisiones menores en `docs/fase5-web/preguntas-abiertas.md`. (La barra de pestañas en móvil de 375 px quedó resuelta el 25/11/2026.)
 - **Edge Function:** publicada con el nombre automático `swift-task`; si se quiere el nombre claro, hay que publicarla de nuevo y actualizar la URL de la web.
 - **Mantenimiento:** el límite de sesión de 24 h vive en dos sitios (base de datos y `SESION_MAX_HORAS` del Worker): si cambia, cambiar los dos.
 - **Gasto de la ingesta:** se registra desde el 25/11/2026 en `gasto_ingesta` (migración 14, una fila por pasada de `fichas.js`). Los meses anteriores no tienen ese dato; para ellos, la Console de Anthropic (clave `api-boe-ingesta`).

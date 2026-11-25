@@ -10,7 +10,7 @@
 > - **Enlace de acceso que gastaban los filtros de correo:** resuelto con la ruta `/confirmar` (`ux.md` §12).
 > - **Propuesta 5 (aviso de preguntas dudosas):** hecha en la web (`web/src/dudosa.ts`), y la API rechaza las evidentes (`api/src/pregunta-valida.js`).
 >
-> **Sigue abierto:** registro de errores, aviso neutro tras pedir el enlace (confirmación), PKCE, cómo cambiar de cuenta desde «Sin acceso», «Corregida por», cobertura del histórico en la interfaz, resto de propuestas de mejora (2, 3, 4, 6 y 7) y barra de pestañas que se sale en móvil de 375 px.
+> **Sigue abierto:** registro de errores, aviso neutro tras pedir el enlace (confirmación), PKCE, cómo cambiar de cuenta desde «Sin acceso», «Corregida por», cobertura del histórico en la interfaz, y resto de propuestas de mejora (2, 3, 4, 6 y 7). Resuelto el 25/11/2026: la barra de pestañas ya cabe en móvil de 375 px, y los textos secundarios son más grandes (mínimo 14 px).
 
 ## 1. Decisiones tomadas
 | Tema | Decisión |
