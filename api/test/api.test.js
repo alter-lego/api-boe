@@ -199,6 +199,26 @@ test('sumario: agrupa por sección y cachea solo días pasados', async () => {
   assert.equal((await pedir(app, `/v1/sumarios/${hoy}`, init)).headers.get('Cache-Control'), 'no-store');
 });
 
+test('sumario: incluye el resumen del día si existe; si falla, sale sin él', async () => {
+  const init = await conSesion();
+  const contenido = { titulares: [{ tema: 'IVA', texto: 'Cambia el IVA', ids: ['a'] }], secciones: [], apartados: { ayudas: [] } };
+  const sb = sbFalso({
+    sumario_del_dia: { cuerpo: [{ id: 'a', seccion: '1', seccion_nombre: 'I', titulo: 'x' }] },
+    resumen_del_dia: { cuerpo: { fecha: '2026-11-12', contenido, generado_en: '2026-11-12T08:10:00Z', n_publicaciones: 1 } },
+  });
+  const j = await (await pedir(crearApp({ fetchFn: sb.fetchFn, jwks }), '/v1/sumarios/2026-11-12', init)).json();
+  assert.deepEqual(j.resumen, { generado_en: '2026-11-12T08:10:00Z', ...contenido });
+  assert.deepEqual(sb.llamadas.find((l) => l.nombre === 'resumen_del_dia').args, { p_fecha: '2026-11-12' });
+
+  const sinResumen = sbFalso({ sumario_del_dia: { cuerpo: [] }, resumen_del_dia: { cuerpo: null } });
+  assert.equal((await (await pedir(crearApp({ fetchFn: sinResumen.fetchFn, jwks }), '/v1/sumarios/2026-11-12', init)).json()).resumen, null);
+
+  const sinMigracion = sbFalso({ sumario_del_dia: { cuerpo: [] }, resumen_del_dia: { estado: 404, cuerpo: { code: 'PGRST202' } } });
+  const r = await pedir(crearApp({ fetchFn: sinMigracion.fetchFn, jwks }), '/v1/sumarios/2026-11-12', init);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).resumen, null);
+});
+
 test('errores de la base: 42501→403, 22023→400, 401→401, resto→502 sin filtrar detalles', async () => {
   const init = await conSesion();
   const caso = async (estado, cuerpo) => {

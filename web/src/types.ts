@@ -37,7 +37,17 @@ export type Filtros = {
 };
 
 export type Salud = { ok: boolean; ultima_ingesta: { fecha: string; fin: string } | null };
-export type Sumario = { fecha: string; total: number; secciones: { seccion: string; seccion_nombre: string; publicaciones: Ficha[] }[] };
+// Resumen editorial del día: Claude cita las publicaciones por id; título y enlaces salen de las fichas del sumario.
+export type LineaResumen = { tema: string; texto: string; ids: string[] };
+export type BloqueResumen = { ids: string[]; titulo: string; resumen: string; por_que_importa: string | null };
+export type ApartadoResumen = 'ayudas' | 'oposiciones' | 'impuestos' | 'automocion';
+export type ResumenDia = {
+  generado_en: string;
+  titulares: LineaResumen[];
+  secciones: { titulo: string; bloques: BloqueResumen[]; lineas: LineaResumen[] }[];
+  apartados: Partial<Record<ApartadoResumen, { id: string; texto: string | null }[]>>;
+};
+export type Sumario = { fecha: string; total: number; secciones: { seccion: string; seccion_nombre: string; publicaciones: Ficha[] }[]; resumen?: ResumenDia | null };
 export type Conteo = { agrupar: string; grupos: { grupo: string; n: number }[] };
 
 export type Cita = {

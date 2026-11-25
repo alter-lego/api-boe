@@ -6,6 +6,7 @@ import { Badge, EnlacesBoe, IA, estadoResumen } from '../ds';
 import { ErrorCarga, Esqueletos } from '../Estados';
 import { fechaConDia, fechaCorta, hoyMadrid, sumarDias } from '../labels';
 import { useAsync } from '../useAsync';
+import { ResumenDia } from './ResumenDia';
 
 export function DiaDeHoy() {
   const { data, error, cargando, reintentar } = useAsync(() => api.salud(), 'salud-dia');
@@ -40,6 +41,10 @@ export function Sumario() {
       {cargando ? <Esqueletos n={2} /> : error ? <ErrorCarga error={error} reintentar={reintentar} /> : data && data.total === 0 ? (
         <div className="aviso"><p>No hay publicaciones cargadas para este día.</p><p className="bboe-meta">Puede que ese día no se publicara BOE o que todavía no esté cargado.</p></div>
       ) : data && (
+        <>
+        {!q && data.resumen ? <ResumenDia resumen={data.resumen} publicaciones={data.secciones.flatMap((s) => s.publicaciones)} total={data.total} /> : null}
+        {!q && !data.resumen && fecha === hoyMadrid() ? <p className="bboe-meta">El resumen de hoy aún se está preparando. Mientras, aquí tienes todas las publicaciones.</p> : null}
+        {!q && data.resumen ? <h2 id="todas" tabIndex={-1} className="sumario__todas">Todas las publicaciones</h2> : null}
         <div className="lista">
           {data.secciones.map((s, i) => {
             const pubs = s.publicaciones.filter((p) => !q || p.titulo.toLowerCase().includes(q));
@@ -64,6 +69,7 @@ export function Sumario() {
             );
           })}
         </div>
+        </>
       )}
     </div>
   );

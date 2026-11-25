@@ -1,5 +1,5 @@
 // Datos de ejemplo para probar la web sin sesión ni API. NO son publicaciones reales.
-import type { BusquedaPersona, Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
+import type { BusquedaPersona, Conteo, Ficha, Filtros, ResumenDia, Respuesta, Salud, Sumario } from './types';
 import { SECCIONES } from './labels';
 
 const MIN_IMG = 'https://www.boe.es';
@@ -61,6 +61,42 @@ export const DATOS: Ficha[] = [
   ...dia('2026-11-10', '220'),
 ];
 export const ULTIMO_DIA = '2026-11-13';
+
+// Resumen del día de ejemplo (el que redacta Claude tras la carga). El 10/11 no tiene: se ve el sumario solo.
+function resumenMock(fecha: string): ResumenDia | null {
+  const n = { '2026-11-13': '223', '2026-11-12': '222', '2026-11-11': '221' }[fecha];
+  if (!n) return null;
+  const id = (k: string) => `BOE-A-2026-${n}${k}`;
+  return {
+    generado_en: `${fecha}T07:52:00Z`,
+    titulares: [
+      { tema: 'Vivienda', texto: 'El Gobierno aprueba un decreto ley de medidas urgentes y amplía a 35 años la edad para pedir la ayuda al alquiler', ids: [id('01'), id('02')] },
+      { tema: 'Madrid', texto: 'El Estado aportará 18 millones para vivienda de alquiler asequible en la región durante cuatro años', ids: [id('06')] },
+      { tema: 'Hacienda', texto: 'Nuevo director general de Tributos', ids: [id('04')] },
+    ],
+    secciones: [
+      { titulo: 'Hacienda, vivienda y economía', bloques: [
+        { ids: [id('01'), id('02')], titulo: 'Decreto ley de vivienda y ayudas al alquiler más amplias', resumen: 'El Gobierno aprueba medidas urgentes en materia de vivienda. Una orden aparte amplía a 35 años la edad máxima para pedir la ayuda al alquiler y simplifica la documentación.', por_que_importa: 'afecta a los jóvenes que buscan piso de alquiler en todo el país.' },
+        { ids: [id('06')], titulo: '18 millones para alquiler asequible en la Comunidad de Madrid', resumen: 'Convenio entre el Ministerio de Vivienda y la Comunidad de Madrid para financiar viviendas de alquiler asequible, con un plazo de ejecución de cuatro años.', por_que_importa: null },
+      ], lineas: [
+        { tema: 'Ayudas al alquiler joven', texto: 'Corrección de errores en la tabla de cuantías', ids: [id('03')] },
+        { tema: 'Convenios y ayudas', texto: 'Convenio de alquiler asequible con Madrid y ayudas a la investigación en salud pública', ids: [id('06'), id('07')] },
+      ] },
+      { titulo: 'Política y gobierno · Nombramientos', bloques: [], lineas: [
+        { tema: 'Tributos', texto: 'Nombramiento del nuevo director general de Tributos del Ministerio de Hacienda', ids: [id('04')] },
+      ] },
+      { titulo: 'Contratación pública relevante', bloques: [
+        { ids: [id('09')], titulo: 'Sanidad licita 2,4 millones en equipamiento para el Hospital Central de la Defensa', resumen: 'Suministro de equipamiento sanitario para un hospital militar.', por_que_importa: 'es una de las mayores compras sanitarias de Defensa de este año.' },
+      ], lineas: [] },
+    ],
+    apartados: {
+      ayudas: [{ id: id('07'), texto: 'Ayudas para proyectos de investigación en salud pública' }, { id: id('02'), texto: null }],
+      oposiciones: [{ id: id('05'), texto: 'Lista definitiva de admitidos de Ordenación Profesional (Sanidad)' }],
+      impuestos: [],
+      automocion: [],
+    },
+  };
+}
 let preguntasHoy = 2;
 
 const sinTildes = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -115,7 +151,7 @@ export const mock = {
   sumario: (fecha: string): Promise<Sumario> => {
     const del = DATOS.filter((x) => x.fecha === fecha);
     const secciones = SECCIONES.map(([s, nombre]) => ({ seccion: s, seccion_nombre: nombre, publicaciones: del.filter((x) => x.seccion === s) })).filter((s) => s.publicaciones.length);
-    return espera({ fecha, total: del.length, secciones });
+    return espera({ fecha, total: del.length, secciones, resumen: resumenMock(fecha) });
   },
   // Simula «Preguntar»: palabras clave para probar los casos (límite → 429, fallo → 502, nada/zzz → sin resultados).
   preguntar: async (pregunta: string): Promise<Respuesta> => {

@@ -143,7 +143,11 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
   app.get('/v1/sumarios/:fecha', async (c) => {
     const f = fecha.safeParse(c.req.param('fecha'));
     if (!f.success) throw new ErrorApi(400, 'fecha no válida (AAAA-MM-DD)');
-    const datos = await rpc(c.env, 'sumario_del_dia', { p_fecha: f.data }, { jwt: c.get('jwt'), fetchFn });
+    // El resumen editorial del día (migración resumen_dia) es opcional: si falla o no existe, el sumario sale sin él.
+    const [datos, resumen] = await Promise.all([
+      rpc(c.env, 'sumario_del_dia', { p_fecha: f.data }, { jwt: c.get('jwt'), fetchFn }),
+      rpc(c.env, 'resumen_del_dia', { p_fecha: f.data }, { jwt: c.get('jwt'), fetchFn }).catch(() => null),
+    ]);
     const secciones = [];
     for (const p of datos) {
       let s = secciones.at(-1);
@@ -153,7 +157,8 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
     // Un día pasado ya no cambia: el navegador puede guardarlo unos minutos.
     const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
     if (f.data < hoy) c.header('Cache-Control', 'private, max-age=300');
-    return c.json({ fecha: f.data, total: datos.length, secciones });
+    const r = resumen && typeof resumen === 'object' && resumen.contenido ? { generado_en: resumen.generado_en, ...resumen.contenido } : null;
+    return c.json({ fecha: f.data, total: datos.length, secciones, resumen: r });
   });
 
   // Gasto por mes en IA: preguntas a Claude y, aparte, fichas de la ingesta (migración 14).
