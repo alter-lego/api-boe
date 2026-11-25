@@ -245,3 +245,23 @@ a { color: var(--brand); }
   .pub__tit { font-size: 19px; line-height: 27px; }
   .pub__resumen { font-size: 18px; line-height: 28px; color: var(--ink); }
 }
+
+/* Tarjeta «BOE de hoy» con el arranque de «Lo más destacado» */
+.hoy-tarjeta--rd { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); align-items: stretch; gap: 20px 32px; }
+.hoy-tarjeta__izq { display: flex; flex-direction: column; justify-content: space-between; gap: 16px; }
+.hoy-tarjeta__sumario { align-self: flex-start; }
+.hoy-tarjeta__rd { display: flex; flex-direction: column; gap: 12px; border-left: 1px solid var(--line); padding-left: 28px; min-width: 0; }
+.hoy-tarjeta__cab { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.hoy-tarjeta__h { font: 700 20px/26px var(--font-serif); color: var(--ink); }
+.hoy-tarjeta__titulares { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 17px; line-height: 26px; }
+.hoy-tarjeta__titulares li::marker { color: var(--brand); }
+.hoy-tarjeta__pie { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; margin-top: 4px; }
+@media (max-width: 640px) {
+  .hoy-tarjeta--rd { grid-template-columns: 1fr; }
+  .hoy-tarjeta__izq { display: contents; }
+  .hoy-tarjeta__rd { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 14px; }
+  .hoy-tarjeta__titulares { font-size: 17px; line-height: 26px; }
+  .hoy-tarjeta__pie { flex-direction: column; align-items: stretch; }
+  .hoy-tarjeta__pie .bboe-meta { text-align: center; }
+  .hoy-tarjeta__sumario { order: 3; align-self: stretch; }
+}

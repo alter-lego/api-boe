@@ -1,6 +1,6 @@
 import { ConInicioDestacado } from '../destacar';
-import { useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { Badge, EnlacesBoe, IA, estadoResumen } from '../ds';
 import { ErrorCarga, Esqueletos } from '../Estados';
@@ -23,6 +23,19 @@ export function Sumario() {
   const [buscar, setBuscar] = useState('');
   const { data, error, cargando, reintentar } = useAsync(() => api.sumario(fecha), fecha);
   const q = buscar.trim().toLowerCase();
+  // Al llegar con un ancla (p. ej. desde la tarjeta «BOE de hoy» de la portada), se baja a ella cuando ya hay datos.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!data || !hash) return;
+    // Tras pintar (requestAnimationFrame), para que no lo pise la restauración del scroll del navegador.
+    const r = requestAnimationFrame(() => {
+      const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (!el) return;
+      el.focus({ preventScroll: true });
+      el.scrollIntoView({ block: 'start' });
+    });
+    return () => cancelAnimationFrame(r);
+  }, [data, hash]);
 
   return (
     <div className="sumario">

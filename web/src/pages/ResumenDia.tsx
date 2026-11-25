@@ -133,7 +133,7 @@ export function ResumenDia({ resumen, publicaciones, total }: { resumen: Resumen
         Ir a todas las publicaciones ({total}) ↓
       </a>
       <div className="rd__cab">
-        <h2 id="rd-titulo">Lo más destacado</h2>
+        <h2 id="rd-titulo" tabIndex={-1}>Lo más destacado</h2>
         <IA />
       </div>
       <p className="bboe-meta rd__nota">

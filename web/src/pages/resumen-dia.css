@@ -43,3 +43,7 @@
   .rd__fuente .bboe-card__link { min-height: 32px; }
   .rd__org { flex-basis: 100%; }
 }
+/* Al llegar por ancla (desde la portada), que se vea el borde del bloque y no quede pegado arriba. */
+#rd-titulo { scroll-margin-top: 80px; }
+#todas { scroll-margin-top: 16px; }
+#rd-titulo:focus, #todas:focus { outline: none; }
