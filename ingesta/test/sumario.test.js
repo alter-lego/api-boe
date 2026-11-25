@@ -28,6 +28,11 @@ test('V.B es pública salvo subastas, expropiaciones y títulos universitarios',
   assert.equal(clasificarNivel('5B', 'Anuncio de la Agencia Tributaria sobre SUBASTA de bienes'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Resolución por la que se convoca el levantamiento de actas previas a la ocupación'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Anuncio sobre expropiación forzosa'), 'restringido');
+  assert.equal(clasificarNivel('5B', 'Anuncio de ADIF por el que se somete a información pública a efectos de declaración de la necesidad de ocupación el Proyecto de Plataforma.'), 'restringido');
+  assert.equal(clasificarNivel('5B', 'Anuncio sobre la NECESIDAD DE LA OCUPACIÓN de los terrenos'), 'restringido');
+  assert.equal(clasificarNivel('5B', 'Anuncio por el que se publica la relación de bienes y derechos afectados por la obra'), 'restringido');
+  // Una autorización de un proyecto de energía (utilidad pública) sigue siendo pública: lo esencial es el proyecto.
+  assert.equal(clasificarNivel('5B', 'Anuncio por el que se somete a información pública la solicitud de autorización administrativa y declaración, en concreto, de utilidad pública del parque eólico'), 'publico');
   assert.equal(clasificarNivel('5B', 'Anuncio del Centro Universitario sobre destrucción de título Universitario.'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Anuncio sobre extravío de título de Graduado'), 'restringido');
   // Los títulos nobiliarios son públicos (decisión del 13/11/2026): sin restricción.

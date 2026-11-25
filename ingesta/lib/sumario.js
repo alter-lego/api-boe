@@ -15,9 +15,13 @@ const SECCIONES_RESTRINGIDAS = new Set(['2B', '4', '5C']);
 // En V.B el título decide: subastas, expropiaciones con afectados y trámites de títulos
 // universitarios nombran a particulares. Medido con 897 títulos reales (no «notificación»,
 // «requerimiento» ni «interesados»: no aparecen).
+// Desde el 26/11/2026 también la «necesidad de ocupación» y la «relación de bienes y derechos afectados»:
+// son listas de propietarios afectados por una obra (expropiación en la práctica). Si cambia esta lista,
+// cambiar también la migración de reclasificación (20261126110000_restringir_ocupaciones.sql).
 const V_B_RESTRINGIDA = [
   /subasta/,
   /expropiacion|levantamiento de actas/,
+  /necesidad de (la )?ocupacion|bienes y derechos afectados/,
   /titulo universitario|extravio de(l)? titulo|duplicado de(l)? titulo|destruccion de titulo/,
 ];
 

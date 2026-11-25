@@ -20,8 +20,15 @@ Decidido el 13/11/2026 tras analizar 18 sumarios reales. **Sustituye a la tabla 
 > Los títulos nobiliarios (sucesión, rehabilitación) son públicos: no son excepción.
 
 Una publicación de `5B` pasa a restringida si su título (sin tildes ni mayúsculas) contiene:
-`subasta`; `expropiacion` o `levantamiento de actas`; o un trámite de título universitario
+`subasta`; `expropiacion` o `levantamiento de actas`; `necesidad de ocupacion` (o `de la ocupacion`) o
+`bienes y derechos afectados`; o un trámite de título universitario
 (`titulo universitario`, `extravio de titulo`, `duplicado de titulo`, `destruccion de titulo`).
+
+**Ocupaciones (26/11/2026, migración 16).** Los anuncios de «necesidad de ocupación» y de «relación de bienes y
+derechos afectados» (ADIF, subdelegaciones, carreteras…) son listas de propietarios afectados, como una expropiación;
+se escapaban de la regla y tenían resumen. Ahora son restringidos y la migración 16 reclasificó los ya cargados.
+Los anuncios de autorización y **utilidad pública** de proyectos (energía, sobre todo) **siguen públicos**: lo
+esencial es el proyecto, aunque su texto incluya en anexo la relación de afectados. Decisión revisable.
 Medido con 897 títulos reales de V.B: las palabras «notificación», «requerimiento» e «interesados»
 (la propuesta inicial) no aparecen ni una vez. V.B es sobre todo concesiones de aguas y portuarias,
 juntas de comunidades de regantes, subastas de Hacienda y extractos de ayudas.

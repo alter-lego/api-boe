@@ -34,7 +34,7 @@ Tablas: `boletines`, `sumarios`, `publicaciones` (id tipo `BOE-A-2026-12345`; fe
 
 Funciones públicas (todas con comprobación de periodista + sesión): `buscar_publicaciones`, `contar_publicaciones`, `sumario_del_dia`, `publicacion`, `ultima_ingesta`, `es_admin`, `admin_listar_periodistas`, `admin_alta_periodista`, `admin_modificar_periodista`, `admin_ver_log`, `reservar_consulta`, `completar_consulta`. Internas: `es_periodista`, `exigir_periodista`, `sesion_vigente`, `_ficha` (punto único que decide qué campos se muestran según privacidad), `indexar_texto` (solo `service_role`).
 
-Migraciones (15): tablas → seguridad → funciones de lectura → consultas → correcciones de revisión → fichas y vigencia → índice de texto completo (7) → endurecer índice (8) → vigencia y rango (9) → RLS y admin (10) → endurecer admin (11) → reservar consulta (12) → caché y gasto (13) → gasto de la ingesta (14) → buscar persona (15).
+Migraciones (16): tablas → seguridad → funciones de lectura → consultas → correcciones de revisión → fichas y vigencia → índice de texto completo (7) → endurecer índice (8) → vigencia y rango (9) → RLS y admin (10) → endurecer admin (11) → reservar consulta (12) → caché y gasto (13) → gasto de la ingesta (14) → buscar persona (15) → restringir ocupaciones de V.B (16).
 
 ## 4. Privacidad: dos niveles por sección
 
@@ -46,7 +46,7 @@ Migraciones (15): tablas → seguridad → funciones de lectura → consultas �
 | III Otras disposiciones | 3 | público |
 | IV Administración de Justicia | 4 | **restringido** |
 | V.A Contratación pública | 5A | público |
-| V.B Otros anuncios | 5B | público salvo títulos con `subasta`, `expropiacion`/`levantamiento de actas`, trámites de título universitario |
+| V.B Otros anuncios | 5B | público salvo títulos con `subasta`, `expropiacion`/`levantamiento de actas`, `necesidad de ocupacion`/`bienes y derechos afectados`, trámites de título universitario |
 | V.C Anuncios particulares | 5C | **restringido** |
 | Tribunal Constitucional | T | público |
 | Suplemento de notificaciones | — | no se ingiere |
