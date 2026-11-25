@@ -715,7 +715,7 @@ begin
   select string_agg(p.proname, ', ' order by p.proname collate "C") into lista
     from pg_proc p join pg_namespace s on s.oid = p.pronamespace
    where s.nspname = 'public' and has_function_privilege('authenticated', p.oid, 'execute');
-  if lista is distinct from 'admin_alta_periodista, admin_gasto, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, completar_consulta, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, guardar_respuesta, publicacion, reservar_consulta, respuesta_guardada, sumario_del_dia, ultima_ingesta' then
+  if lista is distinct from 'admin_alta_periodista, admin_gasto, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_persona, buscar_publicaciones, completar_consulta, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, guardar_respuesta, publicacion, reservar_consulta, respuesta_guardada, resumen_del_dia, sumario_del_dia, ultima_ingesta' then
     raise exception 'FALLO: authenticated puede ejecutar: %', lista; end if;
 
   -- las funciones admin y es_admin tienen search_path fijo
