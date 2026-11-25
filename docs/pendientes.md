@@ -4,7 +4,7 @@
 - **Correo propio (SMTP) con Gmail** (cuenta del proyecto, contraseña de aplicación) en Supabase → Authentication → Emails → SMTP Settings. Ya no aplica el límite de 2 correos por hora. Válido para el piloto; para uso real, lo adecuado es el servidor de correo de eldiario.es (el remitente actual es una cuenta de Gmail y algunos filtros pueden mandarlo a spam).
 - **Entrada por enlace con confirmación** (`/confirmar`, flujo `token_hash`): el filtro de correo de la empresa gastaba el enlace de un solo uso al abrirlo. Ahora el correo enlaza a la web y solo se verifica al pulsar el botón. La plantilla «Magic Link» de Supabase enlaza a `{{ .SiteURL }}/confirmar?token_hash={{ .TokenHash }}&type=email` (Site URL = la web).
 - Fase 4 (`POST /v1/preguntar`) con caché por periodista, aviso de preguntas dudosas (web) y rechazo en la API de las preguntas sin sentido evidente (`api/src/pregunta-valida.js`, copia de la regla dura de `web/src/dudosa.ts`: si cambia una, cambiar la otra).
-- Gasto mensual solo para administradores (`GET /v1/admin/gasto`, y bloque «Gasto en preguntas» en Administración).
+- Gasto mensual solo para administradores (`GET /v1/admin/gasto`, y bloque «Gasto en IA» en Administración): preguntas y, desde el 25/11/2026 (migración 14), resúmenes de la ingesta, con el total del mes en curso.
 - Copia de seguridad semanal **cifrada** (`docs/copia-seguridad.md`), purga semanal de `consultas` de más de 90 días y monitor de la ingesta (`/v1/health`, falla si la última ingesta correcta tiene ≥ 6 h).
 - Pruebas automáticas en cada push y pull request (`pruebas.yml`: 127 pruebas de Node y compilación de la web). Las pruebas SQL (`supabase/tests/`) se pasan a mano tras cada migración.
 - Acciones de GitHub actualizadas a `checkout@v7`, `setup-node@v7` y `upload-artifact@v7` (Node 24), que eliminan el aviso de Node 20.
@@ -30,7 +30,7 @@
 - **Web:** decisiones menores en `docs/fase5-web/preguntas-abiertas.md`; en móvil de 375 px la barra de pestañas se sale por la derecha (la sesión de web puede arreglarlo).
 - **Edge Function:** publicada con el nombre automático `swift-task`; si se quiere el nombre claro, hay que publicarla de nuevo y actualizar la URL de la web.
 - **Mantenimiento:** el límite de sesión de 24 h vive en dos sitios (base de datos y `SESION_MAX_HORAS` del Worker): si cambia, cambiar los dos.
-- **Gasto de la ingesta** (fichas con Haiku) no se registra en la base: el gasto mostrado solo cuenta preguntas.
+- **Gasto de la ingesta:** se registra desde el 25/11/2026 en `gasto_ingesta` (migración 14, una fila por pasada de `fichas.js`). Los meses anteriores no tienen ese dato; para ellos, la Console de Anthropic (clave `api-boe-ingesta`).
 - **Caché compartida entre periodistas:** descartada por seguridad (cualquiera podría envenenarla escribiendo con su sesión); solo habría forma segura con un escritor de confianza propio del Worker.
 
 ## Riesgos conocidos

@@ -132,24 +132,40 @@ const mesLargo = (iso: string) => new Intl.DateTimeFormat('es-ES', { month: 'lon
 const dinero = (usd: number) => `${new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(usd)} $`;
 const miles = (n: number) => new Intl.NumberFormat('es-ES').format(n);
 
+// Primer día del mes en curso en Madrid, como lo devuelve la API («2026-11-01»).
+const mesActual = () => `${new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }).slice(0, 7)}-01`;
+
 function Gasto() {
   const { data, cargando, error, reintentar } = useAsync(() => api.gasto(3), 'gasto');
+  const actual = data?.find((m) => m.mes === mesActual());
   return (
     <section className="panel">
-      <h2>Gasto en preguntas</h2>
-      <p className="bboe-meta">Coste de las preguntas a la IA por mes (últimos tres). No incluye la generación de resúmenes. No muestra qué pregunta nadie.</p>
+      <h2>Gasto en IA</h2>
+      <p className="bboe-meta">Coste de la IA por mes (últimos tres): las preguntas de los periodistas y los resúmenes que genera la carga diaria del BOE. No muestra qué pregunta nadie. El gasto de los resúmenes se registra desde el 25 de noviembre de 2026.</p>
       {cargando ? <p className="bboe-meta">Cargando…</p> : error ? (
         <p className="admin__error">No se pudo cargar el gasto. <button type="button" className="enlace" onClick={reintentar}>Reintentar</button></p>
       ) : data?.length ? (
-        <div className="filas">
-          {data.map((m) => (
-            <div key={m.mes} className="fila">
-              <span><strong>{mesLargo(m.mes)}</strong> <span className="bboe-meta">{miles(m.preguntas)} preguntas · {m.usuarios} {m.usuarios === 1 ? 'persona' : 'personas'}</span></span>
-              <span><strong>{dinero(m.coste_usd)}</strong></span>
-            </div>
-          ))}
-        </div>
-      ) : <p className="bboe-meta">Aún no hay preguntas este periodo.</p>}
+        <>
+          <p className="gasto__mes">
+            Este mes, hasta hoy: <strong>{dinero((actual?.coste_usd ?? 0) + (actual?.ingesta_coste_usd ?? 0))}</strong>
+            <span className="bboe-meta"> · preguntas {dinero(actual?.coste_usd ?? 0)} · resúmenes {dinero(actual?.ingesta_coste_usd ?? 0)}</span>
+          </p>
+          <div className="filas">
+            {data.map((m) => (
+              <div key={m.mes} className="fila">
+                <span>
+                  <strong>{mesLargo(m.mes)}</strong>{' '}
+                  <span className="bboe-meta">
+                    {miles(m.preguntas)} preguntas · {m.usuarios} {m.usuarios === 1 ? 'persona' : 'personas'} · {dinero(m.coste_usd)}
+                    {' · '}{miles(m.ingesta_fichas)} resúmenes · {dinero(m.ingesta_coste_usd)}
+                  </span>
+                </span>
+                <span><strong>{dinero(m.coste_usd + m.ingesta_coste_usd)}</strong></span>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : <p className="bboe-meta">Aún no hay gasto este periodo.</p>}
     </section>
   );
 }

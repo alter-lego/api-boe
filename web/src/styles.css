@@ -58,6 +58,7 @@ a { color: var(--brand); }
 .panel { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); }
 .filas .fila { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
 .filas .fila:last-child { border-bottom: 0; }
+.gasto__mes { margin: 4px 0 12px; font-size: 17px; }
 .boton-enlace { display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .bboe-btn--primary.boton-enlace { color: var(--on-brand); }
 .bboe-btn--secondary.boton-enlace { color: var(--ink); }

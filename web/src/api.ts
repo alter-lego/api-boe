@@ -53,7 +53,7 @@ const normaliza = (e: unknown): never => {
 const ordenar = (lista: Ficha[], f: Filtros) =>
   f.orden === 'recientes' ? [...lista].sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0)) : lista;
 
-export type GastoMes = { mes: string; preguntas: number; usuarios: number; tokens_entrada: number; tokens_salida: number; tokens_cache: number; coste_usd: number };
+export type GastoMes = { mes: string; preguntas: number; usuarios: number; tokens_entrada: number; tokens_salida: number; tokens_cache: number; coste_usd: number; ingesta_fichas: number; ingesta_coste_usd: number };
 
 const ESPERA_MAX_MS = 65000; // la respuesta puede tardar hasta ~60 s (varias rondas, sin streaming)
 
@@ -69,11 +69,12 @@ export const api = {
       return normaliza(e);
     }
   },
-  /** Gasto de las preguntas a Claude por mes. Solo administradores (la base de datos responde 403 al resto). */
+  /** Gasto en IA por mes: preguntas a Claude y resúmenes de la ingesta. Solo administradores (la base de datos responde 403 al resto). */
   async gasto(meses = 3): Promise<GastoMes[]> {
     try {
-      if (MODO === 'prueba') return [{ mes: '2026-11-01', preguntas: 42, usuarios: 5, tokens_entrada: 310000, tokens_salida: 41000, tokens_cache: 120000, coste_usd: 0.0812 }];
-      return (await llamar<{ meses: GastoMes[] }>(`/v1/admin/gasto?meses=${meses}`)).meses;
+      if (MODO === 'prueba') return [{ mes: '2026-11-01', preguntas: 42, usuarios: 5, tokens_entrada: 310000, tokens_salida: 41000, tokens_cache: 120000, coste_usd: 0.0812, ingesta_fichas: 1840, ingesta_coste_usd: 0.9123 }];
+      // Con una API anterior a la migración 14 no llegan los campos de la ingesta: se toman como 0.
+      return (await llamar<{ meses: GastoMes[] }>(`/v1/admin/gasto?meses=${meses}`)).meses.map((m) => ({ ...m, ingesta_fichas: m.ingesta_fichas ?? 0, ingesta_coste_usd: m.ingesta_coste_usd ?? 0 }));
     } catch (e) { return normaliza(e); }
   },
   async salud(): Promise<Salud> {

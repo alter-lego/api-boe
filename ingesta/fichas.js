@@ -169,6 +169,30 @@ export async function indexarRestringidas(pubs, { db, sinIA = false, pausa = PAU
   return r;
 }
 
+/**
+ * Guarda en `gasto_ingesta` lo que ha costado una pasada (migración 14). Solo si se ha llamado a Claude.
+ * No lanza: si falla (p. ej. migración sin aplicar), avisa y la pasada sigue contando como correcta,
+ * porque las fichas ya están guardadas. El gasto real siempre se puede contrastar en la Console de Anthropic.
+ * @returns {Promise<boolean>} true si se ha guardado una fila
+ */
+export async function registrarGasto(db, r, { modelo = MODELO } = {}) {
+  if (!r.tokens_entrada && !r.tokens_salida && !r.tokens_cache) return false;
+  try {
+    await db.insertar('gasto_ingesta', {
+      modelo,
+      n_fichas: r.guardadas,
+      tokens_entrada: r.tokens_entrada,
+      tokens_salida: r.tokens_salida,
+      tokens_cache: r.tokens_cache,
+      coste_usd: Number(r.coste.toFixed(5)),
+    });
+    return true;
+  } catch (e) {
+    console.error(`AVISO: no se pudo registrar el gasto de la ingesta: ${String(e?.message ?? e).slice(0, 200)}`);
+    return false;
+  }
+}
+
 function leerArgumentos(argv) {
   const a = { limite: 50, maxCoste: 2, concurrencia: 1, sinIA: false, seco: false, pendientes: false, restringidas: false };
   for (let i = 0; i < argv.length; i++) {
@@ -210,6 +234,8 @@ async function principal() {
   console.error(`${pubs.length} publicaciones a procesar${a.sinIA ? ' (sin IA)' : a.seco ? ' (seco: no se guarda)' : ''}`);
   const r = await generarFichas(pubs, { db, claveApi: process.env.ANTHROPIC_API_KEY, sinIA: a.sinIA, seco: a.seco, maxCoste: a.maxCoste, concurrencia: a.concurrencia });
   r.coste = Number(r.coste.toFixed(5));
+  // También en --seco: Claude se ha llamado y se ha cobrado, aunque no se guarden las fichas.
+  if (!a.sinIA) r.gasto_registrado = await registrarGasto(db, r);
   console.log(JSON.stringify({ resumen: r }));
   process.exitCode = r.errores.length && !r.guardadas && !a.sinIA && !a.seco ? 1 : 0;
 }

@@ -236,3 +236,18 @@ test('preguntar sin configurar (sin clave de Anthropic): 503 y no se reserva nad
   assert.equal(sb.llamadas.length, 0);
   assert.equal((await pedir(app, '/v1/nada', init)).status, 404);
 });
+
+test('gasto: preguntas e ingesta por mes; sin la migración 14 la ingesta sale a 0', async () => {
+  const sb = sbFalso({ admin_gasto: { cuerpo: [
+    { mes: '2026-11-01', preguntas: 42, usuarios: 5, tokens_entrada: 310000, tokens_salida: 41000, tokens_cache: 120000, coste_usd: 0.0812, ingesta_fichas: 1800, ingesta_coste_usd: 0.9 },
+    { mes: '2026-10-01', preguntas: 3, usuarios: 1, tokens_entrada: 1, tokens_salida: 1, tokens_cache: 0, coste_usd: 0.01 },
+  ] } });
+  const r = await pedir(crearApp({ fetchFn: sb.fetchFn, jwks }), '/v1/admin/gasto?meses=2', await conSesion());
+  assert.equal(r.status, 200);
+  const { meses } = await r.json();
+  assert.equal(meses[0].ingesta_fichas, 1800);
+  assert.equal(meses[0].ingesta_coste_usd, 0.9);
+  assert.equal(meses[1].ingesta_fichas, 0);
+  assert.equal(meses[1].ingesta_coste_usd, 0);
+  assert.deepEqual(sb.llamadas[0].args, { p_meses: 2 });
+});

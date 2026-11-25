@@ -448,7 +448,7 @@ test('GET /v1/admin/gasto: devuelve el gasto por mes con números y reenvía la 
   const r = await app.request('/v1/admin/gasto?meses=2', { headers: { Authorization: `Bearer ${t}` } }, env);
   assert.equal(r.status, 200);
   const j = await r.json();
-  assert.deepEqual(j.meses[0], { mes: '2026-11-01', preguntas: 12, usuarios: 3, tokens_entrada: 1000, tokens_salida: 200, tokens_cache: 50, coste_usd: 0.0345 });
+  assert.deepEqual(j.meses[0], { mes: '2026-11-01', preguntas: 12, usuarios: 3, tokens_entrada: 1000, tokens_salida: 200, tokens_cache: 50, coste_usd: 0.0345, ingesta_fichas: 0, ingesta_coste_usd: 0 });
   assert.equal(m.log.supabase[0].cuerpo.p_meses, 2);
   assert.match(m.log.supabase[0].cab.Authorization, /^Bearer ey/);
   const mal = await app.request('/v1/admin/gasto?meses=99', { headers: { Authorization: `Bearer ${t}` } }, env);

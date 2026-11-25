@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { leerDocumento, recortarTexto, decodificarEntidades, textoPlano } from '../lib/xml-boe.js';
 import { TEMAS, TIPOS_ACTO, ESQUEMA_FICHA, validarFicha, limpiarAviso, FICHA_VERSION } from '../lib/listas.js';
 import { construirPeticion, costeUSD, generarFicha, MODELO } from '../lib/ficha-ia.js';
-import { generarFichas, indexarRestringidas, construirEntrada, filaDeFicha } from '../fichas.js';
+import { generarFichas, indexarRestringidas, construirEntrada, filaDeFicha, registrarGasto } from '../fichas.js';
 
 const xml = (f) => readFileSync(new URL(`../fixtures/xml/${f}.xml`, import.meta.url), 'utf8');
 const INSTRUCCIONES = readFileSync(new URL('../../skill/FICHA.md', import.meta.url), 'utf8');
@@ -382,4 +382,25 @@ test('restringidas: un fallo no impide seguir y --sin-ia no escribe', async () =
   const silencio = console.log; console.log = () => {};
   try { await indexarRestringidas([pub('BOE-A-2026-23670', 'https://x/?id=BOE-A-2026-23670')], { db: db2, sinIA: true, pausa: 0, esperasXml: [0], fetchFn: fetchXml }); } finally { console.log = silencio; }
   assert.equal(db2.rpcs.length + db2.log.length, 0);
+});
+
+// ───────────── Gasto de la ingesta (migración 14) ─────────────
+
+test('registrarGasto: guarda una fila con fichas, tokens y coste redondeado', async () => {
+  const filas = [];
+  const db = { insertar: async (tabla, fila) => filas.push({ tabla, fila }) };
+  const r = { guardadas: 3, tokens_entrada: 1500, tokens_salida: 150, tokens_cache: 900, coste: 0.0012345678 };
+  assert.equal(await registrarGasto(db, r, { modelo: 'm' }), true);
+  assert.deepEqual(filas, [{ tabla: 'gasto_ingesta', fila: { modelo: 'm', n_fichas: 3, tokens_entrada: 1500, tokens_salida: 150, tokens_cache: 900, coste_usd: 0.00123 } }]);
+});
+
+test('registrarGasto: sin llamadas a Claude no escribe; si la base falla, avisa sin lanzar', async () => {
+  let escrito = 0;
+  const db = { insertar: async () => { escrito += 1; } };
+  assert.equal(await registrarGasto(db, { guardadas: 0, tokens_entrada: 0, tokens_salida: 0, tokens_cache: 0, coste: 0 }), false);
+  assert.equal(escrito, 0);
+  const rota = { insertar: async () => { throw new Error('HTTP 404: relation "gasto_ingesta" does not exist'); } };
+  const silencio = console.error; console.error = () => {};
+  try { assert.equal(await registrarGasto(rota, { guardadas: 1, tokens_entrada: 10, tokens_salida: 1, tokens_cache: 0, coste: 0.001 }), false); }
+  finally { console.error = silencio; }
 });

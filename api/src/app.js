@@ -131,14 +131,17 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
     return c.json({ fecha: f.data, total: datos.length, secciones });
   });
 
-  // Gasto por mes en preguntas a Claude. Solo administradores: lo decide la base de datos (exigir_admin).
+  // Gasto por mes en IA: preguntas a Claude y, aparte, fichas de la ingesta (migración 14).
+  // Solo administradores: lo decide la base de datos (exigir_admin). Sin la migración 14, la ingesta sale a 0.
   app.get('/v1/admin/gasto', async (c) => {
     const m = z.coerce.number().int().min(1).max(24).safeParse(c.req.query('meses') ?? '3');
     if (!m.success) throw new ErrorApi(400, 'meses debe estar entre 1 y 24');
     const filas = await rpc(c.env, 'admin_gasto', { p_meses: m.data }, { jwt: c.get('jwt'), fetchFn });
+    const n = (v) => Number(v ?? 0);
     return c.json({ meses: filas.map((f) => ({
-      mes: f.mes, preguntas: Number(f.preguntas), usuarios: Number(f.usuarios), tokens_entrada: Number(f.tokens_entrada),
-      tokens_salida: Number(f.tokens_salida), tokens_cache: Number(f.tokens_cache), coste_usd: Number(f.coste_usd),
+      mes: f.mes, preguntas: n(f.preguntas), usuarios: n(f.usuarios), tokens_entrada: n(f.tokens_entrada),
+      tokens_salida: n(f.tokens_salida), tokens_cache: n(f.tokens_cache), coste_usd: n(f.coste_usd),
+      ingesta_fichas: n(f.ingesta_fichas), ingesta_coste_usd: n(f.ingesta_coste_usd),
     })) });
   });
 
