@@ -1,6 +1,6 @@
 import { cerrarPorCaducidad, getToken } from './auth';
 import { mock } from './mock';
-import type { Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
+import type { BusquedaPersona, Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
 
 export const MODO: 'prueba' | 'api' = import.meta.env.VITE_MODO === 'api' ? 'api' : 'prueba';
 const API = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api-boe.alter-lego.workers.dev';
@@ -85,6 +85,16 @@ export const api = {
     try {
       const lista = MODO === 'prueba' ? await mock.buscar(f) : (await llamar<{ publicaciones: Ficha[] }>(`/v1/publicaciones?${parametros(f, { limit: '100' })}`)).publicaciones;
       return ordenar(lista, f);
+    } catch (e) { return normaliza(e); }
+  },
+  /** Buscar a una persona por su nombre: primero el nombre exacto en el título o el resumen, después el texto. */
+  async personas(nombre: string, desde?: string, hasta?: string): Promise<BusquedaPersona> {
+    try {
+      if (MODO === 'prueba') return await mock.personas(nombre);
+      const p = new URLSearchParams({ nombre: nombre.trim() });
+      if (desde) p.set('desde', desde);
+      if (hasta) p.set('hasta', hasta);
+      return await llamar<BusquedaPersona>(`/v1/personas?${p}`);
     } catch (e) { return normaliza(e); }
   },
   async conteos(f: Filtros, agrupar: 'mes' | 'organismo' | 'tipo'): Promise<Conteo> {

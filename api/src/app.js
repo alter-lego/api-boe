@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { z } from 'zod';
-import { ErrorApi, rpc, leerJson, fecha, consultaBuscar, consultaContar, AGRUPAR_SQL, paramsFiltros } from './comun.js';
+import { ErrorApi, rpc, leerJson, fecha, filtros, consultaBuscar, consultaContar, AGRUPAR_SQL, paramsFiltros } from './comun.js';
 import { responderPregunta } from './preguntar.js';
 import { preguntaSinSentido } from './pregunta-valida.js';
 
@@ -99,6 +99,29 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
     const q = validar(consultaBuscar, c);
     const datos = await rpc(c.env, 'buscar_publicaciones', { ...paramsFiltros(q), p_limite: q.limit }, { jwt: c.get('jwt'), fetchFn });
     return c.json({ n: datos.length, publicaciones: datos });
+  });
+
+  // Buscar a una persona por su nombre (migración 15). La base comprueba el nombre exacto en título y resumen
+  // y clasifica cada resultado: 'titulo', 'resumen' o 'texto' (coincidencia en el texto completo, menos fiable).
+  const consultaPersona = z.object({
+    nombre: z.string().trim().min(2, 'escribe un nombre').max(100, 'el nombre es demasiado largo'),
+    desde: fecha.optional(),
+    hasta: fecha.optional(),
+    seccion: filtros.seccion,
+    limit: z.coerce.number().int().min(1).max(100).default(100),
+  });
+  app.get('/v1/personas', async (c) => {
+    const q = validar(consultaPersona, c);
+    const filas = await rpc(c.env, 'buscar_persona', {
+      p_nombre: q.nombre, p_desde: q.desde ?? null, p_hasta: q.hasta ?? null, p_seccion: q.seccion ?? null, p_limite: q.limit,
+    }, { jwt: c.get('jwt'), fetchFn });
+    const totales = { titulo: 0, resumen: 0, texto: 0 };
+    for (const f of filas) totales[f.coincidencia] = Number(f.total_grupo);
+    return c.json({
+      n: filas.length,
+      totales,
+      resultados: filas.map((f) => ({ ...f.ficha, coincidencia: f.coincidencia })),
+    });
   });
 
   app.get('/v1/conteos', async (c) => {

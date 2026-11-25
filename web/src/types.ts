@@ -59,3 +59,8 @@ export type Respuesta = {
   datos_hasta: string;
   preguntas_hoy: { usadas: number; limite: number };
 };
+
+/** Dónde aparece el nombre buscado: exacto en el título, exacto en el resumen o en el texto completo (menos fiable). */
+export type Coincidencia = 'titulo' | 'resumen' | 'texto';
+export type ResultadoPersona = Ficha & { coincidencia: Coincidencia };
+export type BusquedaPersona = { n: number; totales: Record<Coincidencia, number>; resultados: ResultadoPersona[] };

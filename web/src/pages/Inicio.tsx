@@ -36,6 +36,7 @@ export function Inicio() {
       <div className="inicio__izq">
         <h1>Buscar en el BOE</h1>
         <BuscadorForm inicial={{}} />
+        <p className="inicio__persona"><Link className="enlace" to="/persona">¿Buscas a una persona? Buscar por nombre →</Link></p>
       </div>
       <BoeDeHoy />
     </div>

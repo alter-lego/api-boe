@@ -42,7 +42,7 @@ test('health: sin sesión, devuelve la última ingesta', async () => {
 test('sin sesión: 401 y no se llama a la base de datos', async () => {
   const sb = sbFalso();
   const app = crearApp({ fetchFn: sb.fetchFn, jwks });
-  for (const ruta of ['/v1/publicaciones?q=hola', '/v1/conteos', '/v1/publicaciones/BOE-A-2026-1', '/v1/sumarios/2026-11-12']) {
+  for (const ruta of ['/v1/publicaciones?q=hola', '/v1/conteos', '/v1/publicaciones/BOE-A-2026-1', '/v1/sumarios/2026-11-12', '/v1/personas?nombre=Herrero']) {
     const r = await pedir(app, ruta);
     assert.equal(r.status, 401, ruta);
   }
@@ -250,4 +250,27 @@ test('gasto: preguntas e ingesta por mes; sin la migración 14 la ingesta sale a
   assert.equal(meses[1].ingesta_fichas, 0);
   assert.equal(meses[1].ingesta_coste_usd, 0);
   assert.deepEqual(sb.llamadas[0].args, { p_meses: 2 });
+});
+
+test('personas: valida el nombre, reenvía la sesión y aplana la ficha con su coincidencia', async () => {
+  const ficha = (id) => ({ id, titulo: 't', nivel_privacidad: 'publico' });
+  const sb = sbFalso({ buscar_persona: { cuerpo: [
+    { coincidencia: 'titulo', total_grupo: 2, ficha: ficha('BOE-A-2026-1') },
+    { coincidencia: 'titulo', total_grupo: 2, ficha: ficha('BOE-A-2026-2') },
+    { coincidencia: 'texto', total_grupo: 340, ficha: ficha('BOE-A-2026-3') },
+  ] } });
+  const app = crearApp({ fetchFn: sb.fetchFn, jwks });
+  const r = await pedir(app, '/v1/personas?nombre=%20Herrero%20&desde=2026-09-01&seccion=3', await conSesion());
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.n, 3);
+  assert.deepEqual(j.totales, { titulo: 2, resumen: 0, texto: 340 });
+  assert.deepEqual(j.resultados[2], { id: 'BOE-A-2026-3', titulo: 't', nivel_privacidad: 'publico', coincidencia: 'texto' });
+  assert.deepEqual(sb.llamadas[0].args, { p_nombre: 'Herrero', p_desde: '2026-09-01', p_hasta: null, p_seccion: '3', p_limite: 100 });
+  assert.match(sb.llamadas[0].cab.Authorization, /^Bearer /);
+  for (const mala of ['', 'nombre=a', 'nombre=Herrero&seccion=9', 'nombre=Herrero&desde=2026-13-01', `nombre=${'x'.repeat(101)}`]) {
+    const m = await pedir(app, `/v1/personas?${mala}`, await conSesion());
+    assert.equal(m.status, 400, mala);
+  }
+  assert.equal(sb.llamadas.length, 1);
 });

@@ -1,5 +1,5 @@
 // Datos de ejemplo para probar la web sin sesión ni API. NO son publicaciones reales.
-import type { Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
+import type { BusquedaPersona, Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
 import { SECCIONES } from './labels';
 
 const MIN_IMG = 'https://www.boe.es';
@@ -93,6 +93,22 @@ export const mock = {
     const m = new Map<string, number>();
     filas.forEach((x) => m.set(clave(x), (m.get(clave(x)) ?? 0) + 1));
     return espera({ agrupar, grupos: [...m.entries()].map(([grupo, n]) => ({ grupo, n })).sort((a, b) => b.n - a.n) });
+  },
+  // Simula «Buscar a una persona» con datos inventados. «zzz» → sin resultados; menos de 3 letras → 400.
+  personas: (nombre: string): Promise<BusquedaPersona> => {
+    const limpio = nombre.trim();
+    if (sinTildes(limpio).replace(/[^a-z]/g, '').length < 3) return Promise.reject(Object.assign(new Error('escribe al menos un nombre o apellido de 3 letras o más'), { status: 400 }));
+    if (sinTildes(limpio).includes('zzz')) return espera({ n: 0, totales: { titulo: 0, resumen: 0, texto: 0 }, resultados: [] });
+    const resultados = [
+      { ...base({ id: 'BOE-A-2026-23901', fecha: '2026-11-12', departamento: 'Ministerio de Justicia', rango: 'Real Decreto', tipo_acto: 'indulto_sancion', temas: ['justicia'],
+        titulo: `Real Decreto 1101/2026, de 10 de noviembre, por el que se indulta a don ${limpio} (ejemplo inventado).`,
+        resumen: 'Indulta parcialmente la pena impuesta. Ejemplo inventado para probar la interfaz.' }), coincidencia: 'titulo' as const },
+      { ...base({ id: 'BOE-A-2026-23655', fecha: '2026-10-30', seccion: '2A', seccion_nombre: 'II.A. Nombramientos y ceses', departamento: 'Ministerio de Hacienda', tipo_acto: 'nombramiento', temas: ['empleo_publico_y_administracion'],
+        titulo: 'Orden HAC/1190/2026, de 27 de octubre, por la que se resuelve convocatoria de libre designación.',
+        resumen: `Adjudica el puesto de subdirector general a ${limpio}. Ejemplo inventado.` }), coincidencia: 'resumen' as const },
+      ...DATOS.filter((x) => x.nivel_privacidad === 'restringido').slice(0, 3).map((x) => ({ ...x, coincidencia: 'texto' as const })),
+    ];
+    return espera({ n: resultados.length, totales: { titulo: 1, resumen: 1, texto: 214 }, resultados });
   },
   publicacion: (id: string) => espera(DATOS.find((x) => x.id === id) ?? null),
   sumario: (fecha: string): Promise<Sumario> => {

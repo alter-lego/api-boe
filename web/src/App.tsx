@@ -5,6 +5,7 @@ import { Confirmar } from './pages/Confirmar';
 import { Detalle } from './pages/Detalle';
 import { Entrar } from './pages/Entrar';
 import { Inicio } from './pages/Inicio';
+import { Persona } from './pages/Persona';
 import { Portada } from './pages/Portada';
 import { Preguntar } from './pages/Preguntar';
 import { Buscar } from './pages/Resultados';
@@ -19,6 +20,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={PREGUNTAR_ACTIVO ? <Portada /> : <Inicio />} />
         <Route path="/buscar" element={<Buscar />} />
+        <Route path="/persona" element={<Persona />} />
         <Route path="/publicacion/:id" element={<Detalle />} />
         {PREGUNTAR_ACTIVO ? <Route path="/preguntar" element={<Preguntar />} /> : null}
         <Route path="/admin" element={<Admin />} />
