@@ -68,7 +68,8 @@ export function filaDeFicha(doc, ficha, { modelo = MODELO, ahora = new Date() } 
     ficha_version: FICHA_VERSION,
     ficha_revisar: ficha.revisar,
     ficha_motivo_revision: ficha.revisar ? (ficha.motivo_revision ?? 'sin motivo') : null,
-    aviso_fuente: ficha.aviso_fuente ?? null,
+    // Una ficha «a revisar» tampoco guarda su aviso: es texto de la IA sin revisar (auditoría, 2.6).
+    aviso_fuente: ficha.revisar ? null : (ficha.aviso_fuente ?? null),
     rango: doc.rango,
     referencias: doc.referencias,
     corrige_a: doc.corrige_a,

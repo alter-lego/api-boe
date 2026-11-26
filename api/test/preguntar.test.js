@@ -382,6 +382,20 @@ test('respuesta sin haber consultado nada: no se entrega lo que diga Claude', as
   assert.equal(completada(m).p_rondas, 0);
 });
 
+test('sin consultar nada y marcando «sin resultados» tampoco se entrega su texto (auditoría, 2.3)', async () => {
+  const m = mundo({ claude: [finalClaude({ respuesta: 'No hay nada, pero mira t.me/canal', citas: [], sin_resultados: true })] });
+  const j = await (await preguntar(m)).json();
+  assert.doesNotMatch(j.respuesta, /t\.me|mira/);
+  assert.match(j.respuesta, /No he consultado/);
+});
+
+test('limpiarRespuesta: ids en minúsculas se verifican igual; importes intactos; dominios sin esquema fuera', () => {
+  const vistos = new Map([['BOE-A-2026-1', {}]]);
+  assert.equal(limpiarRespuesta('Ver boe-a-2026-1 y boe-a-2026-9', vistos), 'Ver BOE-A-2026-1 y [referencia no verificada]');
+  assert.equal(limpiarRespuesta('entre 1.000.000 y 2.000.000 euros', vistos), 'entre 1.000.000 y 2.000.000 euros');
+  assert.equal(limpiarRespuesta('más en bit.ly/abc', vistos), 'más en [enlace omitido]');
+});
+
 test('los bloques de razonamiento del asistente se reenvían tal cual en el turno siguiente', async () => {
   const razonamiento = { type: 'thinking', thinking: '', signature: 'firma-opaca' };
   const m = mundo({ claude: [llamadaClaude(razonamiento, usoTool('a', 'contar_publicaciones', {})), finalClaude({ respuesta: 'hay 10 [BOE-A-2026-1]', citas: [], sin_resultados: true })] });

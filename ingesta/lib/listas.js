@@ -38,10 +38,13 @@ export const ESQUEMA_FICHA = {
 // Lo que pasa por un recorte o por la extracción no es un dato del acto ni un error de la fuente.
 export const COMENTA_EXTRACCION = /\btexto (recibido|recortado)\b|\brecortad[oa]\b|no figuran? en el texto|\[…\]/i;
 
+import { textoInseguro } from './sanear.js';
+
 /** Un «aviso de la fuente» que solo habla del recorte no es un aviso: se descarta. */
 export function limpiarAviso(ficha) {
   const NO_ES_AVISO = /\brecortad[oa]\b|\[…\]|no se detecta|no es una incoherencia|no contiene error|se deja constancia|sin error|variante ortogr/i;
-  if (typeof ficha?.aviso_fuente === 'string' && NO_ES_AVISO.test(ficha.aviso_fuente)) {
+  // También fuera si trae un enlace, HTML o un DNI: _ficha() lo muestra en las públicas (auditoría, 2.6).
+  if (typeof ficha?.aviso_fuente === 'string' && (NO_ES_AVISO.test(ficha.aviso_fuente) || textoInseguro(ficha.aviso_fuente))) {
     return { ...ficha, aviso_fuente: null };
   }
   return ficha;
@@ -54,7 +57,7 @@ export function validarFicha(f) {
 
   if (typeof f.resumen !== 'string' || f.resumen.trim().length < 10) errores.push('resumen vacío o demasiado corto');
   else if (f.resumen.length > 900) errores.push('resumen demasiado largo');
-  else if (/https?:\/\/|www\./i.test(f.resumen)) errores.push('el resumen contiene una URL');
+  else if (textoInseguro(f.resumen)) errores.push('el resumen contiene una URL, HTML o un DNI');
   else if (COMENTA_EXTRACCION.test(f.resumen)) errores.push('el resumen comenta la extracción del texto');
 
   if (!Array.isArray(f.temas) || f.temas.length < 1 || f.temas.length > 3) errores.push('temas debe tener de 1 a 3 valores');
@@ -64,6 +67,7 @@ export function validarFicha(f) {
   if (typeof f.revisar !== 'boolean') errores.push('revisar no es booleano');
   for (const campo of ['motivo_revision', 'aviso_fuente']) {
     if (f[campo] !== null && typeof f[campo] !== 'string') errores.push(`${campo} debe ser texto o null`);
+    else if (typeof f[campo] === 'string' && f[campo].length > 400) errores.push(`${campo} demasiado largo`);
   }
   return errores.length ? { ok: false, errores } : { ok: true, errores: [] };
 }

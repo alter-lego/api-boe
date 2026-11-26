@@ -9,6 +9,7 @@
 
 import { readFileSync } from 'node:fs';
 import { llamar } from './ficha-ia.js';
+import { textoInseguro } from './sanear.js';
 
 export const RESUMEN_VERSION = 1;
 export const MODELO_RESUMEN = 'claude-sonnet-5-5';
@@ -210,9 +211,7 @@ export async function pedirResumen(peticion, { claveApi, fetchFn, esperas = [500
 
 // ───────────── Validación de la salida ─────────────
 
-const RE_URL = /https?:\/\/|www\.|<\/?[a-z][^>]*>/i;
-// DNI/NIE completos o enmascarados como los publica el BOE (***1234**).
-const RE_DNI = /\b\d{8}[A-HJ-NP-TV-Z]\b|\b[XYZ]\d{7}[A-Z]\b|\*{2,}\d{3,}\**/i;
+// URL (también sin esquema u ofuscada), HTML, DNI/NIE o máscaras: saneado común (sanear.js; auditoría, 2.5).
 
 /**
  * Deja solo lo que la web puede pintar con seguridad:
@@ -225,7 +224,7 @@ export function depurar(salida, c) {
   const avisos = [];
   const validos = new Set(c.candidatos.map((p) => p.id));
   const limpio = (s) => (typeof s === 'string' ? s.trim() : '');
-  const textoMalo = (...ts) => ts.some((t) => RE_URL.test(t) || RE_DNI.test(t));
+  const textoMalo = (...ts) => ts.some((t) => textoInseguro(t));
   const filtrarIds = (ids, donde) => {
     const ok = [...new Set((ids ?? []).filter((id) => validos.has(id)))];
     for (const id of ids ?? []) if (!validos.has(id)) avisos.push(`${donde}: id desconocido ${id}`);
@@ -244,7 +243,8 @@ export function depurar(salida, c) {
 
   const secciones = [];
   for (const s of salida?.secciones ?? []) {
-    const titulo = limpio(s.titulo);
+    const titulo = limpio(s.titulo).slice(0, 120);
+    if (textoMalo(titulo)) { avisos.push(`sección descartada (URL, HTML o DNI en el título): ${titulo}`); continue; }
     const bloques = [];
     for (const b of s.bloques ?? []) {
       const bt = limpio(b.titulo), br = limpio(b.resumen), bp = limpio(b.por_que_importa);

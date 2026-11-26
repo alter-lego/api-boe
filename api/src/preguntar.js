@@ -12,6 +12,9 @@
 import { z } from 'zod';
 import { TEMAS, TIPOS_ACTO } from '../../ingesta/lib/listas.js';
 import { leerDocumento, recortarTexto } from '../../ingesta/lib/xml-boe.js';
+import { quitarDatosPersonales, quitarEnlaces } from '../../ingesta/lib/sanear.js';
+
+export { quitarDatosPersonales };
 import { ErrorApi, rpc, filtros, paramsFiltros, AGRUPAR_SQL } from './comun.js';
 
 const URL_API = 'https://api.anthropic.com/v1/messages';
@@ -98,15 +101,8 @@ const entradaLeer = z.object({ id: z.string().regex(/^[A-Za-z0-9-]{3,60}$/) });
 
 const sinVacios = (o) => Object.fromEntries(Object.entries(o ?? {}).filter(([, v]) => v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)));
 
-/** DNI, NIE y números enmascarados fuera del texto que se entrega a Claude (defensa en profundidad). */
-export function quitarDatosPersonales(t) {
-  return String(t)
-    .replace(/(?<![A-Za-z0-9])[XYZxyz]\s?-?\d{7}\s?-?[A-Za-z](?![A-Za-z0-9])/g, '[NIE]')
-    .replace(/(?<!\d)\d{1,2}[. ]\d{3}[. ]\d{3}\s?-?\s?[A-Za-z](?![A-Za-z0-9])/g, '[DNI]')
-    .replace(/(?<!\d)\d{8}(?:-?[A-Za-z]| [A-Z])(?![A-Za-z0-9])/g, '[DNI]')
-    // máscaras del BOE (***1234**): sin cuantificadores anidados y con longitud acotada (sin backtracking cuadrático)
-    .replace(/(?<![*xX])[*xX]{2,6}\d{3,4}[*xX]{0,3}[A-Za-z]?/g, '[ID]');
-}
+// DNI, NIE y máscaras: quitarDatosPersonales (ingesta/lib/sanear.js, común con la ingesta), también en el texto
+// que se entrega a Claude (defensa en profundidad).
 
 const esBoe = (u) => { try { const x = new URL(u); return x.protocol === 'https:' && (x.hostname === 'www.boe.es' || x.hostname === 'boe.es'); } catch { return false; } };
 
@@ -214,16 +210,14 @@ async function llamarClaude(env, peticion, { fetchFn, esperar }) {
   throw new ErrorApi(503, 'el asistente no está disponible ahora mismo; inténtalo en unos minutos');
 }
 
-const ID_BOE = /\bBOE-[A-Z]-\d{4}-\d+\b/g;
+const ID_BOE = /\bBOE-[A-Z]-\d{4}-\d+\b/gi;   // también en minúsculas: se normaliza y se comprueba igual
 
 /** Limpia el texto de Claude: sin enlaces y sin identificadores que no salieron de las herramientas. */
 export function limpiarRespuesta(texto, vistos) {
-  return quitarDatosPersonales(String(texto ?? ''))
-    .replace(/\]\([^)]*\)/g, ']')                                                    // [texto](enlace) → [texto]
-    .replace(/\b(?:https?|ftp|javascript|data|vbscript):\S*/gi, '[enlace omitido]')
-    .replace(/\bwww\.\S+/gi, '[enlace omitido]')
-    .replace(/\b(?:[a-z0-9-]{1,63}\.){1,4}(?:com|es|org|net|eu|info|io|cat|gal|eus|gob\.es|xyz|top|ru|cn|tk|ml)\b(?:\/\S*)?/gi, '[enlace omitido]')
-    .replace(ID_BOE, (id) => (vistos.has(id) ? id : '[referencia no verificada]'))
+  // Enlaces y datos personales con el saneado común (sanear.js): dominios sin esquema, «hxxps», «[.]», DNI con letra
+  // de control (sin comerse importes)…
+  return quitarEnlaces(quitarDatosPersonales(String(texto ?? '')))
+    .replace(ID_BOE, (id) => (vistos.has(id.toUpperCase()) ? id.toUpperCase() : '[referencia no verificada]'))
     .trim()
     .slice(0, 6000);
 }
@@ -323,8 +317,9 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
   }
 
   const { vistos } = ctx;
-  if (rondas === 0 && !final.sin_resultados) {
-    // Claude contestó sin consultar el archivo: lo que diga no está respaldado, no se entrega.
+  if (rondas === 0) {
+    // Claude contestó sin consultar el archivo: lo que diga no está respaldado, no se entrega (tampoco si se marca
+    // «sin resultados»: así se colaba un texto sin respaldo, y quedaba en caché; auditoría, 2.3).
     await completar(env, jwt, fetchFn, reserva, modelo, rondas, uso, [], true);
     return {
       respuesta: 'No he consultado el archivo del BOE para responder a esto. Reformula la pregunta indicando qué publicaciones, organismos o fechas te interesan.',
@@ -332,7 +327,7 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
       preguntas_hoy: { usadas: reserva.usadas, limite: reserva.limite },
     };
   }
-  const idsTexto = [...String(final.respuesta).matchAll(ID_BOE)].map((m) => m[0]);
+  const idsTexto = [...String(final.respuesta).matchAll(ID_BOE)].map((m) => m[0].toUpperCase());
   const citas = [...new Set([...final.citas, ...idsTexto])].filter((id) => vistos.has(id)).slice(0, 30);
   const respuesta = limpiarRespuesta(final.respuesta, vistos);
   await completar(env, jwt, fetchFn, reserva, modelo, rondas, uso, citas, final.sin_resultados);
