@@ -51,7 +51,7 @@ export function Entrar() {
         <div className="aviso" role="alert"><p>Falta configurar el acceso (clave pública de Supabase) en esta instalación.</p></div>
       ) : estado === 'enviado' ? (
         <div className="aviso" role="status">
-          <p>Si tu correo está autorizado, te hemos enviado un enlace a <strong>{email.trim()}</strong>. Ábrelo desde este dispositivo. Caduca en 1 hora.</p>
+          <p>Si tu correo está autorizado, te hemos enviado un enlace a <strong>{email.trim()}</strong>. Ábrelo desde este dispositivo. Caduca en 15 minutos.</p>
           <p><button type="button" className="enlace" disabled={espera > 0 || faltaCaptcha} onClick={enviar}>{espera > 0 ? `Reenviar (${espera} s)` : faltaCaptcha ? 'Comprobando…' : 'Reenviar'}</button></p>
         </div>
       ) : (

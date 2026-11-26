@@ -68,7 +68,9 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
       if (payload.role !== 'authenticated' || payload.is_anonymous === true) throw new SesionNoValida('rol');
       // Solo vale una sesión iniciada con el enlace del correo (no contraseña, teléfono ni otros métodos).
       const entradas = (Array.isArray(payload.amr) ? payload.amr : []).filter((a) => a && typeof a === 'object');
-      if (!entradas.some((a) => METODOS_VALIDOS.includes(a.method))) throw new SesionNoValida('método de acceso no permitido');
+      // Todas las entradas de `amr` tienen que ser de enlace: una contraseña junto al enlace tampoco vale (auditoría, 2.12).
+      if (!entradas.length || entradas.length !== (Array.isArray(payload.amr) ? payload.amr.length : 0)
+          || !entradas.every((a) => METODOS_VALIDOS.includes(a.method))) throw new SesionNoValida('método de acceso no permitido');
       // Duración máxima de la sesión: Supabase renueva el token cada hora sin límite, pero el token
       // conserva la fecha del login original (amr[].timestamp). Pasadas SESION_MAX_HORAS horas, se pide un enlace nuevo.
       const maxHoras = Number(c.env.SESION_MAX_HORAS ?? 24);

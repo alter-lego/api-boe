@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { authConfigurado, confirmarEnlace } from '../auth';
+import { authConfigurado, confirmarEnlace, salir } from '../auth';
+import { supabase } from '../supabase';
 import { Button } from '../ds';
 
 // Pantalla pública a la que enlaza el correo de acceso. NO verifica al cargar: solo al pulsar el botón.
@@ -11,16 +12,24 @@ export function Confirmar() {
     const p = new URLSearchParams(window.location.search);
     return { token: p.get('token_hash'), tipo: p.get('type') };
   });
-  const [estado, setEstado] = useState<'inicial' | 'verificando' | 'invalido' | 'red' | 'sin-configurar'>('inicial');
+  const [estado, setEstado] = useState<'inicial' | 'verificando' | 'invalido' | 'red' | 'sin-configurar' | 'dentro'>('inicial');
+  const [cuenta, setCuenta] = useState<string | null>(null);
   useEffect(() => { if (window.location.search) window.history.replaceState(null, '', window.location.pathname); }, []);
 
-  if (!token || tipo !== 'email') return <Navigate to="/entrar" replace />;
+  if (estado !== 'dentro' && (!token || tipo !== 'email')) return <Navigate to="/entrar" replace />;
 
   const entrar = async () => {
-    if (estado === 'verificando') return;
+    if (estado === 'verificando' || !token) return;
     setEstado('verificando');
     const r = await confirmarEnlace(token);
-    if (r === 'ok') { nav('/', { replace: true }); return; }
+    if (r === 'ok') {
+      // Se enseña con qué cuenta se ha entrado antes de seguir: si el enlace era de otra persona (alguien te lo ha
+      // hecho llegar para que uses su cuenta), se ve aquí y se puede salir (auditoría, 2.13).
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      setCuenta(data.session?.user.email ?? null);
+      setEstado('dentro');
+      return;
+    }
     setEstado(r);
   };
 
@@ -29,7 +38,13 @@ export function Confirmar() {
       <img className="logo logo--claro" src="/logo.svg" alt="elDiario.es" />
       <img className="logo logo--oscuro" src="/logo-blanco.svg" alt="elDiario.es" />
       <h1>Confirmar acceso</h1>
-      {estado === 'invalido' ? (
+      {estado === 'dentro' ? (
+        <div className="entrar__form" role="status">
+          <p>Has entrado como <strong>{cuenta ?? '(cuenta desconocida)'}</strong>.</p>
+          <Button onClick={() => nav('/', { replace: true })}>Continuar</Button>
+          <p className="bboe-meta">¿No es tu correo? <button type="button" className="enlace" onClick={async () => { await salir(); nav('/entrar', { replace: true }); }}>Salir de esta cuenta</button></p>
+        </div>
+      ) : estado === 'invalido' ? (
         <div className="aviso" role="alert">
           <p>Este enlace ya no es válido. Pide uno nuevo.</p>
           <p><Link className="enlace" to="/entrar">Pedir un enlace nuevo</Link></p>

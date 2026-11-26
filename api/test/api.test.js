@@ -94,6 +94,9 @@ test('método de acceso: solo enlace del correo (otp/magiclink); contraseña u o
   assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ metodo: 'magiclink' }))).status, 200);
   assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ metodo: 'password' }))).status, 401);
   assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ metodo: 'sms' }))).status, 401);
+  // contraseña junto al enlace: tampoco (auditoría, 2.12)
+  const ahora = Math.floor(Date.now() / 1000);
+  assert.equal((await pedir(app, '/v1/publicaciones?q=hola', await conSesion({ amr: [{ method: 'otp', timestamp: ahora - 60 }, { method: 'password', timestamp: ahora - 120 }] }))).status, 401);
 });
 
 test('fallo de las claves de Supabase: 503 (no 401, para no cerrar la sesión a todos); token malo: 401', async () => {
