@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { clasificarNivel, parsearSumario, resumir, fechaISO } from '../lib/sumario.js';
 import { descargarSumario } from '../lib/boe-api.js';
-import { ingestarFecha } from '../boe.js';
+import { ingestarFecha, diaAnterior } from '../boe.js';
 
 const leer = (f) => readFileSync(new URL(`../fixtures/${f}`, import.meta.url), 'utf8');
 const normal = () => JSON.parse(leer('sumario-dia-normal.json'));
@@ -194,12 +194,49 @@ test('no envía columnas de ficha: no pisa resumen ni temas', async () => {
   }
 });
 
-test('con el mismo hash no reescribe nada', async () => {
-  const db = bdFalsa({ previos: [{ numero: '282', hash: 'h1' }] });
+const idsNormal = () => parsearSumario(normal()).diarios.flatMap((d) => d.publicaciones.map((p) => p.id));
+
+test('con el mismo hash y todas las publicaciones no reescribe nada', async () => {
+  const db = bdFalsa({ previos: [{ numero: '282', hash: 'h1' }], existentes: idsNormal() });
   const r = await ingestarFecha('2026-11-12', { db, descargar: descargarNormal });
   assert.equal(r.sin_cambios, true);
   assert.equal(db.log.upserts.length, 0);
   assert.equal(db.log.insertados[0].fila.estado, 'ok');
+});
+
+test('con el mismo hash pero faltan publicaciones (pasada cortada), vuelve a escribir', async () => {
+  const db = bdFalsa({ previos: [{ numero: '282', hash: 'h1' }], existentes: idsNormal().slice(0, 3) });
+  const r = await ingestarFecha('2026-11-12', { db, descargar: descargarNormal });
+  assert.equal(r.sin_cambios, undefined);
+  assert.equal(r.n_nuevas, idsNormal().length - 3);
+});
+
+test('el hash se guarda solo al final: si falla un lote, no queda guardado', async () => {
+  const db = bdFalsa();
+  const upsert = db.upsert;
+  db.upsert = async (tabla, filas, c) => {
+    if (tabla === 'publicaciones') throw new Error('timeout de Supabase');
+    return upsert(tabla, filas, c);
+  };
+  const r = await ingestarFecha('2026-11-12', { db, descargar: descargarNormal });
+  assert.equal(r.estado, 'error');
+  const sums = db.log.upserts.filter((u) => u.tabla === 'sumarios');
+  assert.equal(sums.length, 1);
+  assert.ok(sums[0].filas.every((f) => !('hash' in f)), 'el primer upsert del sumario no lleva hash');
+});
+
+test('con éxito, el último upsert es el del sumario con el hash', async () => {
+  const db = bdFalsa();
+  await ingestarFecha('2026-11-12', { db, descargar: descargarNormal });
+  const ultimo = db.log.upserts.at(-1);
+  assert.equal(ultimo.tabla, 'sumarios');
+  assert.ok(ultimo.filas.every((f) => f.hash === 'h1'));
+});
+
+test('diaAnterior cruza meses y años', () => {
+  assert.equal(diaAnterior('2026-11-27'), '2026-11-26');
+  assert.equal(diaAnterior('2026-12-01'), '2026-11-30');
+  assert.equal(diaAnterior('2027-01-01'), '2026-12-31');
 });
 
 test('cuenta nuevas y actualizadas', async () => {

@@ -1,7 +1,7 @@
 // Recogida diaria del sumario del BOE.
 //
 // Uso:
-//   node ingesta/boe.js --fecha hoy                      (lo que lanza GitHub Actions)
+//   node ingesta/boe.js --fecha hoy                      (lo que lanza GitHub Actions: ayer y hoy)
 //   node ingesta/boe.js --fecha 2026-11-12
 //   node ingesta/boe.js --desde 2026-11-01 --hasta 2026-11-12   (histórico, por tramos)
 //   añadir --seco para descargar y clasificar SIN escribir en la base de datos
@@ -16,6 +16,11 @@ import { crearCliente } from './lib/supabase.js';
 const TAMANO_LOTE = 200;
 
 const hoyEnMadrid = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+export function diaAnterior(fecha) {
+  const d = new Date(`${fecha}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function* dias(desde, hasta) {
@@ -54,24 +59,23 @@ export async function ingestarFecha(fecha, { db, seco = false, descargar = desca
         const previos = await db.seleccionar(
           `sumarios?boletin=eq.BOE&fecha=eq.${fecha}&select=numero,hash`,
         );
+        const existentes = new Set(
+          (await db.seleccionar(`publicaciones?fecha=eq.${fecha}&boletin=eq.BOE&select=id`)).map((p) => p.id),
+        );
+        // «Sin cambios» solo si el hash coincide Y están todas las publicaciones del sumario en la base: si una
+        // pasada anterior se cortó a mitad, se vuelve a escribir aunque el hash sea el mismo.
         const igual =
           previos.length === parseado.diarios.length &&
-          parseado.diarios.every((d) => previos.some((p) => p.numero === d.numero && p.hash === r.hash));
+          parseado.diarios.every((d) => previos.some((p) => p.numero === d.numero && p.hash === r.hash)) &&
+          parseado.diarios.every((d) => d.publicaciones.every((p) => existentes.has(p.id)));
 
         if (igual) {
           resultado = { fecha, estado: 'ok', sin_cambios: true, n_nuevas: 0, n_actualizadas: 0, ...cifras };
         } else {
-          const existentes = new Set(
-            (await db.seleccionar(`publicaciones?fecha=eq.${fecha}&boletin=eq.BOE&select=id`)).map((p) => p.id),
-          );
-
-          const sumarios = await db.upsert(
-            'sumarios',
-            parseado.diarios.map((d) => ({
-              boletin: 'BOE', fecha, numero: d.numero, url_pdf: d.url_pdf, hash: r.hash,
-            })),
-            'boletin,fecha,numero',
-          );
+          // El hash se guarda al FINAL, cuando ya han entrado todos los lotes. Aquí solo se crea o actualiza la
+          // fila del sumario (sin tocar su hash) para tener su id.
+          const filaSumario = (d) => ({ boletin: 'BOE', fecha, numero: d.numero, url_pdf: d.url_pdf });
+          const sumarios = await db.upsert('sumarios', parseado.diarios.map(filaSumario), 'boletin,fecha,numero');
           const idSumario = new Map(sumarios.map((s) => [s.numero, s.id]));
 
           // Solo se envían las columnas del sumario: así un nuevo paso del mismo día
@@ -80,6 +84,9 @@ export async function ingestarFecha(fecha, { db, seco = false, descargar = desca
             d.publicaciones.map((p) => ({ ...p, sumario_id: idSumario.get(d.numero) })),
           );
           for (const lote of lotes(filas, TAMANO_LOTE)) await db.upsert('publicaciones', lote, 'id');
+          await db.upsert(
+            'sumarios', parseado.diarios.map((d) => ({ ...filaSumario(d), hash: r.hash })), 'boletin,fecha,numero',
+          );
 
           const nuevas = filas.filter((p) => !existentes.has(p.id)).length;
           resultado = {
@@ -123,9 +130,12 @@ function leerArgumentos(argv) {
 
 async function principal() {
   const a = leerArgumentos(process.argv.slice(2));
+  // «hoy» ingiere también ayer: si ayer no corrió ninguna pasada (o se cortó), se recupera. Si ayer ya está
+  // completo, sale «sin cambios» con dos consultas.
+  const hoy = hoyEnMadrid();
   const fechas = a.desde
-    ? [...dias(a.desde, a.hasta ?? hoyEnMadrid())]
-    : [!a.fecha || a.fecha === 'hoy' ? hoyEnMadrid() : a.fecha];
+    ? [...dias(a.desde, a.hasta ?? hoy)]
+    : !a.fecha || a.fecha === 'hoy' ? [diaAnterior(hoy), hoy] : [a.fecha];
 
   for (const f of fechas) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) throw new Error(`fecha no válida: ${f}`);
