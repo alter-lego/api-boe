@@ -47,13 +47,14 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client-17
 
-      # Solo el esquema public (los esquemas de Supabase los gestiona la plataforma). Sin los datos de `consultas`:
-      # son las preguntas de los periodistas (sensibles, se borran a los 90 días y no hace falta restaurarlas).
+      # Solo el esquema public (los esquemas de Supabase los gestiona la plataforma). Sin `consultas` (ni su estructura,
+      # que crean las migraciones): son las preguntas de los periodistas (sensibles, se borran a los 90 días y no hace
+      # falta restaurarlas), y el rol `respaldo` no tiene permiso para leerla (migración 21).
       - name: Volcar la base de datos
         run: |
           /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
             --format=custom --no-owner --no-privileges --schema=public \
-            --exclude-table-data=public.consultas \
+            --exclude-table=public.consultas \
             --file=respaldo.dump
           /usr/lib/postgresql/17/bin/pg_restore --list respaldo.dump > contenido.txt
           # Comprobación mínima: el volcado tiene las tablas principales.

@@ -4,15 +4,15 @@ Decidida el 21/11/2026. El plan gratuito de Supabase no incluye copias: este vol
 Workflow: `.github/workflows/copia-seguridad.yml` (domingos 03:15 UTC y a mano con «Run workflow»).
 
 ## Qué guarda
-`pg_dump` del esquema `public` en formato custom, **cifrado con AES-256** (`respaldo.dump.enc`), como artefacto de GitHub **90 días**. Va cifrado porque en un repositorio público los artefactos los puede descargar cualquiera (el 21/11/2026 el repositorio fue público y el primer volcado, sin cifrar, hubo que borrarlo). Incluye publicaciones, sumarios, ingestas, periodistas y su log. **No incluye los datos de `consultas`** (preguntas de los periodistas: sensibles, se borran a los 90 días y no hace falta restaurarlas). Las funciones, políticas RLS y permisos se pueden recrear aplicando las migraciones; el volcado va con `--no-privileges` y los permisos salen de las migraciones.
+`pg_dump` del esquema `public` en formato custom, **cifrado con AES-256** (`respaldo.dump.enc`), como artefacto de GitHub **90 días**. Va cifrado porque en un repositorio público los artefactos los puede descargar cualquiera (el 21/11/2026 el repositorio fue público y el primer volcado, sin cifrar, hubo que borrarlo). Incluye publicaciones, sumarios, ingestas, periodistas y su log. **No incluye `consultas`** (preguntas de los periodistas: sensibles, se borran a los 90 días y no hace falta restaurarlas). Las funciones, políticas RLS y permisos se pueden recrear aplicando las migraciones; el volcado va con `--no-privileges` y los permisos salen de las migraciones.
 Aviso: el volcado contiene correos de periodistas. Nunca se sube en claro; el workflow se niega a subir nada si falta `BACKUP_PASSPHRASE`.
 
 ## Puesta en marcha (la hace el usuario, una vez)
 1. **Crear un rol de solo lectura** (no usar la contraseña de `postgres`). En el SQL Editor, con una contraseña larga inventada por ti (no la pegues en el chat):
    ```sql
    create role respaldo login bypassrls password 'PON-AQUI-UNA-CONTRASEÑA-LARGA';
-   grant pg_read_all_data to respaldo;
    ```
+   Y después aplicar la migración `20261128110000_respaldo_minimo.sql`, que le da lectura **solo** sobre las tablas de `public` que se copian. **No usar `grant pg_read_all_data`** (así estaba antes del 27/11/2026): da lectura sobre todos los esquemas, también `auth` (tokens de sesión y de enlaces) y las preguntas de `consultas`. Si se crea una tabla nueva en `public`, hay que darle SELECT a `respaldo` en otra migración o la copia fallará (`supabase/tests/fase11_respaldo.sql` lo detecta).
    `bypassrls` es necesario porque las tablas tienen RLS y, sin él, `pg_dump` falla. **Si el SQL Editor rechaza `bypassrls`** (requiere superusuario), dímelo antes de seguir: la alternativa es usar el usuario `postgres`, que tiene más permisos y habría que valorarlo.
 2. **Cadena de conexión:** Supabase → botón **Connect** → **Session pooler** (funciona con IPv4, que es lo que usa GitHub). Tiene la forma `postgresql://respaldo.<ref>:<contraseña>@aws-…pooler.supabase.com:5432/postgres`: usuario `respaldo.<ref del proyecto>` y tu contraseña del paso 1.
 3. **Secreto en GitHub:** repositorio → Settings → Secrets and variables → Actions → New repository secret → nombre exacto `SUPABASE_DB_URL`, valor la cadena anterior.
