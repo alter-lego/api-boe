@@ -11,9 +11,9 @@ export async function getToken(): Promise<string | null> {
 export const authConfigurado = () => supabase !== null;
 
 // Envía el enlace de acceso. shouldCreateUser: false → solo entran correos ya dados de alta.
-export async function enviarEnlace(email: string): Promise<'ok' | 'error' | 'limite' | 'sin-configurar'> {
+export async function enviarEnlace(email: string, captchaToken?: string | null): Promise<'ok' | 'error' | 'limite' | 'sin-configurar'> {
   if (!supabase) return 'sin-configurar';
-  const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: false, emailRedirectTo: window.location.origin } });
+  const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: false, emailRedirectTo: window.location.origin, ...(captchaToken ? { captchaToken } : {}) } });
   if (!error) return 'ok';
   return error.status === 429 || error.code === 'over_email_send_rate_limit' ? 'limite' : 'error';
 }
