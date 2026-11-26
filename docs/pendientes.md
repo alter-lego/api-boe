@@ -17,6 +17,7 @@
 - **Rol de ingesta con permisos mínimos.** Hoy la ingesta usa `service_role` (GitHub Secrets). Un rol propio exigiría conexión directa a Postgres o funciones con token, porque las claves `sb_secret_` solo actúan como `service_role`.
 - **Más histórico** (hoy hay 3 meses, 13/08–13/11/2026): descartado por ahora. Un año no cabe en el plan gratuito de Supabase.
 - **`POST /v1/entrar`** (login validado contra la lista de periodistas desde el Worker): descartado; el código está en la rama local `aparcado/entrar`. Lo sustituye la Edge Function de `docs/edge-function-alta.md`.
+- **Dominios de correo en el alta (decidido el 27/11/2026):** se admite cualquier dominio (el MVP incluye colaboradores de fuera); solo entran los correos que da de alta un administrador (`shouldCreateUser: false` en la web y lista `periodistas` en la base). Contra las erratas en el dominio (auditoría, 1.8), la pantalla de Administración pide confirmar el correo si no es de `eldiario.es` (`DOMINIOS_HABITUALES` en `web/src/pages/Admin.tsx`).
 - **Sanciones (sección III):** decidido el 21/11/2026: **públicas**. Ver `niveles-privacidad.md`.
 - **Tras el piloto (decidido):** el servicio pasa a la nube propia de la organización, con otra configuración, mantenido por un equipo ya existente.
 

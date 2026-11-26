@@ -7,6 +7,11 @@ import { Badge, Button, Field } from '../ds';
 import { Esqueletos } from '../Estados';
 import { useAsync } from '../useAsync';
 
+// Se admite cualquier dominio (decisión del 27/11/2026: el MVP incluye colaboradores de fuera), y solo entran los
+// correos dados de alta aquí. Pero un correo con una errata en el dominio (p. ej. «eldiaro.es») daría acceso a
+// quien controle ese dominio: si no es uno de estos, se pide confirmar el correo antes de darlo de alta.
+const DOMINIOS_HABITUALES = ['eldiario.es'];
+
 const texto = (e: unknown) => (e instanceof AdminError ? e.message : 'No se pudo completar. Inténtalo de nuevo.');
 
 function Alta({ alAlta }: { alAlta: () => void }) {
@@ -16,9 +21,14 @@ function Alta({ alAlta }: { alAlta: () => void }) {
   const [esAdmin, setEsAdmin] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; texto: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [confirmar, setConfirmar] = useState<string | null>(null);   // correo de otro dominio pendiente de confirmar
 
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
+    const correo = email.trim().toLowerCase();
+    const dominio = correo.split('@')[1] ?? '';
+    if (!DOMINIOS_HABITUALES.includes(dominio) && confirmar !== correo) { setConfirmar(correo); setMsg(null); return; }
+    setConfirmar(null);
     setEnviando(true); setMsg(null);
     try {
       const r = await admin.alta({ email, nombre, limite, esAdmin });
@@ -37,12 +47,18 @@ function Alta({ alAlta }: { alAlta: () => void }) {
     <form className="panel" onSubmit={enviar}>
       <h2>Dar de alta</h2>
       <div className="admin__alta">
-        <Field label="Correo" id="a-email"><input id="a-email" type="email" required className="bboe-input" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+        <Field label="Correo" id="a-email"><input id="a-email" type="email" required className="bboe-input" value={email} onChange={(e) => { setEmail(e.target.value); setConfirmar(null); }} /></Field>
         <Field label="Nombre (opcional)" id="a-nombre"><input id="a-nombre" className="bboe-input" maxLength={200} value={nombre} onChange={(e) => setNombre(e.target.value)} /></Field>
         <Field label="Preguntas al día" id="a-limite"><input id="a-limite" type="number" min={1} max={1000} className="bboe-input" value={limite} onChange={(e) => setLimite(Number(e.target.value))} /></Field>
       </div>
       <label className="multi__op"><input type="checkbox" checked={esAdmin} onChange={(e) => setEsAdmin(e.target.checked)} /> Administrador (puede dar de alta y gestionar periodistas)</label>
-      <div><Button type="submit" disabled={enviando}>{enviando ? 'Guardando…' : 'Dar de alta'}</Button></div>
+      {confirmar ? (
+        <p className="admin__confirma" role="alert">
+          <strong>{confirmar}</strong> no es un correo de {DOMINIOS_HABITUALES.join(' ni ')}. Comprueba que está bien escrito, sobre todo el dominio
+          (lo que va detrás de la @): quien reciba en esa dirección podrá entrar en el buscador.
+        </p>
+      ) : null}
+      <div><Button type="submit" disabled={enviando}>{enviando ? 'Guardando…' : confirmar ? 'Sí, está bien: dar de alta' : 'Dar de alta'}</Button></div>
       {msg ? <p className={msg.ok ? 'bboe-meta' : 'admin__error'} role={msg.ok ? 'status' : 'alert'}>{msg.texto}</p> : null}
     </form>
   );
