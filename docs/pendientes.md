@@ -20,9 +20,33 @@
 - **Sanciones (sección III):** decidido el 21/11/2026: **públicas**. Ver `niveles-privacidad.md`.
 - **Tras el piloto (decidido):** el servicio pasa a la nube propia de la organización, con otra configuración, mantenido por un equipo ya existente.
 
-## Restricciones del piloto que se pueden levantar en la nube interna
-Impuestas por los planes gratuitos; al pasar a la nube de la organización (o a planes de pago) se pueden quitar.
+## Restricciones del MVP (piloto) que se pueden levantar en la nube interna
+Este proyecto es un MVP para unos 20 periodistas, montado con planes gratuitos y cuentas personales. Estas
+restricciones vienen de ahí, no del diseño: al pasar a la nube de la organización (o a planes de pago) se pueden
+quitar o cambiar. Revisada el 27/11/2026.
+
+**Límites de los planes gratuitos**
 - **Lectura de textos en Preguntar: 300 KB** (`TOPE_XML` en `api/src/preguntar.js`, desde el 27/11/2026; antes 1,5 MB). El plan gratuito de Cloudflare Workers corta a los 10 ms de CPU y procesar 1,5 MB costaba 13–16 ms (auditoría del 26/11/2026); 300 KB cuestan ~1,5–2,6 ms. De los documentos más largos (presupuestos, convenios, listas largas) Claude solo lee el principio: no ve la entrada en vigor, las disposiciones finales ni la firma, y se le avisa de que no diga que algo «no figura». Sin límite de 10 ms, subir el tope (p. ej. a 5 MB) y volver a recortar con principio y final.
+- **Base de datos de 500 MB** (Supabase gratuito). Crece ~40 MB al mes: llena hacia el verano de 2027. Al llenarse queda en solo lectura y la ingesta se para. Por eso el **histórico es de 3 meses** (desde el 13/08/2026) y no de 12.
+- **Sin copias automáticas ni restauración a un momento dado** (Supabase gratuito): hay una copia propia semanal y cifrada en GitHub Actions (`docs/copia-seguridad.md`), que nunca se ha probado a restaurar.
+- **Un solo entorno (producción)**: el plan gratuito no tiene ramas de base de datos. Las pruebas SQL se pasan en producción con `rollback` y no hay preproducción para ensayar migraciones.
+- **Correo de entrada por Gmail** (SMTP de una cuenta del proyecto): cupo diario limitado, remitente de Gmail (puede ir a spam) y sin protección ante peticiones masivas de enlaces (auditoría, 1.9). En la nube interna: el servidor de correo de la organización.
+
+**Planificación y operación**
+- **Planificador:** el cron de GitHub Actions llega con horas de retraso, así que la ingesta la lanza un Cron Trigger de Cloudflare (`disparador/`) con un token personal de GitHub. En la nube interna: el planificador propio (cron, Kubernetes CronJob…) llamando directamente a `ingesta/boe.js`, `fichas.js` y `resumen-dia.js`, sin GitHub ni token.
+- **Monitor por correo de GitHub** (falla los domingos porque no hay BOE, y no ve fallos de la IA). En la nube interna: la monitorización y alertas de la organización.
+- **Despliegue a mano desde un Mac** (`wrangler` con sesión personal). Sin despliegue desde CI ni aprobación previa. La compilación de la web exige `VITE_MODO=api` (`web/vite.config.ts`).
+- **Repositorio público**: los logs y artefactos de Actions son públicos (por eso la copia va cifrada) y la protección de ramas depende de que lo siga siendo.
+
+**Cuentas, claves y dominios personales**
+- **Claves con caducidad, a nombre de personas:** Anthropic del buscador (21/12/2026), Anthropic de la ingesta (29/01/2027) y el token de GitHub del disparador. En la nube interna: gestor de secretos de la organización y cuentas de servicio.
+- **La ingesta usa `service_role`** (todos los permisos sobre la base). Un rol con permisos mínimos necesita conexión directa a Postgres, que en la nube interna sí estará disponible.
+- **Dominios `*.workers.dev`**, afectados por los bloqueos de Cloudflare en días de partido. En la nube interna: dominio y alojamiento propios.
+- **Edge Function con nombre automático** (`swift-task`).
+
+**Alcance funcional del MVP**
+- **Una sola fuente** (BOE), **30 preguntas diarias** por periodista y **Claude Haiku** en Preguntar: decisiones de coste revisables con la batería de evaluación de la fase 6.
+- **El resumen del día se recupera solo con un día de retraso** (cada pasada cubre ayer y hoy); más días perdidos se lanzan a mano.
 
 ## Abierto
 - **Nota de protección de datos (RGPD)** sobre el índice de nombres de las restringidas (finalidad, plazo de conservación, supresión).
@@ -39,7 +63,7 @@ Impuestas por los planes gratuitos; al pasar a la nube de la organización (o a 
 
 ## Riesgos conocidos
 - **Bloqueos de LaLiga a Cloudflare.** En España, los días de partido, los operadores bloquean direcciones de Cloudflare por orden judicial y la web y la API (alojadas en Cloudflare) pueden dar `ERR_CONNECTION_TIMED_OUT` desde redes afectadas (visto el 21/11/2026 en Chrome de iOS con 5G; Safari con Relay privado de iCloud sí cargaba). Un dominio propio no lo evita (mismas direcciones). Solo se evitaría alojando fuera de Cloudflare: valorarlo en el traspaso a la nube de la organización.
-- **El cron de GitHub no es fiable:** el 21/11/2026 no lanzó la ingesta de las 07:30. Por eso hay varias pasadas por la mañana y el monitor vigila la antigüedad.
+- **El cron de GitHub no es fiable:** llega con horas de retraso (auditoría del 26/11/2026). Desde el 27/11/2026 la ingesta y el monitor los lanza el Worker `disparador-ingesta-boe` (Cron Trigger de Cloudflare); el cron de GitHub queda de respaldo. Si caduca su token de GitHub, solo queda el respaldo.
 - **Repositorio público** (desde el 21/11/2026): los artefactos de las Actions los puede descargar cualquiera con cuenta de GitHub (por eso la copia va cifrada), el diseño de seguridad es visible y las reglas de protección de ramas solo funcionan mientras sea público. Si se vuelve a privado, esas reglas dejan de aplicarse.
 
 ## Entornos

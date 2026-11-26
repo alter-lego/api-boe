@@ -1,4 +1,5 @@
-// Datos de ejemplo para probar la web sin sesión ni API. NO son publicaciones reales.
+// Datos de ejemplo para probar la web sin sesión ni API. NO son publicaciones reales: sus ids son del año 2099 para
+// que sus enlaces al BOE no abran publicaciones reales distintas. Solo se cargan en modo prueba (ver api.ts).
 import type { BusquedaPersona, Conteo, Ficha, Filtros, ResumenDia, Respuesta, Salud, Sumario } from './types';
 import { SECCIONES } from './labels';
 
@@ -18,36 +19,36 @@ const SAN = 'Ministerio de Sanidad';
 
 function dia(f: string, n: string): Ficha[] {
   return [
-    base({ id: `BOE-A-2026-${n}01`, fecha: f, seccion: '1', seccion_nombre: 'I. Disposiciones generales', departamento: JEF, rango: 'Real Decreto-ley', tipo_acto: 'norma', temas: ['vivienda'],
+    base({ id: `BOE-A-2099-${n}01`, fecha: f, seccion: '1', seccion_nombre: 'I. Disposiciones generales', departamento: JEF, rango: 'Real Decreto-ley', tipo_acto: 'norma', temas: ['vivienda'],
       titulo: 'Real Decreto-ley 24/2026, de 10 de noviembre, de medidas urgentes en materia de vivienda.', ficha_revisar: true }),
-    base({ id: `BOE-A-2026-${n}02`, fecha: f, seccion: '1', seccion_nombre: 'I. Disposiciones generales', departamento: VIV, rango: 'Orden', tipo_acto: 'modificacion_norma', temas: ['vivienda'],
+    base({ id: `BOE-A-2099-${n}02`, fecha: f, seccion: '1', seccion_nombre: 'I. Disposiciones generales', departamento: VIV, rango: 'Orden', tipo_acto: 'modificacion_norma', temas: ['vivienda'],
       titulo: 'Orden VAU/1301/2026, de 4 de noviembre, por la que se modifican las bases reguladoras de las ayudas al alquiler.',
       resumen: 'Amplía a 35 años la edad máxima para pedir la ayuda y simplifica la documentación.' }),
-    base({ id: `BOE-A-2026-${n}03`, fecha: f, seccion: '1', seccion_nombre: 'I. Disposiciones generales', departamento: VIV, rango: 'Orden', tipo_acto: 'correccion_errores', temas: ['vivienda'], corrige_a: 'BOE-A-2026-21877',
+    base({ id: `BOE-A-2099-${n}03`, fecha: f, seccion: '1', seccion_nombre: 'I. Disposiciones generales', departamento: VIV, rango: 'Orden', tipo_acto: 'correccion_errores', temas: ['vivienda'], corrige_a: 'BOE-A-2099-21877',
       titulo: 'Corrección de errores de la Orden VAU/1234/2026, de 20 de octubre, por la que se regulan las ayudas al alquiler joven.',
       resumen: 'Corrige un error en la tabla de cuantías de las ayudas al alquiler joven.' }),
-    base({ id: `BOE-A-2026-${n}04`, fecha: f, seccion: '2A', seccion_nombre: 'II.A. Nombramientos y ceses', departamento: HAC, rango: 'Real Decreto', tipo_acto: 'nombramiento', temas: ['empleo_publico_y_administracion'],
+    base({ id: `BOE-A-2099-${n}04`, fecha: f, seccion: '2A', seccion_nombre: 'II.A. Nombramientos y ceses', departamento: HAC, rango: 'Real Decreto', tipo_acto: 'nombramiento', temas: ['empleo_publico_y_administracion'],
       titulo: 'Real Decreto 1020/2026, de 10 de noviembre, por el que se nombra Director General de Tributos a un alto cargo del Ministerio de Hacienda.',
       resumen: 'Nombra a la persona que dirigirá la Dirección General de Tributos del Ministerio de Hacienda.' }),
-    base({ id: `BOE-A-2026-${n}05`, fecha: f, seccion: '2B', seccion_nombre: 'II.B. Oposiciones y concursos', departamento: SAN, nivel_privacidad: 'restringido',
+    base({ id: `BOE-A-2099-${n}05`, fecha: f, seccion: '2B', seccion_nombre: 'II.B. Oposiciones y concursos', departamento: SAN, nivel_privacidad: 'restringido',
       titulo: 'Resolución de 5 de noviembre de 2026, de la Dirección General de Ordenación Profesional, por la que se aprueba la lista definitiva de aspirantes admitidos y excluidos.' }),
-    base({ id: `BOE-A-2026-${n}06`, fecha: f, seccion: '3', departamento: VIV, rango: 'Resolución', tipo_acto: 'convenio', temas: ['vivienda'],
+    base({ id: `BOE-A-2099-${n}06`, fecha: f, seccion: '3', departamento: VIV, rango: 'Resolución', tipo_acto: 'convenio', temas: ['vivienda'],
       titulo: 'Resolución de 5 de noviembre de 2026, de la Secretaría de Estado de Vivienda, por la que se publica el Convenio con la Comunidad de Madrid para el fomento del alquiler asequible.',
       resumen: 'Convenio para financiar viviendas de alquiler asequible en la región. Fija una aportación estatal de 18 millones de euros y un plazo de ejecución de cuatro años.' }),
-    base({ id: `BOE-A-2026-${n}07`, fecha: f, seccion: '3', departamento: SAN, rango: 'Resolución', tipo_acto: 'subvencion_ayuda', temas: ['sanidad'],
+    base({ id: `BOE-A-2099-${n}07`, fecha: f, seccion: '3', departamento: SAN, rango: 'Resolución', tipo_acto: 'subvencion_ayuda', temas: ['sanidad'],
       titulo: 'Extracto de la Resolución de 3 de noviembre de 2026, de la Secretaría de Estado de Sanidad, por la que se convocan ayudas para proyectos de investigación en salud pública.',
       resumen: 'Convoca ayudas para proyectos de investigación en salud pública. El plazo de solicitud es de veinte días hábiles.' }),
-    base({ id: `BOE-A-2026-${n}08`, fecha: f, seccion: '4', seccion_nombre: 'IV. Administración de Justicia', nivel_privacidad: 'restringido', departamento: 'Administración de Justicia',
+    base({ id: `BOE-A-2099-${n}08`, fecha: f, seccion: '4', seccion_nombre: 'IV. Administración de Justicia', nivel_privacidad: 'restringido', departamento: 'Administración de Justicia',
       titulo: 'Edicto del Juzgado de Primera Instancia número 12 de Valencia por el que se notifica sentencia.' }),
-    base({ id: `BOE-A-2026-${n}09`, fecha: f, seccion: '5A', seccion_nombre: 'V.A. Contratación del Sector Público', departamento: SAN, tipo_acto: 'contrato_licitacion', temas: ['contratacion_publica', 'sanidad'],
+    base({ id: `BOE-A-2099-${n}09`, fecha: f, seccion: '5A', seccion_nombre: 'V.A. Contratación del Sector Público', departamento: SAN, tipo_acto: 'contrato_licitacion', temas: ['contratacion_publica', 'sanidad'],
       titulo: 'Anuncio de licitación de: Dirección General de Gestión Económica del Ministerio de Sanidad. Objeto: suministro de equipamiento para el Hospital Central de la Defensa.',
       resumen: 'Licita el suministro de equipamiento sanitario para un hospital militar. Presupuesto base de licitación de 2,4 millones de euros.' }),
-    base({ id: `BOE-A-2026-${n}10`, fecha: f, seccion: '5A', seccion_nombre: 'V.A. Contratación del Sector Público', departamento: VIV, tipo_acto: 'contrato_adjudicacion', temas: ['contratacion_publica', 'vivienda'],
+    base({ id: `BOE-A-2099-${n}10`, fecha: f, seccion: '5A', seccion_nombre: 'V.A. Contratación del Sector Público', departamento: VIV, tipo_acto: 'contrato_adjudicacion', temas: ['contratacion_publica', 'vivienda'],
       titulo: 'Anuncio de formalización de contratos de: Dirección General de Vivienda y Suelo. Objeto: obras de rehabilitación de 120 viviendas.',
       resumen: 'Adjudica las obras de rehabilitación de 120 viviendas públicas por 7,9 millones de euros.' }),
-    base({ id: `BOE-A-2026-${n}11`, fecha: f, seccion: '5B', seccion_nombre: 'V.B. Otros anuncios oficiales', departamento: HAC, nivel_privacidad: 'restringido',
+    base({ id: `BOE-A-2099-${n}11`, fecha: f, seccion: '5B', seccion_nombre: 'V.B. Otros anuncios oficiales', departamento: HAC, nivel_privacidad: 'restringido',
       titulo: 'Anuncio de la Delegación de Economía y Hacienda por el que se convoca subasta pública de bienes inmuebles.' }),
-    base({ id: `BOE-A-2026-${n}12`, fecha: f, seccion: '5B', seccion_nombre: 'V.B. Otros anuncios oficiales', departamento: JEF, tipo_acto: 'informacion_publica', temas: ['medio_ambiente_y_agua'],
+    base({ id: `BOE-A-2099-${n}12`, fecha: f, seccion: '5B', seccion_nombre: 'V.B. Otros anuncios oficiales', departamento: JEF, tipo_acto: 'informacion_publica', temas: ['medio_ambiente_y_agua'],
       titulo: 'Anuncio de la Confederación Hidrográfica del Ebro por el que se somete a información pública la solicitud de concesión de aguas para riego.',
       resumen: 'Abre un periodo de información pública sobre una concesión de aguas para riego en la cuenca del Ebro.',
       estatus_derogacion: 'D', aviso_fuente: 'El texto oficial cita una fecha que no coincide con la de la resolución.' }),
@@ -66,7 +67,7 @@ export const ULTIMO_DIA = '2026-11-13';
 function resumenMock(fecha: string): ResumenDia | null {
   const n = { '2026-11-13': '223', '2026-11-12': '222', '2026-11-11': '221' }[fecha];
   if (!n) return null;
-  const id = (k: string) => `BOE-A-2026-${n}${k}`;
+  const id = (k: string) => `BOE-A-2099-${n}${k}`;
   return {
     generado_en: `${fecha}T07:52:00Z`,
     titulares: [
@@ -136,10 +137,10 @@ export const mock = {
     if (sinTildes(limpio).replace(/[^a-z]/g, '').length < 3) return Promise.reject(Object.assign(new Error('escribe al menos un nombre o apellido de 3 letras o más'), { status: 400 }));
     if (sinTildes(limpio).includes('zzz')) return espera({ n: 0, totales: { titulo: 0, resumen: 0, seguido: 0, restringida: 0 }, resultados: [] });
     const resultados = [
-      { ...base({ id: 'BOE-A-2026-23901', fecha: '2026-11-12', departamento: 'Ministerio de Justicia', rango: 'Real Decreto', tipo_acto: 'indulto_sancion', temas: ['justicia'],
+      { ...base({ id: 'BOE-A-2099-23901', fecha: '2026-11-12', departamento: 'Ministerio de Justicia', rango: 'Real Decreto', tipo_acto: 'indulto_sancion', temas: ['justicia'],
         titulo: `Real Decreto 1101/2026, de 10 de noviembre, por el que se indulta a don ${limpio} (ejemplo inventado).`,
         resumen: 'Indulta parcialmente la pena impuesta. Ejemplo inventado para probar la interfaz.' }), coincidencia: 'titulo' as const },
-      { ...base({ id: 'BOE-A-2026-23655', fecha: '2026-10-30', seccion: '2A', seccion_nombre: 'II.A. Nombramientos y ceses', departamento: 'Ministerio de Hacienda', tipo_acto: 'nombramiento', temas: ['empleo_publico_y_administracion'],
+      { ...base({ id: 'BOE-A-2099-23655', fecha: '2026-10-30', seccion: '2A', seccion_nombre: 'II.A. Nombramientos y ceses', departamento: 'Ministerio de Hacienda', tipo_acto: 'nombramiento', temas: ['empleo_publico_y_administracion'],
         titulo: 'Orden HAC/1190/2026, de 27 de octubre, por la que se resuelve convocatoria de libre designación.',
         resumen: `Adjudica el puesto de subdirector general a ${limpio}. Ejemplo inventado.` }), coincidencia: 'resumen' as const },
       ...DATOS.filter((x) => x.nivel_privacidad === 'publico' && x.seccion === '3').slice(0, 1).map((x) => ({ ...x, coincidencia: 'seguido' as const })),
@@ -168,8 +169,8 @@ export const mock = {
     const cita = (id: string) => { const x = DATOS.find((d) => d.id === id)!; return { id: x.id, titulo: x.titulo, fecha: x.fecha, organismo: x.departamento, seccion: x.seccion, nivel_privacidad: x.nivel_privacidad, url_html: x.url_html, url_pdf: x.url_pdf, avisos: x.id.endsWith('12') ? ['puede estar derogada o modificada'] : [] }; };
     return {
       ...base,
-      respuesta: 'Esta semana se han publicado dos disposiciones sobre ayudas al alquiler: una orden que modifica las bases reguladoras [BOE-A-2026-22302] y la corrección de errores de la orden anterior [BOE-A-2026-22303]. Además, un convenio con la Comunidad de Madrid fija 18 millones para alquiler asequible [BOE-A-2026-22306]. Una referencia que el sistema no pudo comprobar: [referencia no verificada].',
-      citas: [cita('BOE-A-2026-22302'), cita('BOE-A-2026-22303'), cita('BOE-A-2026-22306')],
+      respuesta: 'Esta semana se han publicado dos disposiciones sobre ayudas al alquiler: una orden que modifica las bases reguladoras [BOE-A-2099-22302] y la corrección de errores de la orden anterior [BOE-A-2099-22303]. Además, un convenio con la Comunidad de Madrid fija 18 millones para alquiler asequible [BOE-A-2099-22306]. Una referencia que el sistema no pudo comprobar: [referencia no verificada].',
+      citas: [cita('BOE-A-2099-22302'), cita('BOE-A-2099-22303'), cita('BOE-A-2099-22306')],
       sin_resultados: false,
     };
   },

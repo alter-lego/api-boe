@@ -1,8 +1,10 @@
 import { cerrarPorCaducidad, getToken } from './auth';
-import { mock } from './mock';
 import type { BusquedaPersona, Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
 
 export const MODO: 'prueba' | 'api' = import.meta.env.VITE_MODO === 'api' ? 'api' : 'prueba';
+// Los datos de ejemplo se cargan solo en modo prueba: en la compilación de producción (VITE_MODO=api) esas ramas
+// son código muerto y el módulo mock no llega al bundle (auditoría del 26/11/2026, 1.7).
+const datosPrueba = () => import('./mock').then((m) => m.mock);
 const API = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api-boe.alter-lego.workers.dev';
 
 export class ApiError extends Error {
@@ -60,7 +62,7 @@ const ESPERA_MAX_MS = 65000; // la respuesta puede tardar hasta ~60 s (varias ro
 export const api = {
   async preguntar(pregunta: string, señal?: AbortSignal): Promise<Respuesta> {
     try {
-      if (MODO === 'prueba') return await mock.preguntar(pregunta);
+      if (MODO === 'prueba') return await (await datosPrueba()).preguntar(pregunta);
       const tope = AbortSignal.timeout(ESPERA_MAX_MS);
       const signal = señal ? AbortSignal.any([señal, tope]) : tope;
       return await llamar<Respuesta>('/v1/preguntar', true, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta }), signal });
@@ -78,19 +80,19 @@ export const api = {
     } catch (e) { return normaliza(e); }
   },
   async salud(): Promise<Salud> {
-    if (MODO === 'prueba') return mock.health();
+    if (MODO === 'prueba') return (await datosPrueba()).health();
     return llamar<Salud>('/v1/health', false);
   },
   async buscar(f: Filtros): Promise<Ficha[]> {
     try {
-      const lista = MODO === 'prueba' ? await mock.buscar(f) : (await llamar<{ publicaciones: Ficha[] }>(`/v1/publicaciones?${parametros(f, { limit: '100' })}`)).publicaciones;
+      const lista = MODO === 'prueba' ? await (await datosPrueba()).buscar(f) : (await llamar<{ publicaciones: Ficha[] }>(`/v1/publicaciones?${parametros(f, { limit: '100' })}`)).publicaciones;
       return ordenar(lista, f);
     } catch (e) { return normaliza(e); }
   },
   /** Buscar a una persona por su nombre: primero el nombre exacto en el título o el resumen, después el texto. */
   async personas(nombre: string, desde?: string, hasta?: string): Promise<BusquedaPersona> {
     try {
-      if (MODO === 'prueba') return await mock.personas(nombre);
+      if (MODO === 'prueba') return await (await datosPrueba()).personas(nombre);
       const p = new URLSearchParams({ nombre: nombre.trim() });
       if (desde) p.set('desde', desde);
       if (hasta) p.set('hasta', hasta);
@@ -99,13 +101,13 @@ export const api = {
   },
   async conteos(f: Filtros, agrupar: 'mes' | 'organismo' | 'tipo'): Promise<Conteo> {
     try {
-      return MODO === 'prueba' ? await mock.conteos(f, agrupar) : await llamar<Conteo>(`/v1/conteos?${parametros(f, { agrupar })}`);
+      return MODO === 'prueba' ? await (await datosPrueba()).conteos(f, agrupar) : await llamar<Conteo>(`/v1/conteos?${parametros(f, { agrupar })}`);
     } catch (e) { return normaliza(e); }
   },
   async publicacion(id: string): Promise<Ficha> {
     try {
       if (MODO === 'prueba') {
-        const x = await mock.publicacion(id);
+        const x = await (await datosPrueba()).publicacion(id);
         if (!x) throw new ApiError(404, 'No encontrada');
         return x;
       }
@@ -114,7 +116,7 @@ export const api = {
   },
   async sumario(fecha: string): Promise<Sumario> {
     try {
-      return MODO === 'prueba' ? await mock.sumario(fecha) : await llamar<Sumario>(`/v1/sumarios/${encodeURIComponent(fecha)}`);
+      return MODO === 'prueba' ? await (await datosPrueba()).sumario(fecha) : await llamar<Sumario>(`/v1/sumarios/${encodeURIComponent(fecha)}`);
     } catch (e) { return normaliza(e); }
   },
 };
