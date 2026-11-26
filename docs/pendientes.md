@@ -31,7 +31,7 @@ quitar o cambiar. Revisada el 27/11/2026.
 - **Base de datos de 500 MB** (Supabase gratuito). Crece ~40 MB al mes: llena hacia el verano de 2027. Al llenarse queda en solo lectura y la ingesta se para. Por eso el **histórico es de 3 meses** (desde el 13/08/2026) y no de 12.
 - **Sin copias automáticas ni restauración a un momento dado** (Supabase gratuito): hay una copia propia semanal y cifrada en GitHub Actions (`docs/copia-seguridad.md`), que nunca se ha probado a restaurar.
 - **Un solo entorno (producción)**: el plan gratuito no tiene ramas de base de datos. Las pruebas SQL se pasan en producción con `rollback` y no hay preproducción para ensayar migraciones.
-- **Correo de entrada por Gmail** (SMTP de una cuenta del proyecto): cupo diario limitado, remitente de Gmail (puede ir a spam) y sin protección ante peticiones masivas de enlaces (auditoría, 1.9). En la nube interna: el servidor de correo de la organización.
+- **Correo de entrada por Gmail** (SMTP de una cuenta del proyecto): cupo diario limitado y remitente de Gmail (puede ir a spam). Desde el 27/11/2026 las peticiones de enlaces pasan por Cloudflare Turnstile (CAPTCHA exigido por Supabase Auth; clave pública en `web/src/config.ts`) y el límite de Supabase es de 20 correos por hora (auditoría, 1.9). En la nube interna: el servidor de correo de la organización.
 
 **Planificación y operación**
 - **Planificador:** el cron de GitHub Actions llega con horas de retraso, así que la ingesta la lanza un Cron Trigger de Cloudflare (`disparador/`) con un token personal de GitHub. En la nube interna: el planificador propio (cron, Kubernetes CronJob…) llamando directamente a `ingesta/boe.js`, `fichas.js` y `resumen-dia.js`, sin GitHub ni token.
