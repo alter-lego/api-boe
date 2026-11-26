@@ -31,6 +31,21 @@ test('V.B es pública salvo subastas, expropiaciones y títulos universitarios',
   assert.equal(clasificarNivel('5B', 'Anuncio de ADIF por el que se somete a información pública a efectos de declaración de la necesidad de ocupación el Proyecto de Plataforma.'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Anuncio sobre la NECESIDAD DE LA OCUPACIÓN de los terrenos'), 'restringido');
   assert.equal(clasificarNivel('5B', 'Anuncio por el que se publica la relación de bienes y derechos afectados por la obra'), 'restringido');
+  // Variantes reales que se escapaban (auditoría del 26/11/2026)
+  for (const t of [
+    "Anuncio de la Confederación Hidrográfica del Ebro de convocatoria para el levantamiento de las actas previas a la ocupación y si procediese, de ocupación definitiva de los bienes y/o derechos afectados",
+    "Anuncio para citación levantamiento actas previas a la ocupación de las fincas afectadas por el expediente",
+    "Anuncio por el que se somete a Información Pública el Proyecto X, así como la relación de bienes y derechos de necesaria ocupación.",
+    "Anuncio del Ayuntamiento de Cáceres relativo al inicio del procedimiento expropiatorio por tasación conjunta",
+    "Resolución de rectificación de error material en los datos correspondientes a las afecciones de la parcela número 28",
+    "Anuncio sobre el pago del justiprecio",
+    "Anuncio sobre la declaración de urgente ocupación",
+    "Relación de bienes afectados por la obra",
+    "Relación de propietarios afectados",
+  ]) assert.equal(clasificarNivel("5B", t), "restringido", t);
+  // Lo que no es una lista de propietarios sigue público
+  assert.equal(clasificarNivel("5B", "Anuncio de la Autoridad Portuaria por el que se otorga concesión administrativa de ocupación de dominio público portuario a la sociedad X S.L."), "publico");
+  assert.equal(clasificarNivel("5B", "Anuncio de la Confederación Hidrográfica del Guadalquivir de inicio de procedimiento para el deslinde de los terrenos sitos en polígono 5, parcela 9009"), "publico");
   // Una autorización de un proyecto de energía (utilidad pública) sigue siendo pública: lo esencial es el proyecto.
   assert.equal(clasificarNivel('5B', 'Anuncio por el que se somete a información pública la solicitud de autorización administrativa y declaración, en concreto, de utilidad pública del parque eólico'), 'publico');
   assert.equal(clasificarNivel('5B', 'Anuncio del Centro Universitario sobre destrucción de título Universitario.'), 'restringido');

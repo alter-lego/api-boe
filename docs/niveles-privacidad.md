@@ -20,13 +20,20 @@ Decidido el 13/11/2026 tras analizar 18 sumarios reales. **Sustituye a la tabla 
 > Los títulos nobiliarios (sucesión, rehabilitación) son públicos: no son excepción.
 
 Una publicación de `5B` pasa a restringida si su título (sin tildes ni mayúsculas) contiene:
-`subasta`; `expropiacion` o `levantamiento de actas`; `necesidad de ocupacion` (o `de la ocupacion`) o
-`bienes y derechos afectados`; o un trámite de título universitario
+`subasta`; `expropia…` (expropiación, procedimiento expropiatorio), `levantamiento (de las) actas` o `justiprecio`;
+`necesidad de (la) ocupacion`, `necesaria ocupacion` o `urgente ocupacion`; `bienes (y/o derechos) afectados`,
+`fincas afectadas`, `propietarios afectados` o `afecciones de la parcela/finca`; o un trámite de título universitario
 (`titulo universitario`, `extravio de titulo`, `duplicado de titulo`, `destruccion de titulo`).
 
 **Ocupaciones (26/11/2026, migración 16).** Los anuncios de «necesidad de ocupación» y de «relación de bienes y
 derechos afectados» (ADIF, subdelegaciones, carreteras…) son listas de propietarios afectados, como una expropiación;
 se escapaban de la regla y tenían resumen. Ahora son restringidos y la migración 16 reclasificó los ya cargados.
+**Variantes (26/11/2026, migración 20, tras la auditoría).** «Levantamiento de las actas», «bienes y/o derechos
+afectados», «necesaria ocupación», «procedimiento expropiatorio» y «afecciones de la parcela» se escapaban: 11 más.
+Además, al pasar de pública a restringida se **vacía el índice del texto** (antes solo se le quitaban las posiciones y
+conservaba los números de 3 o más cifras: «Apellido 4567» confirmaba a una persona). La ingesta lo reindexa con las
+reglas de las restringidas en el paso `fichas.js --restringidas`. La migración 20 vació también las 46 que la 16 dejó
+con números.
 Los anuncios de autorización y **utilidad pública** de proyectos (energía, sobre todo) **siguen públicos**: lo
 esencial es el proyecto, aunque su texto incluya en anexo la relación de afectados. Decisión revisable.
 Medido con 897 títulos reales de V.B: las palabras «notificación», «requerimiento» e «interesados»

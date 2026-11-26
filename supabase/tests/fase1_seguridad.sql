@@ -234,7 +234,7 @@ begin
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and has_function_privilege('authenticated', p.oid, 'execute');
   if lista is distinct from
-     'admin_alta_periodista, admin_gasto, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_publicaciones, completar_consulta, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, guardar_respuesta, publicacion, reservar_consulta, respuesta_guardada, sumario_del_dia, ultima_ingesta' then
+     'admin_alta_periodista, admin_gasto, admin_listar_periodistas, admin_modificar_periodista, admin_ver_log, buscar_persona, buscar_publicaciones, completar_consulta, consultas_de_hoy, contar_publicaciones, es_admin, es_periodista, guardar_respuesta, publicacion, reservar_consulta, respuesta_guardada, resumen_del_dia, sumario_del_dia, ultima_ingesta' then
     raise exception 'FALLO: authenticated puede ejecutar: %', lista; end if;
 end $$;
 

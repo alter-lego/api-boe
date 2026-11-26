@@ -1,5 +1,5 @@
 -- Pruebas de la migración 16: reclasificar a restringidas las «necesidad de ocupación» de V.B.
--- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de la migración 16.
+-- Pegar entero en Supabase → SQL Editor y ejecutar DESPUÉS de la migración 20 (actualizada: al restringir se vacía el índice).
 -- Todo en una transacción con rollback. Si algo falla, el error empieza por "FALLO".
 -- Publicaciones inventadas con fecha de 2099; la migración se vuelve a ejecutar sobre ellas.
 begin;
@@ -25,13 +25,15 @@ update public.publicaciones
 do $$
 declare r record; n int;
 begin
-  -- A) las de V.B con ocupación o bienes afectados pasan a restringidas, sin ficha y sin posiciones
+  -- A) las de V.B con ocupación o bienes afectados pasan a restringidas, sin ficha y con el índice vacío (migración 20)
   for r in select * from public.publicaciones where id in ('TEST-OCU-1', 'TEST-OCU-2') loop
     if r.nivel_privacidad <> 'restringido' then raise exception 'FALLO: % sigue pública', r.id; end if;
     if r.resumen is not null or r.temas is not null or r.tipo_acto is not null then raise exception 'FALLO: % conserva la ficha', r.id; end if;
-    if r.tsv_texto is null then raise exception 'FALLO: % pierde el índice (debe seguir encontrándose)', r.id; end if;
-    if r.tsv_texto <> strip(r.tsv_texto) then raise exception 'FALLO: % conserva las posiciones del texto', r.id; end if;
+    if r.tsv_texto is not null then raise exception 'FALLO: % conserva el índice de cuando era pública', r.id; end if;
   end loop;
+  -- La ingesta las reindexa (fichas.js --restringidas): sin posiciones y sin el número de finca
+  perform public.indexar_texto('TEST-OCU-1', 'Relación de afectados: Zacarías Herrero Quintanilla, finca 12.');
+  perform public.indexar_texto('TEST-OCU-2', 'Relación de afectados: Zacarías Herrero Quintanilla, finca 12.');
 
   -- B) lo que no toca: «utilidad pública» de V.B y la sección III
   select count(*) into n from public.publicaciones where id in ('TEST-OCU-3', 'TEST-OCU-4') and nivel_privacidad = 'publico' and resumen is not null;
