@@ -2,7 +2,8 @@
 // ingesta: solo llama a Claude si el día aún no tiene resumen o si han cambiado sus publicaciones.
 //
 // Uso (en local: node --env-file=.env ingesta/resumen-dia.js ...):
-//   node ingesta/resumen-dia.js --fecha hoy            (lo que lanza GitHub Actions)
+//   node ingesta/resumen-dia.js --fecha hoy            (lo que lanza GitHub Actions: ayer y hoy; si ayer ya
+//                                                       tiene resumen, sale «ya_generado» sin llamar a Claude)
 //   node ingesta/resumen-dia.js --fecha 2026-11-24
 //   --sin-ia     prepara la entrada y muestra las cifras SIN llamar a Claude (no cuesta nada)
 //   --seco       llama a Claude y muestra el resultado, pero NO lo guarda
@@ -11,6 +12,7 @@
 
 import { fileURLToPath } from 'node:url';
 import { crearCliente } from './lib/supabase.js';
+import { diaAnterior } from './boe.js';
 import {
   clasificar, construirPeticionResumen, costeResumenUSD, depurar, leerInstruccionesResumen, pedirResumen,
   tokensAproximados, MODELO_RESUMEN, RESUMEN_VERSION,
@@ -101,28 +103,37 @@ function leerArgumentos(argv) {
     else if (k === '--forzar') a.forzar = true;
     else if (k === '--max-coste') a.maxCoste = Number(argv[++i]);
   }
-  if (!a.fecha || a.fecha === 'hoy') a.fecha = hoyEnMadrid();
+  // «hoy» incluye ayer: si ayer no hubo ninguna pasada (o falló el resumen), se recupera su resumen.
+  if (!a.fecha || a.fecha === 'hoy') a.fechas = [diaAnterior(hoyEnMadrid()), hoyEnMadrid()];
+  else a.fechas = [a.fecha];
   return a;
 }
 
 async function principal() {
   const a = leerArgumentos(process.argv.slice(2));
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(a.fecha)) throw new Error('--fecha debe ser AAAA-MM-DD o «hoy»');
+  if (!a.fechas.every((f) => /^\d{4}-\d{2}-\d{2}$/.test(f))) throw new Error('--fecha debe ser AAAA-MM-DD o «hoy»');
   if (!Number.isFinite(a.maxCoste) || a.maxCoste <= 0) throw new Error('--max-coste no válido');
   if (!a.sinIA && !process.env.ANTHROPIC_API_KEY) throw new Error('falta ANTHROPIC_API_KEY');
 
   const db = crearCliente({ url: process.env.SUPABASE_URL, claveSecreta: process.env.SUPABASE_SERVICE_ROLE_KEY });
-  let r;
-  try {
-    r = await resumirDia(a.fecha, { db, claveApi: process.env.ANTHROPIC_API_KEY, sinIA: a.sinIA, seco: a.seco, forzar: a.forzar, maxCoste: a.maxCoste });
-  } catch (e) {
-    // Claude ya ha cobrado aunque la salida no sirva: se anota igualmente.
-    if (e?.uso) await registrarGastoResumen(db, { modelo: MODELO_RESUMEN, uso: e.uso, coste: e.coste });
-    throw e;
+  // Cada día por separado: si falla uno, el otro se intenta igual; la ejecución acaba marcada como fallida.
+  let fallos = 0;
+  for (const fecha of a.fechas) {
+    let r;
+    try {
+      r = await resumirDia(fecha, { db, claveApi: process.env.ANTHROPIC_API_KEY, sinIA: a.sinIA, seco: a.seco, forzar: a.forzar, maxCoste: a.maxCoste });
+    } catch (e) {
+      // Claude ya ha cobrado aunque la salida no sirva: se anota igualmente.
+      if (e?.uso) await registrarGastoResumen(db, { modelo: MODELO_RESUMEN, uso: e.uso, coste: e.coste });
+      console.error(`resumen del día ${fecha}: ${e.message}`);
+      fallos += 1;
+      continue;
+    }
+    if (r.uso) r.gasto_registrado = await registrarGastoResumen(db, r);
+    if (r.coste != null) r.coste = Number(r.coste.toFixed(5));
+    console.log(JSON.stringify({ resumen_dia: r }, null, a.seco ? 2 : 0));
   }
-  if (r.uso) r.gasto_registrado = await registrarGastoResumen(db, r);
-  if (r.coste != null) r.coste = Number(r.coste.toFixed(5));
-  console.log(JSON.stringify({ resumen_dia: r }, null, a.seco ? 2 : 0));
+  if (fallos) process.exitCode = 1;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
