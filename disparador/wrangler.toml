@@ -1,0 +1,15 @@
+# Disparador de la ingesta (ver src/index.js). Sin rutas ni URL pública: solo Cron Triggers.
+# Desplegar: cd disparador && npx wrangler deploy
+# Secreto (una vez, lo escribe la persona responsable): npx wrangler secret put GITHUB_TOKEN
+name = "disparador-ingesta-boe"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = false
+
+[vars]
+REPOSITORIO = "alter-lego/api-boe"
+RAMA = "main"
+
+# En UTC. Deben coincidir con PROGRAMA en src/index.js.
+[triggers]
+crons = ["30 5-9 * * 1-6", "30 13 * * *", "0 10 * * *"]

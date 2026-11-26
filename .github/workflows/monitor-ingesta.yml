@@ -6,7 +6,9 @@ name: Monitor de ingesta
 
 on:
   schedule:
-    - cron: '0 9 * * *'    # 09:00 UTC = 10:00 en invierno (11:00 en verano); la ingesta corre a las 07:30 UTC
+    # Lo lanza a su hora el Worker disparador-ingesta-boe (disparador/); este cron de GitHub es solo un respaldo,
+    # porque GitHub lo retrasa horas. 10:00 UTC = 11:00 en invierno, tras las pasadas de 05:30 a 09:30 UTC.
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 permissions:
