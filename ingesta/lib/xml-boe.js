@@ -33,13 +33,18 @@ function referencias(bloque) {
   return salida;
 }
 
-/** Texto plano del cuerpo: un párrafo, fila o elemento de lista por línea. */
+/**
+ * Texto plano del cuerpo: un párrafo, fila o elemento de lista por línea.
+ * Acepta un XML cortado (la API de Preguntar solo descarga el principio de los documentos largos): si falta
+ * </texto>, toma el cuerpo hasta donde llegue, sin la etiqueta que haya quedado a medias.
+ */
 export function textoPlano(xml) {
   // Las referencias del análisis también llevan etiquetas <texto>: el cuerpo es el que viene después.
   const finAnalisis = xml.indexOf('</analisis>');
-  const m = (finAnalisis >= 0 ? xml.slice(finAnalisis) : xml).match(/<texto>([\s\S]*)<\/texto>/);
+  const resto = finAnalisis >= 0 ? xml.slice(finAnalisis) : xml;
+  const m = resto.match(/<texto>([\s\S]*)<\/texto>/) ?? resto.match(/<texto>([\s\S]*)$/);
   if (!m) return '';
-  const conSaltos = m[1].replace(/<\/(p|tr|li|dd|dt|h\d)>/g, '\n').replace(/<(br|\/td|\/th)[^>]*>/g, ' ');
+  const conSaltos = m[1].replace(/<[^>]*$/, '').replace(/<\/(p|tr|li|dd|dt|h\d)>/g, '\n').replace(/<(br|\/td|\/th)[^>]*>/g, ' ');
   return decodificarEntidades(conSaltos.replace(/<[^>]+>/g, ''))
     .split('\n')
     .map((l) => l.replace(/\s+/g, ' ').trim())

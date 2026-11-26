@@ -404,3 +404,10 @@ test('registrarGasto: sin llamadas a Claude no escribe; si la base falla, avisa 
   try { assert.equal(await registrarGasto(rota, { guardadas: 1, tokens_entrada: 10, tokens_salida: 1, tokens_cache: 0, coste: 0.001 }), false); }
   finally { console.error = silencio; }
 });
+
+test('textoPlano acepta un XML cortado: toma el cuerpo hasta donde llega, sin la etiqueta a medias', () => {
+  const xml = '<documento><analisis><referencias><texto>ref</texto></referencias></analisis><texto><p>Primero.</p><p>Segundo párrafo cort';
+  assert.equal(textoPlano(xml), 'Primero.\nSegundo párrafo cort');
+  assert.equal(textoPlano(xml + '<p cla'), 'Primero.\nSegundo párrafo cort');
+  assert.equal(textoPlano('<documento><metadatos><rango>Orden</rango>'), '');
+});

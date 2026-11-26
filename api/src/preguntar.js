@@ -18,25 +18,33 @@ const URL_API = 'https://api.anthropic.com/v1/messages';
 export const MAX_RONDAS = 3;
 const MAX_LLAMADAS_POR_RONDA = 4;
 const MODELO_POR_DEFECTO = 'claude-haiku-5-5';
-const TOPE_XML = 1_500_000;   // bytes: más no cabe en los 10 ms de CPU del plan gratuito
+// Bytes del XML que se descargan y procesan. El plan gratuito de Cloudflare Workers corta a los 10 ms de CPU, y
+// procesar 1,5 MB costaba 13-16 ms (auditoría del 26/11/2026). Con 300 KB cabe con margen; de los documentos más
+// largos Claude recibe solo el principio, avisado. RESTRICCIÓN DEL PILOTO: cuando el proyecto pase a la nube
+// interna (o a un plan de Workers de pago, 30 s de CPU), subir el tope (p. ej. a 5 MB) para leer también el final.
+const TOPE_XML = 300_000;
 
-/** Lee el cuerpo como flujo y se detiene al llegar al tope (no se descarga ni se procesa un XML enorme). */
+/**
+ * Lee el cuerpo como flujo y se detiene al llegar al tope (no se descarga ni se procesa un XML enorme).
+ * @returns {Promise<{ xml: string, cortado: boolean }>}
+ */
 async function leerLimitado(res, tope) {
   const lector = res.body?.getReader();
-  if (!lector) return (await res.text()).slice(0, tope);
+  if (!lector) { const t = await res.text(); return { xml: t.slice(0, tope), cortado: t.length > tope }; }
   const trozos = [];
   let total = 0;
+  let cortado = false;
   for (;;) {
     const { done, value } = await lector.read();
     if (done) break;
     trozos.push(value);
     total += value.byteLength;
-    if (total >= tope) { await lector.cancel().catch(() => {}); break; }
+    if (total >= tope) { cortado = true; await lector.cancel().catch(() => {}); break; }
   }
-  const todo = new Uint8Array(total);
+  const todo = new Uint8Array(Math.min(total, tope));
   let pos = 0;
-  for (const t of trozos) { todo.set(t, pos); pos += t.byteLength; }
-  return new TextDecoder().decode(todo);
+  for (const t of trozos) { const parte = t.subarray(0, todo.length - pos); todo.set(parte, pos); pos += parte.length; if (pos >= todo.length) break; }
+  return { xml: new TextDecoder().decode(todo), cortado };
 }
 // USD por millón de tokens. Solo se conocen los de Haiku 5.5: con otro modelo el coste es una ESTIMACIÓN.
 const PRECIOS = { entrada: 0.10, salida: 0.50, lectura_cache: 0.01, escritura_cache: 0.125 };
@@ -148,15 +156,29 @@ async function ejecutarHerramienta(nombre, bruto, ctx) {
     if (f.nivel_privacidad !== 'publico') return { id: f.id, titulo: f.titulo, error: 'Publicación restringida: solo se puede mostrar el título y el enlace; no se puede leer su texto.' };
     if (!esBoe(f.url_xml)) return { id: f.id, error: 'No hay texto oficial disponible.' };
     let xml;
+    let cortado;
     try {
       const res = await fetchFn(f.url_xml, { headers: { Accept: 'application/xml' }, signal: AbortSignal.timeout(8000) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       if (res.url && !esBoe(res.url)) throw new Error('redirección a otro dominio');
-      xml = await leerLimitado(res, TOPE_XML);
+      ({ xml, cortado } = await leerLimitado(res, TOPE_XML));
     } catch {
       return { id: f.id, error: 'No se pudo descargar el texto oficial ahora mismo.' };
     }
-    const { texto, recortado } = recortarTexto(leerDocumento(xml).texto, { inicio: 9000, fin: 2000 });
+    let completo;
+    try { completo = leerDocumento(xml).texto; } catch { completo = ''; }
+    // Sin texto no se le dice a Claude «aquí está todo»: podría concluir que algo «no figura» (auditoría, 2.4).
+    if (!completo) return { id: f.id, titulo: f.titulo, error: 'No se ha podido extraer el texto de esta publicación. No saques conclusiones sobre su contenido: remite al enlace del BOE.' };
+    if (cortado) {
+      // Documento más largo que el tope: solo tenemos el principio. El final (disposiciones finales, entrada en
+      // vigor, firma) no se ha leído, así que no se da por completo ni se ofrece un «final» que no lo es.
+      const { texto } = recortarTexto(completo, { inicio: 9000, fin: 0 });
+      return {
+        id: f.id, titulo: f.titulo, texto: quitarDatosPersonales(texto.replace(/\n\[…\]\n?$/, '')), extracto_recortado: true,
+        aviso: 'Documento muy largo: solo se ha leído el principio. Lo que no aparezca aquí (por ejemplo, el final, la entrada en vigor o la firma) puede estar en el BOE: no digas que no figura; remite al enlace.',
+      };
+    }
+    const { texto, recortado } = recortarTexto(completo, { inicio: 9000, fin: 2000 });
     return { id: f.id, titulo: f.titulo, texto: quitarDatosPersonales(texto), extracto_recortado: recortado };
   }
   throw new Error('herramienta desconocida');

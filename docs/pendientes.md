@@ -20,6 +20,10 @@
 - **Sanciones (sección III):** decidido el 21/11/2026: **públicas**. Ver `niveles-privacidad.md`.
 - **Tras el piloto (decidido):** el servicio pasa a la nube propia de la organización, con otra configuración, mantenido por un equipo ya existente.
 
+## Restricciones del piloto que se pueden levantar en la nube interna
+Impuestas por los planes gratuitos; al pasar a la nube de la organización (o a planes de pago) se pueden quitar.
+- **Lectura de textos en Preguntar: 300 KB** (`TOPE_XML` en `api/src/preguntar.js`, desde el 27/11/2026; antes 1,5 MB). El plan gratuito de Cloudflare Workers corta a los 10 ms de CPU y procesar 1,5 MB costaba 13–16 ms (auditoría del 26/11/2026); 300 KB cuestan ~1,5–2,6 ms. De los documentos más largos (presupuestos, convenios, listas largas) Claude solo lee el principio: no ve la entrada en vigor, las disposiciones finales ni la firma, y se le avisa de que no diga que algo «no figura». Sin límite de 10 ms, subir el tope (p. ej. a 5 MB) y volver a recortar con principio y final.
+
 ## Abierto
 - **Nota de protección de datos (RGPD)** sobre el índice de nombres de las restringidas (finalidad, plazo de conservación, supresión).
 - **Fase 6:**

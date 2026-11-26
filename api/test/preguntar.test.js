@@ -317,6 +317,25 @@ test('leer_publicacion: un XML enorme se corta al llegar al tope y no se procesa
   assert.equal(r.status, 200);
   assert.equal(leidos, 1);
   assert.ok(performance.now() - t0 < 500);
+  // Al cortarse, Claude recibe el principio con aviso; nunca un texto vacío dado por completo (auditoría, 2.4)
+  const cortada = JSON.parse(m.log.claude[1].cuerpo.messages[2].content[0].content);
+  assert.equal(cortada.extracto_recortado, true);
+  assert.match(cortada.aviso, /solo se ha leído el principio/);
+  assert.ok(cortada.texto.length > 1000 && cortada.texto.length <= 9000);
+  assert.doesNotMatch(cortada.texto, /\[…\]$/);
+
+  // Un XML sin texto aprovechable: error, no texto vacío
+  const mv = mundo({ claude: [llamadaClaude(usoTool('a', 'leer_publicacion', { id: 'BOE-A-2026-1' })), finalClaude({ respuesta: 'ok', citas: [], sin_resultados: true })] });
+  const origv = mv.fetchFn;
+  const fetchv = async (url, init) => {
+    if (new URL(url).host === 'www.boe.es') { const rv = new Response('<documento><metadatos></metadatos><analisis></analisis><texto></texto></documento>', { status: 200 }); Object.defineProperty(rv, 'url', { value: url }); return rv; }
+    return origv(url, init);
+  };
+  const appv = crearApp({ fetchFn: fetchv, jwks, instrucciones: INSTRUCCIONES, esperar: async () => {} });
+  await appv.request('/v1/preguntar', { method: 'POST', headers: { Authorization: `Bearer ${await token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta: 'lee la publicación 1' }) }, env);
+  const vacia = JSON.parse(mv.log.claude[1].cuerpo.messages[2].content[0].content);
+  assert.match(vacia.error, /No se ha podido extraer el texto/);
+  assert.equal(vacia.texto, undefined);
 
   // redirección: la URL final no es de boe.es
   const m2 = mundo({ claude: [llamadaClaude(usoTool('a', 'leer_publicacion', { id: 'BOE-A-2026-1' })), finalClaude({ respuesta: 'ok', citas: [], sin_resultados: true })] });
