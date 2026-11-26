@@ -5,28 +5,21 @@
 
 import { readFileSync } from 'node:fs';
 import { ESQUEMA_FICHA, validarFicha, limpiarAviso } from './listas.js';
+import { costeHaikuUSD } from './precios.js';
 
 export const MODELO = 'claude-haiku-5-5';
 const URL_API = 'https://api.anthropic.com/v1/messages';
 const ESPERAS_MS = [2000, 6000, 20000];
 
-// USD por millón de tokens (Haiku 5.5). Lectura de caché = 0,1×; escritura a 5 min = 1,25×.
-const PRECIOS = { entrada: 0.10, salida: 0.50, lectura_cache: 0.01, escritura_cache: 0.125 };
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export const leerInstrucciones = () =>
   readFileSync(new URL('../../skill/FICHA.md', import.meta.url), 'utf8');
 
-export function costeUSD(uso = {}) {
-  const t = (n) => (n ?? 0) / 1e6;
-  return (
-    t(uso.input_tokens) * PRECIOS.entrada +
-    t(uso.output_tokens) * PRECIOS.salida +
-    t(uso.cache_read_input_tokens) * PRECIOS.lectura_cache +
-    t(uso.cache_creation_input_tokens) * PRECIOS.escritura_cache
-  );
-}
+// Tarifa en precios.js (común con la API). Una ficha son una o dos llamadas de unos 25K tokens como mucho: nunca
+// llegan al tramo de más de 100K, así que basta con aplicarla al uso sumado.
+export const costeUSD = (uso = {}) => costeHaikuUSD(uso);
 
 export function construirPeticion(instrucciones, entrada) {
   return {

@@ -26,8 +26,14 @@ export const fichasPendientesToleradas = (nPublicas) => Math.max(3, Math.floor(n
 
 /**
  * Genera (si hace falta) y guarda el resumen de un día. No lanza por los casos previstos: devuelve { estado }.
- * estados: sin_publicaciones · ya_generado · fichas_pendientes · tope_coste · sin_ia · seco · guardado
+ * estados: sin_publicaciones · ya_generado · fichas_pendientes · tope_coste · tope_24h · sin_ia · seco · guardado
  */
+// Tope real de gasto del resumen (auditoría, 2.9): el tope por llamada es una estimación, y si Claude falla
+// (rechazo, respuesta cortada, JSON no válido) se vuelve a llamar en cada pasada, ahora para ayer y hoy. En las
+// últimas 24 h, como mucho MAX_LLAMADAS_24H llamadas y TOPE_24H_USD en total (sumando lo ya anotado en gasto_ingesta).
+export const MAX_LLAMADAS_24H = 4;
+export const TOPE_24H_USD = 2;
+
 export async function resumirDia(fecha, deps) {
   const { db, claveApi, sinIA = false, seco = false, forzar = false, maxCoste = 1, fetchFn, pedir = pedirResumen } = deps;
   const instrucciones = deps.instrucciones ?? leerInstruccionesResumen();
@@ -56,6 +62,16 @@ export async function resumirDia(fecha, deps) {
   // Cota del coste antes de llamar: entrada estimada + una salida larga (24k tokens).
   const tope = costeResumenUSD({ input_tokens: estimado, output_tokens: 24000 });
   if (tope > maxCoste) return { fecha, estado: 'tope_coste', ...cifras, coste_maximo_estimado: Number(tope.toFixed(3)) };
+
+  if (!forzar) {
+    // Llamadas del resumen en las últimas 24 h: filas sin fichas y de un modelo que no es el de las fichas (Haiku).
+    const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const hechas = await db.seleccionar(`gasto_ingesta?n_fichas=eq.0&modelo=not.ilike.*haiku*&creado_en=gte.${desde}&select=coste_usd`);
+    const gastado = hechas.reduce((a, x) => a + (Number(x.coste_usd) || 0), 0);
+    if (hechas.length >= MAX_LLAMADAS_24H || gastado + tope > TOPE_24H_USD) {
+      return { fecha, estado: 'tope_24h', ...cifras, llamadas_24h: hechas.length, gastado_24h: Number(gastado.toFixed(3)) };
+    }
+  }
 
   const r = await pedir(peticion, { claveApi, fetchFn });
   const { contenido, avisos } = depurar(r.salida, c);

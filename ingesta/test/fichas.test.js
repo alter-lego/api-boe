@@ -179,9 +179,11 @@ test('la petición: caché en las instrucciones, esfuerzo bajo y salida estructu
 });
 
 test('coste con las tarifas de Haiku 5.5', () => {
-  const c = costeUSD({ input_tokens: 1_000_000, output_tokens: 1_000_000 });
-  assert.ok(Math.abs(c - 0.6) < 1e-9);
-  assert.ok(Math.abs(costeUSD({ cache_read_input_tokens: 1_000_000 }) - 0.01) < 1e-9);
+  const c = costeUSD({ input_tokens: 20_000, output_tokens: 4_000 });
+  assert.ok(Math.abs(c - (0.02 * 0.10 + 0.004 * 0.50)) < 1e-9);
+  assert.ok(Math.abs(costeUSD({ cache_read_input_tokens: 50_000 }) - 0.05 * 0.01) < 1e-9);
+  // por encima de 100K tokens de prompt, tramo largo (×5)
+  assert.ok(Math.abs(costeUSD({ input_tokens: 200_000 }) - 5 * 0.2 * 0.10) < 1e-9);
 });
 
 // ───────────── generarFicha con la API simulada ─────────────

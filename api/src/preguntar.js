@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { TEMAS, TIPOS_ACTO } from '../../ingesta/lib/listas.js';
 import { leerDocumento, recortarTexto } from '../../ingesta/lib/xml-boe.js';
 import { quitarDatosPersonales, quitarEnlaces } from '../../ingesta/lib/sanear.js';
+import { costeHaikuUSD } from '../../ingesta/lib/precios.js';
 
 export { quitarDatosPersonales };
 import { ErrorApi, rpc, filtros, paramsFiltros, AGRUPAR_SQL } from './comun.js';
@@ -50,7 +51,10 @@ async function leerLimitado(res, tope) {
   return { xml: new TextDecoder().decode(todo), cortado };
 }
 // USD por millón de tokens. Solo se conocen los de Haiku 5.5: con otro modelo el coste es una ESTIMACIÓN.
-const PRECIOS = { entrada: 0.10, salida: 0.50, lectura_cache: 0.01, escritura_cache: 0.125 };
+// Tiempo total para responder: la web corta a los 65 s. Si se acaba, la pregunta se cierra como fallida, con el gasto
+// anotado, en vez de quedarse a medias sin anotar (auditoría, 2.7).
+const PLAZO_TOTAL_MS = 58_000;
+const MARGEN_MIN_MS = 8_000;   // con menos tiempo que esto no se empieza otra llamada a Claude
 
 export const ESQUEMA_RESPUESTA = {
   type: 'object',
@@ -181,13 +185,10 @@ async function ejecutarHerramienta(nombre, bruto, ctx) {
 }
 
 // ───────── Claude ─────────
-export function costeUSD(uso = {}) {
-  const t = (n) => (n ?? 0) / 1e6;
-  return t(uso.input_tokens) * PRECIOS.entrada + t(uso.output_tokens) * PRECIOS.salida
-    + t(uso.cache_read_input_tokens) * PRECIOS.lectura_cache + t(uso.cache_creation_input_tokens) * PRECIOS.escritura_cache;
-}
+/** Coste de UNA llamada (con el tramo de prompt largo de Haiku 5.5: ingesta/lib/precios.js). */
+export const costeUSD = (uso = {}) => costeHaikuUSD(uso);
 
-async function llamarClaude(env, peticion, { fetchFn, esperar }) {
+async function llamarClaude(env, peticion, { fetchFn, esperar, fin = Date.now() + 60_000 }) {
   for (let intento = 0; intento < 2; intento++) {
     let res;
     try {
@@ -195,14 +196,16 @@ async function llamarClaude(env, peticion, { fetchFn, esperar }) {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify(peticion),
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(Math.max(1000, Math.min(60_000, fin - Date.now()))),
       });
     } catch (e) {
-      if (intento === 0) { await esperar(1500); continue; }
+      // Un timeout no se reintenta: la llamada pudo procesarse y cobrarse igualmente (auditoría, 2.8). Un fallo de red
+      // inmediato sí, si queda tiempo.
+      if (intento === 0 && e?.name !== 'TimeoutError' && fin - Date.now() > MARGEN_MIN_MS) { await esperar(1500); continue; }
       throw new ErrorApi(504, 'el asistente tardó demasiado en responder; inténtalo de nuevo');
     }
     if (res.ok) return res.json();
-    if ((res.status === 429 || res.status >= 500) && intento === 0) { await esperar(1500); continue; }
+    if ((res.status === 429 || res.status >= 500) && intento === 0 && fin - Date.now() > MARGEN_MIN_MS) { await esperar(1500); continue; }
     console.error('anthropic:', res.status);
     if (res.status === 401 || res.status === 403) throw new ErrorApi(503, 'el asistente no está configurado correctamente');
     throw new ErrorApi(503, 'el asistente no está disponible ahora mismo; inténtalo en unos minutos');
@@ -258,6 +261,8 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
   const mensaje = `Fecha de hoy: ${hoy} (Madrid). Datos disponibles: del ${env.COBERTURA_DESDE ?? 'inicio del archivo'} al ${ingesta?.fecha ?? 'última carga'}.\n\n<pregunta>\n${pregunta}\n</pregunta>`;
   const messages = [{ role: 'user', content: mensaje }];
   const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+  uso.coste = 0;   // USD, sumado llamada a llamada (el tramo de prompt largo se decide por llamada)
+  const fin = Date.now() + PLAZO_TOTAL_MS;
   let rondas = 0;
   let final = null;
   let fallo = null;
@@ -265,6 +270,7 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
   try {
     for (let ronda = 0; ronda <= MAX_RONDAS; ronda++) {
       const ultima = ronda === MAX_RONDAS;
+      if (fin - Date.now() < MARGEN_MIN_MS) { fallo = 'se agotó el tiempo para responder'; break; }
       const r = await llamarClaude(env, {
         model: modelo,
         max_tokens: 4000,
@@ -273,8 +279,9 @@ export async function responderPregunta({ pregunta, jwt, env, fetchFn, esperar, 
         tool_choice: { type: ultima ? 'none' : 'auto' },
         messages,
         output_config: { effort: env.ESFUERZO_PREGUNTAR || 'medium', format: { type: 'json_schema', schema: ESQUEMA_RESPUESTA } },
-      }, { fetchFn, esperar });
-      for (const k of Object.keys(uso)) uso[k] += r.usage?.[k] ?? 0;
+      }, { fetchFn, esperar, fin });
+      for (const k of Object.keys(uso)) if (k !== 'coste') uso[k] += r.usage?.[k] ?? 0;
+      uso.coste += costeUSD(r.usage ?? {});
 
       if (r.stop_reason === 'refusal') { fallo = 'el asistente rechazó la petición'; break; }
       if (r.stop_reason === 'max_tokens') { fallo = 'la respuesta salió demasiado larga'; break; }
@@ -357,7 +364,7 @@ async function completar(env, jwt, fetchFn, reserva, modelo, rondas, uso, citas,
     const ok = await rpc(env, 'completar_consulta', {
       p_id: reserva.id, p_token: reserva.token, p_modelo: modelo, p_rondas: rondas,
       p_tokens_entrada: uso.input_tokens + uso.cache_creation_input_tokens, p_tokens_salida: uso.output_tokens,
-      p_tokens_cache: uso.cache_read_input_tokens, p_coste_usd: Number(costeUSD(uso).toFixed(5)),
+      p_tokens_cache: uso.cache_read_input_tokens, p_coste_usd: Number(Math.min(uso.coste ?? 0, 1).toFixed(5)),
       p_citas: citas, p_sin_resultados: sinResultados,
     }, { jwt, fetchFn });
     if (ok === false) console.error('completar_consulta: no se pudo completar (¿ya completada?)');

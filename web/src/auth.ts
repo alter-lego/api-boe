@@ -8,6 +8,22 @@ export async function getToken(): Promise<string | null> {
   return data.session?.access_token ?? null;
 }
 
+/**
+ * Token con al menos `minSeg` segundos de vida: si caduca antes, se renueva ya. Para Preguntar, que puede tardar
+ * cerca de un minuto y anota el gasto al final con el mismo token (auditoría, 2.7).
+ */
+export async function getTokenFresco(minSeg = 120): Promise<string | null> {
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getSession();
+  const s = data.session;
+  if (!s) return null;
+  if (s.expires_at && s.expires_at * 1000 - Date.now() < minSeg * 1000) {
+    const { data: renovada } = await supabase.auth.refreshSession();
+    return renovada.session?.access_token ?? s.access_token;
+  }
+  return s.access_token;
+}
+
 export const authConfigurado = () => supabase !== null;
 
 // Envía el enlace de acceso. shouldCreateUser: false → solo entran correos ya dados de alta.

@@ -1,4 +1,4 @@
-import { cerrarPorCaducidad, getToken } from './auth';
+import { cerrarPorCaducidad, getToken, getTokenFresco } from './auth';
 import type { BusquedaPersona, Conteo, Ficha, Filtros, Respuesta, Salud, Sumario } from './types';
 
 export const MODO: 'prueba' | 'api' = import.meta.env.VITE_MODO === 'api' ? 'api' : 'prueba';
@@ -24,10 +24,10 @@ function parametros(f: Filtros, extra: Record<string, string> = {}) {
   return p;
 }
 
-async function llamar<T>(ruta: string, conSesion = true, init: RequestInit = {}): Promise<T> {
+async function llamar<T>(ruta: string, conSesion = true, init: RequestInit = {}, tokenFresco = false): Promise<T> {
   const headers: Record<string, string> = { ...(init.headers as Record<string, string> | undefined) };
   if (conSesion) {
-    const token = await getToken();
+    const token = tokenFresco ? await getTokenFresco() : await getToken();
     if (!token) throw new ApiError(401, 'Sin sesión');
     headers.Authorization = `Bearer ${token}`;
   }
@@ -65,7 +65,7 @@ export const api = {
       if (MODO === 'prueba') return await (await datosPrueba()).preguntar(pregunta);
       const tope = AbortSignal.timeout(ESPERA_MAX_MS);
       const signal = señal ? AbortSignal.any([señal, tope]) : tope;
-      return await llamar<Respuesta>('/v1/preguntar', true, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta }), signal });
+      return await llamar<Respuesta>('/v1/preguntar', true, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta }), signal }, true);
     } catch (e) {
       if (e instanceof DOMException && e.name === 'TimeoutError') throw new ApiError(504, '');
       return normaliza(e);

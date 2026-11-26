@@ -193,3 +193,18 @@ test('las instrucciones del resumen existen y piden ids, no enlaces', async () =
   for (const k of ['titulares', 'secciones', 'apartados', 'ids', 'Datos personales']) assert.ok(t.includes(k), k);
   for (const a of APARTADOS) assert.ok(t.includes(`\`${a}\``), a);
 });
+
+test('resumirDia: tope de 24 h (llamadas y gasto ya anotados) y --forzar lo salta (auditoría, 2.9)', async () => {
+  const conGasto = (gastos) => ({
+    ...dbFalsa(),
+    seleccionar: async (ruta) => (ruta.startsWith('publicaciones') ? DIA : ruta.startsWith('gasto_ingesta') ? gastos : []),
+  });
+  const muchas = await resumirDia('2026-11-25', { db: conGasto([{ coste_usd: 0.1 }, { coste_usd: 0.1 }, { coste_usd: 0.1 }, { coste_usd: 0.1 }]), claveApi: 'k', instrucciones: 'I', pedir: () => assert.fail('no debe llamar') });
+  assert.equal(muchas.estado, 'tope_24h');
+  const caro = await resumirDia('2026-11-25', { db: conGasto([{ coste_usd: 1.95 }]), claveApi: 'k', instrucciones: 'I', pedir: () => assert.fail('no debe llamar') });
+  assert.equal(caro.estado, 'tope_24h');
+  const poco = await resumirDia('2026-11-25', { db: conGasto([{ coste_usd: 0.2 }]), claveApi: 'k', instrucciones: 'I', pedir: pedirFalso });
+  assert.equal(poco.estado, 'guardado');
+  const forzado = await resumirDia('2026-11-25', { db: conGasto([{ coste_usd: 0.1 }, { coste_usd: 0.1 }, { coste_usd: 0.1 }, { coste_usd: 0.1 }]), claveApi: 'k', instrucciones: 'I', forzar: true, pedir: pedirFalso });
+  assert.equal(forzado.estado, 'guardado');
+});

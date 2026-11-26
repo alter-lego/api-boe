@@ -287,8 +287,11 @@ test('utilidades: quitarDatosPersonales, limpiarRespuesta y costeUSD', () => {
   }
   assert.equal(quitarDatosPersonales('importe 12345678 euros'), 'importe 12345678 euros');   // una cifra sin letra no es un DNI
   assert.equal(limpiarRespuesta('Titular 12345678Z.', new Map()), 'Titular [DNI].');
-  const c = costeUSD({ input_tokens: 1_000_000, output_tokens: 1_000_000, cache_read_input_tokens: 1_000_000, cache_creation_input_tokens: 0 });
-  assert.ok(Math.abs(c - (0.10 + 0.50 + 0.01)) < 1e-9);
+  // Hasta 100K tokens de prompt, tarifa normal; por encima, ×5 (decidido por llamada)
+  const c = costeUSD({ input_tokens: 50_000, output_tokens: 10_000, cache_read_input_tokens: 40_000, cache_creation_input_tokens: 0 });
+  assert.ok(Math.abs(c - (0.05 * 0.10 + 0.01 * 0.50 + 0.04 * 0.01)) < 1e-9);
+  const largo = costeUSD({ input_tokens: 90_000, output_tokens: 10_000, cache_read_input_tokens: 20_000 });
+  assert.ok(Math.abs(largo - 5 * (0.09 * 0.10 + 0.01 * 0.50 + 0.02 * 0.01)) < 1e-9);
 });
 
 test('una expresión con relleno xxxx/**** no se queda colgada (sin backtracking cuadrático)', () => {
@@ -516,5 +519,28 @@ test('preguntas válidas, cortas o con siglas, NO se rechazan en el servidor', (
   }
   for (const t of ['lkjegjreg', 'zxcvbnmk', '', '   ', '¡¡¡', 'el la los']) {
     assert.equal(preguntaSinSentido(t), true, `«${t}» no tiene sentido`);
+  }
+});
+
+test('plazo total: si se acaba el tiempo, no se empieza otra ronda y la pregunta se cierra con el gasto anotado (auditoría, 2.7)', async () => {
+  const m = mundo({ claude: [
+    llamadaClaude(usoTool('a', 'contar_publicaciones', {})),
+    finalClaude({ respuesta: 'no debería llegar', citas: [], sin_resultados: true }),
+  ] });
+  const original = m.fetchFn;
+  const ahoraReal = Date.now;
+  let desfase = 0;
+  // La primera llamada a Claude «tarda» 55 s: ya no queda tiempo para la segunda.
+  const fetchFn = async (url, init) => { const r = await original(url, init); if (new URL(url).host === 'api.anthropic.com') desfase += 55_000; return r; };
+  Date.now = () => ahoraReal() + desfase;
+  try {
+    const app = crearApp({ fetchFn, jwks, instrucciones: INSTRUCCIONES, esperar: async () => {} });
+    const r = await app.request('/v1/preguntar', { method: 'POST', headers: { Authorization: `Bearer ${await token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ pregunta: 'cuenta algo' }) }, env);
+    assert.equal(r.status, 502);
+    assert.match((await r.json()).error, /se agotó el tiempo/);
+    assert.equal(m.log.claude.length, 1);
+    assert.ok(completada(m).p_coste_usd > 0);
+  } finally {
+    Date.now = ahoraReal;
   }
 });
