@@ -14,6 +14,15 @@
 -- si no, la copia semanal falla (y GitHub avisa) en lugar de copiar algo sin querer.
 -- No hace nada si el rol no existe (proyecto nuevo sin copia configurada).
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261128110000_respaldo_minimo') then
+      raise exception 'La migración 20261128110000_respaldo_minimo ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'respaldo') then

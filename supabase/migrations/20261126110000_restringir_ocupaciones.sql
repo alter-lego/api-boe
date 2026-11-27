@@ -13,6 +13,15 @@
 -- del mismo día volvería a marcar como públicas las de hoy. Misma expresión en los dos sitios.
 -- Antes de aplicarla se puede ver qué cambia con supabase/diagnosticos/reclasificar-ocupaciones.sql.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261126110000_restringir_ocupaciones') then
+      raise exception 'La migración 20261126110000_restringir_ocupaciones ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 update public.publicaciones
    set nivel_privacidad = 'restringido'
  where seccion = '5B'

@@ -16,6 +16,15 @@
 -- metadatos y enlace). En el cuerpo de las restringidas se busca sin posiciones (todas las palabras, en
 -- cualquier orden). Saber si un nombre está en el título o solo en el texto ya se podía deducir buscando.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261126100000_buscar_persona') then
+      raise exception 'La migración 20261126100000_buscar_persona ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.buscar_persona(
   p_nombre text,
   p_desde date default null,

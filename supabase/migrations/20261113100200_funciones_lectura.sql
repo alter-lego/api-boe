@@ -5,6 +5,15 @@
 
 -- ───────────────────── Auxiliares (nadie las llama desde fuera) ─────────────────────
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261113100200_funciones_lectura') then
+      raise exception 'La migración 20261113100200_funciones_lectura ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.es_periodista() returns boolean
   language sql stable security definer
   set search_path = public, extensions

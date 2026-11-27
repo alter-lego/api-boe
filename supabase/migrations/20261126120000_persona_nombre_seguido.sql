@@ -15,6 +15,15 @@
 -- Las restringidas se guardan sin posiciones a propósito (privacidad): nunca entran en 'seguido'.
 -- La comparación en el texto usa el índice con raíces: «seguido» es muy probable, no exacto.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261126120000_persona_nombre_seguido') then
+      raise exception 'La migración 20261126120000_persona_nombre_seguido ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.buscar_persona(
   p_nombre text,
   p_desde date default null,

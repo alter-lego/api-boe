@@ -18,6 +18,15 @@
 -- registrar_consulta (migración 4) se ELIMINA: permitía a cualquier periodista insertar filas con modelo, tokens y
 -- coste inventados. Todo el registro pasa ahora por reservar/completar.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261114140000_reservar_consulta') then
+      raise exception 'La migración 20261114140000_reservar_consulta ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.consultas add column if not exists token uuid not null default gen_random_uuid();
 drop function if exists public.registrar_consulta(text, text, int, int, int, int, numeric, text[], boolean);
 drop function if exists public.reservar_consulta(text);

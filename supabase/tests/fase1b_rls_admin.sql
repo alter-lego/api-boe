@@ -450,8 +450,10 @@ begin
   insert into public.ingestas (boletin, fecha, estado, n_nuevas) values ('BOE', current_date, 'ok', 1);
   select count(*) into n from public.publicaciones where id like 'TEST-%';
   if n <> 3 then raise exception 'FALLO: service_role debería ver las 3 publicaciones (también la restringida) y ve %', n; end if;
-  select count(*) into n from public.periodistas;
-  if n < 5 then raise exception 'FALLO: service_role no lee periodistas'; end if;
+  -- desde la migración 24, la ingesta no lee la lista de periodistas
+  begin perform 1 from public.periodistas limit 1;
+    raise exception 'FALLO: service_role lee periodistas';
+  exception when insufficient_privilege then null; end;
   perform public.purgar_consultas();
   begin perform 1 from public.admin_listar_periodistas();
     raise exception 'FALLO: service_role sin sesión de admin ejecuta funciones admin';
@@ -605,15 +607,15 @@ begin
   perform set_config('request.jwt.claims', '', true);
 end $$;
 
--- E) service_role: solo lectura de periodistas y del log; TRUNCATE bloqueado
+-- E) service_role: sin acceso a periodistas ni al log (migración 24); TRUNCATE bloqueado
 do $$
 declare t text; f text;
 begin
   perform set_config('request.jwt.claims', '', true); reset role;
   set local role service_role;
-  perform 1 from public.periodistas limit 1;
-  perform 1 from public.periodistas_log limit 1;
   foreach f in array array[
+    'select 1 from public.periodistas limit 1',
+    'select 1 from public.periodistas_log limit 1',
     $q$insert into public.periodistas (email) values ('svc@test.local')$q$,
     $q$update public.periodistas set es_admin = true where email = 'otra@test.local'$q$,
     $q$delete from public.periodistas where email = 'otra@test.local'$q$,

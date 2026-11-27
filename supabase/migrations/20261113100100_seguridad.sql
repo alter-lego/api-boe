@@ -4,6 +4,15 @@
 -- La ingesta usa service_role, que se salta RLS pero necesita permisos de tabla.
 
 -- 1) RLS activada en todas las tablas y SIN políticas.
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261113100100_seguridad') then
+      raise exception 'La migración 20261113100100_seguridad ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.boletines     enable row level security;
 alter table public.sumarios      enable row level security;
 alter table public.publicaciones enable row level security;

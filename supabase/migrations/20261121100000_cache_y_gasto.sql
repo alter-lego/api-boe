@@ -10,6 +10,15 @@
 -- 2) GASTO. admin_gasto() devuelve agregados por mes (preguntas, tokens, coste): solo admins, sin preguntas ni
 --    correos ajenos. Solo cuenta preguntas a Claude (el gasto de la ingesta no se registra aquí).
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261121100000_cache_y_gasto') then
+      raise exception 'La migración 20261121100000_cache_y_gasto ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.consultas add column if not exists respuesta jsonb;
 
 -- Texto normalizado de una pregunta: minúsculas, sin tildes, espacios colapsados, sin ¿?¡! de los extremos.

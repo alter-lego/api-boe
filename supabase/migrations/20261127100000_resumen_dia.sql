@@ -10,6 +10,15 @@
 --    día cambia, p. ej. por un BOE extraordinario), pero no borrar.
 -- 2) resumen_del_dia(fecha): el resumen de un día para un periodista con sesión vigente, o null.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261127100000_resumen_dia') then
+      raise exception 'La migración 20261127100000_resumen_dia ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create table if not exists public.resumenes_dia (
   fecha date primary key,
   contenido jsonb not null check (jsonb_typeof(contenido) = 'object'),

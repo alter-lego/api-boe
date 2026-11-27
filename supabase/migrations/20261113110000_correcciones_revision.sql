@@ -5,6 +5,15 @@
 -- Antes, tsv indexaba el resumen sin mirar el nivel: filtrar, contar u ordenar por palabras
 -- permitía deducir el texto oculto. Ahora solo el nivel 'publico' aporta resumen al índice.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261113110000_correcciones_revision') then
+      raise exception 'La migración 20261113110000_correcciones_revision ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.publicaciones drop column tsv;   -- arrastra su índice GIN
 alter table public.publicaciones add column tsv tsvector generated always as (
   setweight(to_tsvector('spanish', public.f_unaccent(coalesce(titulo, ''))), 'A') ||

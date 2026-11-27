@@ -10,6 +10,15 @@
 -- 2) admin_gasto() pasa a devolver también, por mes, el gasto de la ingesta. Cambia el tipo de retorno,
 --    así que se borra y se vuelve a crear (y se repiten los permisos).
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261125100000_gasto_ingesta') then
+      raise exception 'La migración 20261125100000_gasto_ingesta ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create table if not exists public.gasto_ingesta (
   id bigserial primary key,
   creado_en timestamptz not null default now(),

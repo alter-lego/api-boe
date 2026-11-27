@@ -7,6 +7,15 @@
 -- 2. buscar_publicaciones y contar_publicaciones aceptan p_rango (al final de la lista de parámetros,
 --    para no romper llamadas por nombre). Las firmas antiguas se eliminan para no dejar sobrecargas.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261114110000_vigencia_y_rango') then
+      raise exception 'La migración 20261114110000_vigencia_y_rango ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter type public.ficha_publicacion
   add attribute aviso_fuente text,
   add attribute ficha_revisar boolean,

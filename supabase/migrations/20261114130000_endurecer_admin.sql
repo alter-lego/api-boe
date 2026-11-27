@@ -13,6 +13,15 @@
 -- El JWT de Supabase lleva `amr`: lista de {method, timestamp}. Se exige un método de enlace por correo
 -- (otp / magiclink) y que la marca MÁS ANTIGUA tenga ≤ 24 h. Sin `amr` o ilegible = falso.
 -- (Se aceptan marcas en el futuro: el token va firmado por Supabase, no se puede falsear.)
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261114130000_endurecer_admin') then
+      raise exception 'La migración 20261114130000_endurecer_admin ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.sesion_vigente() returns boolean
   language plpgsql stable
   set search_path = public, extensions

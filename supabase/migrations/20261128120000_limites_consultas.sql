@@ -9,6 +9,15 @@
 -- céntimos); tokens, como mucho 2 millones; respuesta guardada, como mucho 100 KB. Mismo comportamiento para el
 -- Worker, que nunca se acerca a estos valores.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261128120000_limites_consultas') then
+      raise exception 'La migración 20261128120000_limites_consultas ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.completar_consulta(
   p_id bigint,
   p_token uuid,

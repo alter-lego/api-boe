@@ -10,6 +10,15 @@
 -- 5. indexar_texto devuelve false si el id no existe.
 -- Las restringidas ya indexadas se vacían: hay que reindexarlas (node ingesta/fichas.js --restringidas).
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261114100000_endurecer_indice_texto') then
+      raise exception 'La migración 20261114100000_endurecer_indice_texto ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 drop function public.indexar_texto(text, text);
 
 create function public.indexar_texto(p_id text, p_texto text) returns boolean

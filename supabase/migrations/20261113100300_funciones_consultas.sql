@@ -3,6 +3,15 @@
 -- El usuario sale SIEMPRE del JWT, nunca de un parámetro: nadie registra consultas a nombre de otro.
 -- Limitación conocida y aceptada en el piloto: un periodista con sesión podría falsear sus
 -- propios tokens o costes llamando a la función directamente. No gana acceso a nada.
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261113100300_funciones_consultas') then
+      raise exception 'La migración 20261113100300_funciones_consultas ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.registrar_consulta(
   p_pregunta text,
   p_modelo text,

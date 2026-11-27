@@ -10,6 +10,15 @@
 -- Riesgo asumido: probando palabras, un periodista autorizado puede deducir qué contiene el texto
 -- de una restringida. Aceptable con 20 usuarios identificados; revisar si se abre a más gente.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261113130000_indice_texto_completo') then
+      raise exception 'La migración 20261113130000_indice_texto_completo ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.publicaciones add column tsv_texto tsvector;
 
 create index publicaciones_tsv_texto_idx on public.publicaciones using gin (tsv_texto);

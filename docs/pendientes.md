@@ -14,7 +14,7 @@
 - **Panel de Supabase** comprobado el 21/11/2026: «Secure email change» activo, Site URL de la web y Redirect URLs exactas (sin comodines y sin `localhost`).
 
 ## Aplazado por decisión del usuario
-- **Rol de ingesta con permisos mínimos.** Hoy la ingesta usa `service_role` (GitHub Secrets). Un rol propio exigiría conexión directa a Postgres o funciones con token, porque las claves `sb_secret_` solo actúan como `service_role`.
+- **Rol de ingesta con permisos mínimos.** Desde el 27/11/2026 (migración 24) `service_role` solo tiene los permisos de tabla que usa la ingesta (sin DELETE, sin preguntas ni lista de periodistas). Sigue siendo `service_role` (salta RLS) y vive en GitHub Secrets. Un rol propio exigiría conexión directa a Postgres o funciones con token, porque las claves `sb_secret_` solo actúan como `service_role`.
 - **Más histórico** (hoy hay 3 meses, 13/08–13/11/2026): descartado por ahora. Un año no cabe en el plan gratuito de Supabase.
 - **`POST /v1/entrar`** (login validado contra la lista de periodistas desde el Worker): descartado; el código está en la rama local `aparcado/entrar`. Lo sustituye la Edge Function de `docs/edge-function-alta.md`.
 - **Dominios de correo en el alta (decidido el 27/11/2026):** se admite cualquier dominio (el MVP incluye colaboradores de fuera); solo entran los correos que da de alta un administrador (`shouldCreateUser: false` en la web y lista `periodistas` en la base). Contra las erratas en el dominio (auditoría, 1.8), la pantalla de Administración pide confirmar el correo si no es de `eldiario.es` (`DOMINIOS_HABITUALES` en `web/src/pages/Admin.tsx`).
@@ -41,7 +41,7 @@ quitar o cambiar. Revisada el 27/11/2026.
 
 **Cuentas, claves y dominios personales**
 - **Claves con caducidad, a nombre de personas:** Anthropic del buscador (21/12/2026), Anthropic de la ingesta (29/01/2027) y el token de GitHub del disparador. En la nube interna: gestor de secretos de la organización y cuentas de servicio.
-- **La ingesta usa `service_role`** (todos los permisos sobre la base). Un rol con permisos mínimos necesita conexión directa a Postgres, que en la nube interna sí estará disponible.
+- **La ingesta usa `service_role`** (salta RLS; desde la migración 24, solo con los permisos de tabla que necesita). Un rol con permisos mínimos necesita conexión directa a Postgres, que en la nube interna sí estará disponible.
 - **Dominios `*.workers.dev`**, afectados por los bloqueos de Cloudflare en días de partido. En la nube interna: dominio y alojamiento propios.
 - **Edge Function con nombre automático** (`swift-task`).
 

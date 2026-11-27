@@ -17,6 +17,15 @@
 
 -- ───────────── 1) Rol admin y auditoría ─────────────
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261114120000_rls_y_admin') then
+      raise exception 'La migración 20261114120000_rls_y_admin ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.periodistas add column if not exists es_admin boolean not null default false;
 
 create table if not exists public.periodistas_log (

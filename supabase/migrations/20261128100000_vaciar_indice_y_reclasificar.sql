@@ -17,6 +17,15 @@
 -- Después: node --env-file=.env ingesta/fichas.js --restringidas --limite 1000 (o esperar a la próxima ingesta).
 -- Se puede ejecutar más de una vez: cada paso solo toca lo que aún no está corregido.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261128100000_vaciar_indice_y_reclasificar') then
+      raise exception 'La migración 20261128100000_vaciar_indice_y_reclasificar ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.tg_vaciar_restringida() returns trigger
   language plpgsql
   set search_path = ''

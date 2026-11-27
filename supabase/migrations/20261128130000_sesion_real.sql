@@ -14,6 +14,15 @@
 -- security definer: lee auth.sessions, que el rol authenticated no puede leer. Sigue sin EXECUTE para nadie: la
 -- usan es_periodista/es_admin/exigir_*.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261128130000_sesion_real') then
+      raise exception 'La migración 20261128130000_sesion_real ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 do $$
 begin
   if not has_table_privilege(current_user, 'auth.sessions', 'select') then

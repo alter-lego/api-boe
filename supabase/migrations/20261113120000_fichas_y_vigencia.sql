@@ -1,6 +1,15 @@
 -- Fase 2 · Migración 6 · Columnas para fichas (revisión) y vigencia del XML del BOE
 -- Solo añade columnas e índice; no toca las funciones de la API (eso llega con la Fase 3/4).
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261113120000_fichas_y_vigencia') then
+      raise exception 'La migración 20261113120000_fichas_y_vigencia ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 alter table public.publicaciones
   add column ficha_revisar boolean not null default false,   -- la IA no pudo resumir con seguridad
   add column ficha_motivo_revision text,

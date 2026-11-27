@@ -14,6 +14,15 @@
 -- Si el BOE escribe el nombre con algo en medio («Eladio José Santos Martínez»), se pierde: la web
 -- recomienda probar solo con los apellidos.
 
+-- Guarda (migración 24): si ya está aplicada, se para aquí en vez de deshacer cambios posteriores sin avisar.
+do $$ begin
+  if to_regclass('public.migraciones') is not null then
+    if exists (select 1 from public.migraciones where nombre = '20261126130000_persona_sin_sueltas') then
+      raise exception 'La migración 20261126130000_persona_sin_sueltas ya está aplicada: no la repitas';
+    end if;
+  end if;
+end $$;
+
 create or replace function public.buscar_persona(
   p_nombre text,
   p_desde date default null,
