@@ -464,7 +464,7 @@ do $$
 declare
   ahora bigint := extract(epoch from now())::bigint;
   amrs text[];
-  esperado text[] := array['ok','PT401','PT401','PT401','PT401','ok','ok','PT401','PT401','PT401','PT401'];
+  esperado text[] := array['ok','PT401','PT401','PT401','PT401','PT401','ok','PT401','PT401','PT401','PT401'];
   i int; r text; n int; f text;
 begin
   perform set_config('request.jwt.claims', '', true); reset role;
@@ -474,7 +474,7 @@ begin
     null,                                                                                               -- 3 sin amr
     format('[{"method":"password","timestamp":%s}]', ahora - 3600),                                     -- 4 método distinto
     format('[{"method":"otp","timestamp":%s},{"method":"otp","timestamp":%s}]', ahora - 3600, ahora - 30 * 3600), -- 5 manda la más antigua
-    format('[{"method":"otp","timestamp":%s},{"method":"password","timestamp":%s}]', ahora - 3600, ahora - 2 * 3600), -- 6 vale (la más antigua, 2 h)
+    format('[{"method":"otp","timestamp":%s},{"method":"password","timestamp":%s}]', ahora - 3600, ahora - 2 * 3600), -- 6 no vale: lleva contraseña (migración 23)
     format('[{"method":"magiclink","timestamp":%s}]', ahora - 3600),                                    -- 7 magiclink vale
     '"x"',                                                                                              -- 8 amr ilegible (no es lista)
     '[{"method":"otp","timestamp":"abc"}]',                                                             -- 9 marca ilegible
