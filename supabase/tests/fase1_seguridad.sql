@@ -333,6 +333,7 @@ begin
     raise exception 'FALLO: hay sobrecargas de buscar/contar'; end if;
 end $$;
 
-rollback;
-
+-- Dentro de la transacción: si algo ha fallado antes, el lote se para y esta línea no llega a salir (auditoría, 2.19).
 select 'TODAS LAS PRUEBAS OK' as resultado;
+
+rollback;

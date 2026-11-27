@@ -30,10 +30,9 @@ jobs:
   ingesta:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Los secretos van solo en los pasos que los usan (auditoría, 2.22): ni checkout ni setup-node los ven. Las
+    # pruebas no se ejecutan aquí (con los secretos cargados): ya corren en cada cambio con «Pruebas» (pruebas.yml).
     env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       FECHA: ${{ github.event.inputs.fecha }}
     steps:
       - uses: actions/checkout@v7
@@ -41,27 +40,35 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Dependencias del Worker
-        run: npm ci --omit=dev --prefix api
-
-      - name: Pruebas
-        run: node --test
-
       - name: Sumario del día
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node ingesta/boe.js --fecha "${FECHA:-hoy}"
 
       # Los pasos siguientes se ejecutan aunque falle el anterior (p. ej. un corte puntual del BOE):
       # procesan lo pendiente, y la ejecución sigue marcada como fallida para avisar.
       - name: Fichas de las públicas
         if: ${{ !cancelled() }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node ingesta/fichas.js --pendientes --limite 1000 --max-coste 1 --concurrencia 4
 
       - name: Texto de las restringidas
         if: ${{ !cancelled() }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node ingesta/fichas.js --restringidas --limite 1000 --concurrencia 4
 
       # Resumen editorial del día («Resumen de hoy» de la web), con Claude. Solo llama si el día aún no tiene
       # resumen o si han cambiado sus publicaciones (p. ej. un extraordinario); un día sin BOE no hace nada.
       - name: Resumen del día
         if: ${{ !cancelled() }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node ingesta/resumen-dia.js --fecha "${FECHA:-hoy}" --max-coste 1

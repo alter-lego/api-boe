@@ -749,6 +749,7 @@ begin
   if lista is not null then raise exception 'FALLO: permisos abiertos sobre columnas: %', lista; end if;
 end $$;
 
-rollback;
-
+-- Dentro de la transacción: si algo ha fallado antes, el lote se para y esta línea no llega a salir (auditoría, 2.19).
 select 'TODAS LAS PRUEBAS OK' as resultado;
+
+rollback;

@@ -1,5 +1,5 @@
-# Vigila que la ingesta diaria del BOE esté al día. Si la API no responde o la última ingesta correcta es
-# de hace más de 6 horas, la ejecución FALLA y GitHub avisa por correo a quien tenga activadas las
+# Vigila que la ingesta diaria del BOE esté al día. Si la API no responde, la última ingesta correcta es
+# de hace más de 6 horas (30 los domingos) o, de lunes a sábado, no es del BOE de hoy, la ejecución FALLA y GitHub avisa por correo a quien tenga activadas las
 # notificaciones de Actions (Settings → Notifications → Actions → «Failed workflows only»).
 # No necesita secretos: /v1/health es público.
 name: Monitor de ingesta
@@ -30,9 +30,18 @@ jobs:
           [ "$(echo "$cuerpo" | jq -r '.ok')" = "true" ] || { echo "::error::/v1/health devuelve ok distinto de true"; exit 1; }
           fin=$(echo "$cuerpo" | jq -r '.ultima_ingesta.fin // empty')
           [ -n "$fin" ] || { echo "::error::No hay ninguna ingesta correcta registrada"; exit 1; }
+          fecha=$(echo "$cuerpo" | jq -r '.ultima_ingesta.fecha // empty')
           edad_h=$(( ( $(date -u +%s) - $(date -u -d "$fin" +%s) ) / 3600 ))
-          echo "Última ingesta correcta: $fin (hace ${edad_h} h)"
-          if [ "$edad_h" -ge "$MAX_HORAS" ]; then
-            echo "::error::La última ingesta correcta es de hace ${edad_h} h (límite ${MAX_HORAS} h). Revisa el workflow «Ingesta BOE»."
+          echo "Última ingesta correcta: $fin (hace ${edad_h} h), del día $fecha"
+          # El domingo no hay BOE ni pasadas de mañana: la última es la del sábado (auditoría, 2.20).
+          dia=$(TZ=Europe/Madrid date +%u); hoy=$(TZ=Europe/Madrid date +%F)
+          max=$MAX_HORAS; [ "$dia" = 7 ] && max=30
+          if [ "$edad_h" -ge "$max" ]; then
+            echo "::error::La última ingesta correcta es de hace ${edad_h} h (límite ${max} h). Revisa el workflow «Ingesta BOE»."
+            exit 1
+          fi
+          # De lunes a sábado tiene que estar cargado el BOE de hoy.
+          if [ "$dia" != 7 ] && [ "$fecha" != "$hoy" ]; then
+            echo "::error::La última ingesta es del día $fecha, no de hoy ($hoy). Revisa el workflow «Ingesta BOE»."
             exit 1
           fi
