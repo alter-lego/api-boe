@@ -37,7 +37,11 @@
 .bboe-card__title { font: 600 20px/28px var(--font-serif); color: var(--ink); text-decoration: none; text-wrap: balance; }
 .bboe-card__title:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .bboe-card__summary { margin: 0; font: 400 16px/25px var(--font-sans); color: var(--ink); max-width: 68ch; }
-.bboe-card__ai { font: 400 14px/20px var(--font-sans); color: var(--muted); white-space: nowrap; cursor: help; }
+.bboe-ia { position: relative; display: inline-block; white-space: nowrap; }
+.bboe-card__ai { font: 400 14px/20px var(--font-sans); color: var(--muted); white-space: nowrap; cursor: help; background: none; border: 0; padding: 2px 0; margin: 0; border-radius: var(--radius-sm); }
+.bboe-card__ai:hover { color: var(--ink); }
+.bboe-ia__tip { display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 20; width: 300px; max-width: calc(100vw - 32px); white-space: normal; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 8px 12px; font: 400 14px/20px var(--font-sans); color: var(--ink); box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+.bboe-ia__tip--on { display: block; }
 .bboe-card__row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .bboe-card__links { display: flex; gap: 20px; margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line); font: 500 15px/22px var(--font-sans); }
 .bboe-card__link { color: var(--brand); text-decoration: none; }

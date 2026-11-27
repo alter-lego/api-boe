@@ -1,6 +1,6 @@
 // Componentes del design system «Buscador del BOE» (ver Claude Design). Usan components.css y tokens.css.
 import { ConInicioDestacado } from '../destacar';
-import type { ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { enlaceBoe } from '../enlaces';
 import { etiquetaTema, etiquetaTipo, fechaCorta } from '../labels';
 import type { Ficha } from '../types';
@@ -44,10 +44,39 @@ function indicadores(f: Ficha) {
 export const estadoResumen = (f: Ficha): 'summary' | 'noSummary' | 'review' | 'pending' =>
   f.nivel_privacidad === 'restringido' ? 'noSummary' : f.ficha_revisar ? 'review' : f.resumen ? 'summary' : 'pending';
 
+const TEXTO_IA = 'Resumen generado por IA a partir del texto oficial. Consulta siempre el BOE antes de citar.';
+
+/**
+ * Etiqueta «Generado con IA» con su explicación. La explicación está siempre en el DOM y enlazada con
+ * aria-describedby (la leen los lectores de pantalla al llegar con el teclado); a la vista se abre al pulsar
+ * (o tocar) o al pasar el ratón, y se cierra con Escape, al salir del botón o al pulsar fuera.
+ */
 export function IA() {
+  const id = useId();
+  const [abierto, setAbierto] = useState(false);
+  const [desplazar, setDesplazar] = useState(0);
+  const caja = useRef<HTMLSpanElement>(null);
+  const abrir = () => {
+    // La burbuja (300 px como mucho) se corre a la izquierda lo justo para no salirse de la pantalla.
+    const r = caja.current?.getBoundingClientRect();
+    if (r) { const ancho = Math.min(300, window.innerWidth - 32); setDesplazar(Math.max(16, Math.min(r.left, window.innerWidth - 16 - ancho)) - r.left); }
+    setAbierto(true);
+  };
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: MouseEvent) => { if (caja.current && !caja.current.contains(e.target as Node)) setAbierto(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false); };
+    document.addEventListener('mousedown', fuera);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc); };
+  }, [abierto]);
   return (
-    <span className="bboe-card__ai" tabIndex={0} title="Generado por IA a partir del texto oficial. Consulta siempre el BOE antes de citar.">
-      Generado con IA ⓘ
+    <span ref={caja} className="bboe-ia" onMouseEnter={abrir} onMouseLeave={() => setAbierto(false)}>
+      <button type="button" className="bboe-card__ai" aria-expanded={abierto} aria-describedby={id}
+        onClick={abrir} onBlur={() => setAbierto(false)}>
+        Generado con IA <span aria-hidden="true">ⓘ</span>
+      </button>
+      <span id={id} className={`bboe-ia__tip${abierto ? ' bboe-ia__tip--on' : ''}`} style={{ left: desplazar }}>{TEXTO_IA}</span>
     </span>
   );
 }

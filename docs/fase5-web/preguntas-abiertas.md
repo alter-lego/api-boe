@@ -88,7 +88,7 @@ Regla añadida: un anuncio sin resumen se muestra siempre con su título, y al p
 - `prompt-lovable.md` y `wireframes.md` del encargo original: no se hacen (Lovable descartado; el lienzo hace de wireframes). Cuando se construya, el contrato de datos pasará a `web/CLAUDE.md`.
 
 ## Seguridad de la web (revisión del 14/11/2026)
-- **Cabeceras** (`web/public/_headers`): política de contenido (CSP) que solo permite scripts propios, estilos propios y de Google Fonts, y conexiones a la API y a Supabase; además `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex`. Probado con un build real servido con `wrangler dev`: sin violaciones al recorrer inicio, resultados, detalle, sumario, administración y filtros.
+- **Cabeceras** (`web/public/_headers`): política de contenido (CSP) que solo permite scripts propios (y Turnstile), estilos y fuentes propios (las fuentes se alojan en la web desde el 27/11/2026, sin Google Fonts) y conexiones a la API y a Supabase; además `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex`. Probado con un build real servido con `wrangler dev`: sin violaciones al recorrer inicio, resultados, detalle, sumario, administración y filtros.
 - **Enlaces a la fuente:** solo se pintan si son `https` y de `boe.es` o `*.boe.es`; si no, no hay botón.
 - **Sesión caducada:** un 401 de la API o de las funciones de administración (`PT401`, `PGRST301`) cierra la sesión local y lleva a `/entrar`; un visitante sin sesión no ve el aviso de caducidad.
 - **Demasiados enlaces:** un 429 al pedir el enlace muestra «Has pedido demasiados enlaces; espera unos minutos.», sin revelar si el correo está autorizado.
