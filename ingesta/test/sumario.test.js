@@ -164,7 +164,7 @@ function bdFalsa({ previos = [], existentes = [] } = {}) {
   const log = { upserts: [], insertados: [] };
   return {
     log,
-    seleccionar: async (ruta) => (ruta.startsWith('sumarios') ? previos : existentes.map((id) => ({ id }))),
+    seleccionar: async (ruta) => (ruta.startsWith('sumarios') ? previos : existentes.map((e) => (typeof e === 'string' ? { id: e } : e))),
     upsert: async (tabla, filas) => {
       log.upserts.push({ tabla, filas });
       return tabla === 'sumarios' ? filas.map((f, i) => ({ ...f, id: 100 + i })) : null;
@@ -237,6 +237,15 @@ test('diaAnterior cruza meses y años', () => {
   assert.equal(diaAnterior('2026-11-27'), '2026-11-26');
   assert.equal(diaAnterior('2026-12-01'), '2026-11-30');
   assert.equal(diaAnterior('2027-01-01'), '2026-12-31');
+});
+
+test('una publicación ya restringida (p. ej. a mano) no vuelve a pública con otra pasada', async () => {
+  const [primera, segunda] = idsNormal();
+  const db = bdFalsa({ existentes: [{ id: primera, nivel_privacidad: 'restringido' }, { id: segunda, nivel_privacidad: 'publico' }] });
+  await ingestarFecha('2026-11-12', { db, descargar: descargarNormal });
+  const filas = db.log.upserts.filter((u) => u.tabla === 'publicaciones').flatMap((u) => u.filas);
+  assert.equal(filas.find((f) => f.id === primera).nivel_privacidad, 'restringido');
+  assert.equal(filas.find((f) => f.id === segunda).nivel_privacidad, parsearSumario(normal()).diarios[0].publicaciones[1].nivel_privacidad);
 });
 
 test('cuenta nuevas y actualizadas', async () => {

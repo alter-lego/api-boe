@@ -123,7 +123,15 @@ export async function generarFichas(pubs, deps) {
         }
       } catch (e) {
         r.errores.push({ id: pub.id, error: String(e?.message ?? e) });
-        if (/HTTP 40[13]|invalid x-api-key|authentication/i.test(String(e?.message))) { r.parada = 'error de autenticación: se detiene'; return; }
+        if (e?.uso) {   // intentos ya cobrados antes del fallo
+          r.coste += e.coste ?? 0;
+          r.tokens_entrada += e.uso.input_tokens ?? 0;
+          r.tokens_salida += e.uso.output_tokens ?? 0;
+          r.tokens_cache += e.uso.cache_read_input_tokens ?? 0;
+        }
+        // Solo un 401/403 de Anthropic (errores «fatal» de ficha-ia.js) detiene la pasada: un 403 de boe.es al bajar un
+        // XML es un fallo de esa publicación y se sigue con las demás (auditoría, apartado 3).
+        if (e?.fatal && /HTTP 40[13]|invalid x-api-key|authentication/i.test(String(e?.message))) { r.parada = 'error de autenticación: se detiene'; return; }
       }
       if (pausa) await dormir(pausa);
     }

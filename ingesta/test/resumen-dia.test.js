@@ -208,3 +208,13 @@ test('resumirDia: tope de 24 h (llamadas y gasto ya anotados) y --forzar lo salt
   const forzado = await resumirDia('2026-11-25', { db: conGasto([{ coste_usd: 0.1 }, { coste_usd: 0.1 }, { coste_usd: 0.1 }, { coste_usd: 0.1 }]), claveApi: 'k', instrucciones: 'I', forzar: true, pedir: pedirFalso });
   assert.equal(forzado.estado, 'guardado');
 });
+
+test('usoTotal: con modelo de reserva se suman todas las iteraciones', async () => {
+  const { usoTotal } = await import('../lib/resumen-dia.js');
+  assert.deepEqual(usoTotal({ input_tokens: 10, output_tokens: 5 }), { input_tokens: 10, output_tokens: 5 });
+  const u = usoTotal({ input_tokens: 7, output_tokens: 3, iterations: [
+    { type: 'message', input_tokens: 100, output_tokens: 20 },
+    { type: 'fallback_message', input_tokens: 7, output_tokens: 3, cache_read_input_tokens: 50 },
+  ] });
+  assert.deepEqual(u, { input_tokens: 107, output_tokens: 23, cache_read_input_tokens: 50, cache_creation_input_tokens: 0 });
+});

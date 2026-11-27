@@ -413,3 +413,12 @@ test('textoPlano acepta un XML cortado: toma el cuerpo hasta donde llega, sin la
   assert.equal(textoPlano(xml + '<p cla'), 'Primero.\nSegundo párrafo cort');
   assert.equal(textoPlano('<documento><metadatos><rango>Orden</rango>'), '');
 });
+
+test('si falla el segundo intento, el uso del primero viaja con el error (no se pierde el gasto)', async () => {
+  let n = 0;
+  const err = await generarFicha({ id: 'X' }, opciones(async () => (++n === 1 ? respuesta(msg('no es json')) : respuesta({ error: 'x' }, 400))))
+    .then(() => null, (e) => e);
+  assert.ok(err, 'debía fallar');
+  assert.equal(err.uso.input_tokens, 1000);
+  assert.ok(err.coste > 0);
+});

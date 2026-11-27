@@ -47,9 +47,16 @@ export function crearApp({ fetchFn = fetch, jwks, instrucciones = null, esperar 
   app.notFound((c) => c.json({ error: 'no encontrado' }, 404));
 
   // Estado de la ingesta: sin autenticación, solo devuelve una fecha.
+  // Pública: se guarda 60 s en memoria del Worker y se marca como cacheable, para que pedirla en bucle no se
+  // convierta en una consulta a Supabase por petición (auditoría, apartado 3).
+  let salud = null;
   app.get('/v1/health', async (c) => {
-    const filas = await rpc(c.env, 'ultima_ingesta', {}, { fetchFn });
-    return c.json({ ok: true, ultima_ingesta: filas[0] ?? null });
+    if (!salud || Date.now() - salud.en > 60_000) {
+      const filas = await rpc(c.env, 'ultima_ingesta', {}, { fetchFn });
+      salud = { en: Date.now(), cuerpo: { ok: true, ultima_ingesta: filas[0] ?? null } };
+    }
+    c.header('Cache-Control', 'public, max-age=60');
+    return c.json(salud.cuerpo);
   });
 
   // Todo lo demás exige sesión de Supabase Auth de un periodista.

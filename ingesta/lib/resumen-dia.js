@@ -20,6 +20,14 @@ const PRECIOS = { entrada: 2, salida: 10, lectura_cache: 0.1, escritura_cache: 2
 export const leerInstruccionesResumen = () =>
   readFileSync(new URL('../../skill/RESUMEN-DIA.md', import.meta.url), 'utf8');
 
+/** Uso de una respuesta, sumando las iteraciones si hubo modelo de reserva. */
+export function usoTotal(usage = {}) {
+  const it = Array.isArray(usage?.iterations) ? usage.iterations : [];
+  if (it.length < 2) return usage ?? {};
+  const campos = ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens'];
+  return Object.fromEntries(campos.map((c) => [c, it.reduce((a, x) => a + (x?.[c] ?? 0), 0)]));
+}
+
 export function costeResumenUSD(uso = {}) {
   const t = (n) => (n ?? 0) / 1e6;
   return t(uso.input_tokens) * PRECIOS.entrada + t(uso.output_tokens) * PRECIOS.salida
@@ -55,6 +63,9 @@ export function motivoDescarte(p) {
   if (p.seccion === '5C') return 'anuncios_particulares';
   if (p.seccion === '5B' && /confederación hidrográfica|transición ecológica/.test(`${d} ${t}`)) return 'confederaciones';
   if (p.seccion === '3' && (d === 'universidades' || RE.universidades.test(p.titulo ?? ''))) return 'universidades';
+  // Trámites de títulos universitarios de V.B (extravío, duplicado…): restringidos y con un nombre en el título.
+  // skill/RESUMEN-DIA.md dice que no llegan a Claude (auditoría, apartado 3).
+  if (p.seccion === '5B' && /titulo universitario|extravio de(l)? titulo|duplicado de(l)? titulo|destruccion de titulo/.test(t.normalize('NFD').replace(/\p{Diacritic}/gu, ''))) return 'universidades';
   if ((p.seccion === '2A' || p.seccion === '2B') && d === 'administración local') return 'administracion_local';
   return null;
 }
@@ -195,7 +206,9 @@ export async function pedirResumen(peticion, { claveApi, fetchFn, esperas = [500
     claveApi, fetchFn, esperas, timeoutMs: 600_000,
     cabeceras: { 'anthropic-beta': 'server-side-fallback-2026-07-01' },
   });
-  const uso = r.usage ?? {};
+  // Con el modelo de reserva (fallbacks), cada modelo que ha corrido viene en usage.iterations y se cobra:
+  // se suman todas (auditoría, apartado 3). Se valoran a precio de Sonnet 5.5.
+  const uso = usoTotal(r.usage);
   const coste = costeResumenUSD(uso);
   if (r.stop_reason === 'refusal') throw Object.assign(new Error('el modelo rechazó la petición'), { uso, coste });
   if (r.stop_reason === 'max_tokens') throw Object.assign(new Error('respuesta cortada por longitud'), { uso, coste });

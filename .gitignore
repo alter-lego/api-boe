@@ -5,5 +5,8 @@ node_modules/
 .wrangler/
 supabase/.temp/
 *.log
+# Volcados de la base (la copia de seguridad, descifrada o no): nunca al repositorio
+*.dump
+*.dump.*
 .DS_Store
 !.env.example

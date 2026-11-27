@@ -71,7 +71,14 @@ export async function generarFicha(entrada, { claveApi, instrucciones, fetchFn, 
   let motivo = 'salida no válida';
 
   for (let intento = 1; intento <= 2; intento++) {
-    const r = await llamar(peticion, { claveApi, fetchFn, esperas });
+    let r;
+    try {
+      r = await llamar(peticion, { claveApi, fetchFn, esperas });
+    } catch (e) {
+      // Si falla el segundo intento, el primero ya se cobró: el uso viaja con el error (auditoría, apartado 3).
+      if (intento > 1) Object.assign(e, { uso: { ...uso }, coste: costeUSD(uso) });
+      throw e;
+    }
     for (const k of Object.keys(uso)) uso[k] += r.usage?.[k] ?? 0;
 
     if (r.stop_reason === 'refusal') { motivo = 'el modelo rechazó la petición'; break; }

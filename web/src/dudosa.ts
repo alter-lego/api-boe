@@ -8,11 +8,11 @@ const VACIAS = new Set(['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', '
 
 function palabraRara(p: string): boolean {
   const s = p.toLowerCase();
-  if (/(.)\1{3,}/.test(s)) return true; // «aaaa»
+  if (/(.)\1{3,}/u.test(s)) return true; // «aaaa» (mismas banderas que api/src/pregunta-valida.js)
   if (s.length >= 3 && new Set(s).size <= 2) return true; // «aaa», «ababab»
   if (s.length < 5) return false; // siglas y palabras cortas válidas: BOE, IRPF, ley
   const vocales = (s.match(/[aeiouáéíóúü]/g) ?? []).length;
-  return vocales / s.length < 0.25 || /[^aeiouáéíóúüñ\d\W]{5,}/.test(s);
+  return vocales / s.length < 0.25 || /[^aeiouáéíóúüñ\d\W]{5,}/u.test(s);
 }
 
 // --- Regla BLANDA: palabras que no parecen españolas (no se rechaza en el servidor) ---

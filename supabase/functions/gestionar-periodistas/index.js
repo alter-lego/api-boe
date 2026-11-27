@@ -12,7 +12,8 @@
 //   { accion: 'alta', email, nombre?, limite_diario?, es_admin? }  da de alta en `periodistas` y crea su acceso.
 //   { accion: 'acceso', email }  crea el acceso de alguien ya dado de alta y activo (reparación si un alta se quedó a medias).
 
-const ORIGENES_PERMITIDOS = ['https://buscador-boe.alter-lego.workers.dev', 'http://localhost:5173', 'http://localhost:8080'];
+// Sin localhost en producción (auditoría, apartado 3).
+const ORIGENES_PERMITIDOS = ['https://buscador-boe.alter-lego.workers.dev'];
 const TOPE_CUERPO = 4096;
 const CORREO = /^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
 

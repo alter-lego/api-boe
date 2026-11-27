@@ -18,8 +18,18 @@ export function DiaDeHoy() {
 
 const diaCorto = (f: string) => fechaCorta(f).replace(/ \d{4}$/, '');
 
+// Una fecha mal escrita en la dirección (/dia/xxx) dejaba la página en blanco (auditoría, apartado 3).
+const fechaValida = (f: string) => /^\d{4}-\d{2}-\d{2}$/.test(f) && !Number.isNaN(Date.parse(`${f}T00:00:00Z`));
+
 export function Sumario() {
   const { fecha = '' } = useParams();
+  if (!fechaValida(fecha)) {
+    return <div className="aviso" role="alert"><h2>Esa fecha no es válida</h2><p><Link className="enlace" to="/dia">← Ir al BOE de hoy</Link></p></div>;
+  }
+  return <SumarioDia key={fecha} fecha={fecha} />;
+}
+
+function SumarioDia({ fecha }: { fecha: string }) {
   const [buscar, setBuscar] = useState('');
   const { data, error, cargando, reintentar } = useAsync(() => api.sumario(fecha), fecha);
   const q = buscar.trim().toLowerCase();

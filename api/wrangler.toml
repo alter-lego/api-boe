@@ -6,7 +6,9 @@ compatibility_date = "2026-11-01"
 [vars]
 SUPABASE_URL = "https://dgybontyrywfdzxvapqr.supabase.co"
 # Orígenes permitidos por CORS, separados por comas. Se añade el dominio de Lovable cuando exista.
-ALLOWED_ORIGINS = "https://buscador-boe.alter-lego.workers.dev,http://localhost:5173,http://localhost:8080"
+# Sin localhost en producción (auditoría, apartado 3): para probar la web en local contra la API real, añádelo
+# en un .dev.vars o en un entorno de pre, no aquí.
+ALLOWED_ORIGINS = "https://buscador-boe.alter-lego.workers.dev"
 # Duración máxima de la sesión, en horas, contada desde el login por enlace (no desde la última renovación).
 SESION_MAX_HORAS = "24"
 # Preguntas en lenguaje natural (Fase 4). ANTHROPIC_API_KEY es un secreto propio del buscador (distinto del de la ingesta):

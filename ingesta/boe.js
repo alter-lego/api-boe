@@ -59,9 +59,10 @@ export async function ingestarFecha(fecha, { db, seco = false, descargar = desca
         const previos = await db.seleccionar(
           `sumarios?boletin=eq.BOE&fecha=eq.${fecha}&select=numero,hash`,
         );
-        const existentes = new Set(
-          (await db.seleccionar(`publicaciones?fecha=eq.${fecha}&boletin=eq.BOE&select=id`)).map((p) => p.id),
-        );
+        const yaCargadas = await db.seleccionar(`publicaciones?fecha=eq.${fecha}&boletin=eq.BOE&select=id,nivel_privacidad`);
+        const existentes = new Set(yaCargadas.map((p) => p.id));
+        // Lo que ya está restringido (por la regla o a mano) no vuelve a público con otra pasada (auditoría, apartado 3).
+        const restringidas = new Set(yaCargadas.filter((p) => p.nivel_privacidad === 'restringido').map((p) => p.id));
         // «Sin cambios» solo si el hash coincide Y están todas las publicaciones del sumario en la base: si una
         // pasada anterior se cortó a mitad, se vuelve a escribir aunque el hash sea el mismo.
         const igual =
@@ -81,7 +82,11 @@ export async function ingestarFecha(fecha, { db, seco = false, descargar = desca
           // Solo se envían las columnas del sumario: así un nuevo paso del mismo día
           // no borra las fichas (resumen, temas...) que ya se hayan generado.
           const filas = parseado.diarios.flatMap((d) =>
-            d.publicaciones.map((p) => ({ ...p, sumario_id: idSumario.get(d.numero) })),
+            d.publicaciones.map((p) => ({
+              ...p,
+              ...(restringidas.has(p.id) ? { nivel_privacidad: 'restringido' } : {}),
+              sumario_id: idSumario.get(d.numero),
+            })),
           );
           for (const lote of lotes(filas, TAMANO_LOTE)) await db.upsert('publicaciones', lote, 'id');
           await db.upsert(
